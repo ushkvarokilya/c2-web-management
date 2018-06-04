@@ -1,0 +1,134 @@
+<div class="page-holder">
+	<div class="page-header">
+		<div class="page-title">
+			ANNOUNCEMENTS
+		</div>
+	</div>
+	<div class="content">
+		<div class="top-content">
+			<div *ngIf="(user$ |async)?.actionPermissions?.includes('Announcements')"  class="form-item-add-input clickable" (click)="toggleAddAnnouncemet()">
+				<div class="plus">
+					<div class="line"></div>
+					<div class="line"></div>
+				</div>
+				<div class="add-input-label">
+					Add Announcement
+				</div>
+			</div>
+			<div class="query-search">
+				<input type="text" [(ngModel)]="searchQuery" placeholder="Search by publisher, text or date">
+			</div>
+		</div>
+		<div class="publish-ann" [ngClass]="{'hide-publish': !showPublish}">
+			<div class="publish-info">
+				Announcements will be displayed at the tenants app. Keep it short as possible.
+			</div>
+			<div class="publish-text">
+				<textarea rows="3" maxlength="140" [(ngModel)]="newAnnoun.announcementBody" [ngClass]="{'error': errors && errors.publishBody}"></textarea>
+				<div class="letter-num" [ngClass]="{'error': 140 - newAnnoun.announcementBody.length < 0}">{{ 140 - newAnnoun.announcementBody.length}}</div>
+				<div *ngIf="errors && errors.publishBody" class="form-item-error">
+					{{errors.publishBody}}
+				</div>
+			</div>
+			<div class="schedule-toggle clickable" (click)="newAnnoun.showSchedule = !newAnnoun.showSchedule">
+				<div class="c2-radio" [ngClass]="{'checked': newAnnoun.showSchedule}"></div> Display for Scheduled time
+			</div>
+			<div *ngIf="newAnnoun.showSchedule" class="schedule-select">
+				<div class="start">
+					<div class="start-label">Start</div>
+					<div class="pickers">
+						<datepicker [(date)]="newAnnoun.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+						<select id="" [(ngModel)]="newAnnoun.fromHour">
+								<option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+						</select>
+						<div>:</div>
+						<select class="last-select" id="" [(ngModel)]="newAnnoun.fromMinute">
+								<option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+						</select>
+					</div>
+				</div>
+				<div class="end">
+					<div class="end-label">End</div>
+					<div class="pickers">
+						<datepicker [(date)]="newAnnoun.toDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+						<select id="" [(ngModel)]="newAnnoun.toHour">
+								<option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+						</select>
+						<div>:</div>
+						<select class="last-select" id="" [(ngModel)]="newAnnoun.toMinute">
+							<option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+					</select>
+					</div>
+				</div>
+			</div>
+			<div class="publis-button">
+				<button class="c2-ok-button" [disabled]="publishing" [ngClass]="{loading: publishing}" (click)="publish()">
+					<span *ngIf="!newAnnoun.key">PUBLISH</span>
+					<span *ngIf="newAnnoun.key">EDIT</span>
+				</button>
+			</div>
+		</div>
+		<div class="active-ann">
+			<div class="ann-status-label">Active</div>
+			<div class="no-announcements" *ngIf="(activeAnnouncements$ | async).length == 0">
+				<h3>No active announcements</h3>
+			</div>
+			<div class="ann-row table-header" *ngIf="(activeAnnouncements$ | async).length > 0">
+				<div class="col-publisher">PUBLISHER</div>
+				<div class="col-text">TEXT</div>
+				<div class="col-scheduled">SCHEDULED</div>
+				<div class="col-options"></div>
+			</div>
+			<div class="ann-row announcement" *ngFor="let ann of (activeAnnouncements$ | async | searchAnnouncement:searchQuery)">
+				<div class="col-publisher">{{ann.publisher}}</div>
+				<div class="col-text">
+					<p>{{ann.message}}</p>
+				</div>
+				<div class="col-scheduled">
+					<span *ngIf="ann.scheduled.from">{{getScheduleDate(ann.scheduled.from)}} - {{getScheduleDate(ann.scheduled.to)}}</span>
+					<span *ngIf="!ann.scheduled.from">Not Scheduled</span>
+				</div>
+				<div *ngIf="(user$ |async)?.actionPermissions?.includes('Announcements')" class="col-options">
+					<img class="pencil-img clickable" src="/assets/img/pencil.png" (click)="editAnnouncement(ann)" />
+					<img class="trash-img clickable" src="/assets/img/trash.png" (click)="ann.showDeleteDialog = true;" />
+				</div>
+				<app-dialog *ngIf="ann.showDeleteDialog" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="ann.showDeleteDialog = false">
+					<div class="delete-announcement-holder">
+						<div class="delete-label">
+							Are you sure you want to delete this announcement?
+						</div>
+						<div class="delete-buttons">
+							<button class="c2-cancel-button" (click)="ann.showDeleteDialog = false">CANCEL</button>
+							<button class="c2-ok-button" (click)="deleteAnnoun(ann)">DELETE</button>
+						</div>
+					</div>
+				</app-dialog>
+			</div>
+		</div>
+		<div class="archived-ann">
+			<div class="ann-status-label">Archived</div>
+			<div class="no-announcements" *ngIf="(archivedAnnouncements$ | async).length == 0">
+				<h3>No archived announcements</h3>
+			</div>
+			<div class="ann-row table-header" *ngIf="(archivedAnnouncements$ | async).length > 0">
+				<div class="col-publisher">PUBLISHER</div>
+				<div class="col-text">TEXT</div>
+				<div class="col-scheduled">SCHEDULED</div>
+				<div class="col-options"></div>
+			</div>
+			<div class="ann-row announcement" *ngFor="let ann of (archivedAnnouncements$ | async | searchAnnouncement:searchQuery)">
+				<div class="col-publisher">{{ann.publisher}}</div>
+				<div class="col-text">
+					<p>{{ann.message}}</p>
+				</div>
+				<div class="col-scheduled">
+					<span *ngIf="ann.scheduled.from">{{getScheduleDate(ann.scheduled.from)}} - {{getScheduleDate(ann.scheduled.to)}}</span>
+					<span *ngIf="!ann.scheduled.from">Not Scheduled</span>
+				</div>
+				<!-- <div *ngIf="(user$ |async)?.actionPermissions?.includes('Announcements')" class="col-options">
+					<img class="redo-img clickable" src="/assets/img/undo.png" (click)="showReactiveAnnoun(ann)" />
+				</div> -->
+			</div>
+		</div>
+	</div>
+</div>

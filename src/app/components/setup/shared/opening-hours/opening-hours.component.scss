@@ -1,0 +1,76 @@
+.activity-hours-form {
+  flex-grow: 1;
+  background: white;
+  .activity-hours-label {
+    margin: 0;
+    font-size: 13px;
+  }
+  .radios {
+    display: flex;
+    margin-top: 13px;
+    .radio {
+      cursor: pointer;
+      color: rgba(42, 42, 42, 1);
+      font-size: 14px;
+      display: flex;
+      margin-left: 16px;
+      .c2-radio {
+        margin-top: 3px;
+        margin-right: 11px;
+      }
+      &.first-radio {
+        margin-left: 0;
+      }
+      &.no-margin {
+        margin-left: 0;
+      }
+    }
+  }
+  .days {
+    .selection-row {
+      margin-top: 15px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      .to-lable {
+        margin: 0 5px;
+        font-size: 13px;
+      }
+      .days-selection {
+        display: flex;
+        align-items: center;
+        .toggle-wraper {
+          margin-right: 15px;
+        }
+        select {
+          width: 80px;
+        }
+        .day-label {
+          width: 80px;
+          padding-left: 8px;
+          font-size: 12px;
+          height: 35px;
+          line-height: 33px;
+          background-color: #ffffff;
+          border: 1px solid #e7e7e7;
+          color: #909090;
+        }
+      }
+      .times-selection {
+        margin-left: 15px;
+        select {
+          width: 40px;
+          padding-left: 4px;
+          &.hour-selection {
+            width: 64px;
+          }
+        }
+        &.closed {
+          line-height: 33px;
+          font-size: 13px;
+        }
+      }
+    }
+  }
+}

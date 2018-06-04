@@ -1,0 +1,147 @@
+<div class="item" *ngIf="payment">
+	<div class="item-header lease-row" (click)="expandPayment = !expandPayment">
+		<div class="col-1">
+			<div class="apt">{{payment.name}}</div>
+			<div class="align-right">{{payment.rentTotal | currency:'USD':'symbol':'1.0-2'}}</div>
+		</div>
+		<div class="col-2">
+			{{getPresentedDate(payment.dueDate)}}
+		</div>
+		<div class="col-3">
+			<span [ngClass]="{'color-partially-paid': payment.status == 'PartiallyPaid',
+			 'color-unpaid': payment.status == 'Unpaid', 'color-paid': payment.status == 'Paid'}">
+				{{payment.status == 'PartiallyPaid' ? 'Partially Paid' : payment.status }}
+				</span>
+		</div>
+		<div class="col-4">
+		</div>
+	</div>
+	<div class="more-options" [ngClass]="{'active': showTooltip}">
+		<div class="three-dots" (click)="showTooltip = !showTooltip; $event.stopPropagation()">
+			<svg width="21" height="5" viewBox="0 0 21 5">
+				<use xlink:href="./assets/icons.svg#threeDots"></use>
+			</svg>
+		</div>
+		<div *ngIf="showTooltip" class="c2-menulist">
+			<div class="option" [routerLink]="['/tenants', {searchQuery: payment.name}]">
+				<span>See unit details</span>
+			</div>
+			<div *ngIf="(user$ |async)?.actionPermissions?.includes('Collections')" class="option" (click)="showTooltip = false; markAsPaid()">Mark as paid</div>
+			<div *ngIf="(user$ |async)?.actionPermissions?.includes('Collections') && payment.status == 'Unpaid'" class="option" (click)="showTooltip = false; showAddOneTimeCharge = true; currentPayment = payment">Add a one-time charge</div>
+		</div>
+	</div>
+	<div class="item-body" [ngClass]="{'hidden-body': !expandPayment}">
+		<div class="payment-list">
+			<div class="payment" *ngFor="let detailedPayment of payment.detailedPayments">
+				<div class="payment-label">{{detailedPayment.monthlyChargeName}}</div>
+				<div class="payment-amount">{{detailedPayment.monthlyChargeAmount | currency:'USD':'symbol':'1.0-2'}}</div>
+				<div class="remove-img list-payments" (click)="removePayment(payment)">
+					<img src="/assets/img/x-icon.png" [ngClass]="{'hidden': !(payment.status == 'Unpaid' && detailedPayment.oneTimePayment)}" (click)="deleteMonthlyCharge(detailedPayment, payment.monthlyPaymentKey, payment)">
+				</div>
+			</div>
+		</div>
+		<div class="tenants">
+			<div class="tenant" *ngFor="let tenant of payment.tenants">
+				<div class="tenant-img">
+					<img [src]="tenant.image" />
+				</div>
+				<div class="tenant-details">
+					<div class="tenant-name">{{tenant.fullName}}</div>
+					<div class="tenant-status" [ngClass]="{'unpaid': !tenant.paid}">
+						<span *ngIf="tenant.paid">Payed</span><span *ngIf="!tenant.paid">Unpaid yet</span>&nbsp;{{tenant.amount | currency:'USD':'symbol':'1.0-2'}}
+						&nbsp;
+						<span *ngIf="tenant.paid">on {{getPresentedDate(tenant.paidDate)}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--overdue-->
+	<div class="overdue" *ngFor="let overdue of payment.overduePayments">
+		<div class="item-header lease-row overdue-header" (click)="overdue.expand = !overdue.expand">
+			<div class="col-1">
+				<div class="apt">
+					<svg width="30" height="24" viewBox="0 0 30 24">
+						<use xlink:href="./assets/icons.svg#enter"></use>
+					</svg>
+				</div>
+				<div class="align-right">{{ overdue.rentTotal | currency:'USD':'symbol':'1.0-2'}}</div>
+			</div>
+			<div class="col-2">
+				{{getPresentedDate(overdue.dueDate)}}
+			</div>
+			<div class="col-3">
+				<span [ngClass]="{'overdue-payment-label': true}"> {{overdue.status == 'PartiallyPaid' ? 'Partially Paid' : overdue.status }}</span>				<span [ngClass]="{'overdue-divider': true }">+</span> Overdue
+			</div>
+			<div class="col-4">
+			</div>
+		</div>
+		<div class="more-options" [ngClass]="{'active': overdue.showTooltip}">
+			<div class="three-dots" (click)="overdue.showTooltip = !overdue.showTooltip; $event.stopPropagation()">
+				<svg width="21" height="5" viewBox="0 0 21 5">
+					<use xlink:href="./assets/icons.svg#threeDots"></use>
+				</svg>
+			</div>
+			<div *ngIf="overdue.showTooltip" class="c2-menulist">
+				<div class="option" (click)="overdue.showTooltip = false;">See unit details</div>
+				<div class="option" (click)="overdue.showTooltip = false; markAsPaid()">Mark as paid</div>
+				<div *ngIf="overdue.status == 'Unpaid'" class="option" (click)="overdue.showTooltip = false;
+				 showAddOneTimeCharge = true; currentPayment = overdue">Add a one-time charge</div>
+			</div>
+		</div>
+		<div class="item-body" [ngClass]="{'hidden-body': !overdue.expand}">
+			<div class="payment-list">
+				<div class="payment" *ngFor="let detailedPayment of overdue.detailedPayments">
+					<div class="payment-label">{{detailedPayment.monthlyChargeName}}</div>
+					<div class="payment-amount">{{detailedPayment.monthlyChargeAmount | currency:'USD':'symbol':'1.0-2'}}</div>
+					<div class="remove-img list-payments" (click)="removePayment(payment)">
+						<img src="/assets/img/x-icon.png" [ngClass]="{'hidden': !(payment.status == 'Unpaid' && detailedPayment.oneTimePayment)}" (click)="deleteMonthlyCharge(detailedPayment, overdue.monthlyPaymentKey, overdue)">
+					</div>
+				</div>
+			</div>
+			<div class="tenants">
+				<div class="tenant" *ngFor="let tenant of overdue.tenants">
+					<div class="tenant-img">
+						<img [src]="tenant.image" />
+					</div>
+					<div class="tenant-details">
+						<div class="tenant-name">{{tenant.fullName}}</div>
+						<div class="tenant-status" [ngClass]="{'unpaid': !tenant.paid}">
+							<span *ngIf="tenant.paid">Payed</span><span *ngIf="!tenant.paid">Unpaid yet</span>&nbsp;{{tenant.amount | currency:'USD':'symbol':'1.0-2'}}
+							&nbsp;
+							<span *ngIf="tenant.paid">on {{getPresentedDate(tenant.paidDate)}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<app-dialog *ngIf="showAddOneTimeCharge" [visible]="true" [header]="'ADDING ONE TIME CHARGE TO UNIT'" (visibleChange)="showAddOneTimeCharge = false">
+	<div class="one-payment" *ngFor="let payment of formPayments">
+		<div class="remove-img" (click)="removePayment(payment)">
+			<img src="/assets/img/x-icon.png" [ngClass]="{'hidden': !payment.isTyping || formPayments.length == 1}">
+		</div>
+		<div class="columnify">
+			<div class="select-label">Enter Charge title </div>
+			<input type="text" [(ngModel)]="payment.title" (keypress)="typingTrue(payment)">
+		</div>
+		<div class="columnify">
+			<div class="select-label">Enter Cost in $ </div>
+			<input type="text" [(ngModel)]="payment.cost" (keypress)="typingTrue(payment)">
+		</div>
+	</div>
+	<div (click)="markAsPaid()" class="form-item-add-input clickable">
+		<div class="plus">
+			<div class="line"></div>
+			<div class="line"></div>
+		</div>
+		<div class="add-input-label">
+			Add Monthly Charge
+		</div>
+	</div>
+	<div class="columnify buttons">
+		<button class="c2-cancel-button" id="saveButton" (click)="closeModal()">No, Cancel</button>
+		<button class="c2-ok-button" id="saveButton" (click)="addMonthlyCharges()">Submit Payments</button>
+	</div>
+</app-dialog>

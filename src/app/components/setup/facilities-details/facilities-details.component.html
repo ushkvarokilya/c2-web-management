@@ -1,0 +1,489 @@
+<div class="form-container">
+  <div class="header">
+    <h3>CREATE YOUR FACILITIES</h3>
+  </div>
+  <div class="form">
+    <div class="facility-info"></div>
+    <div *ngFor="let facility of facilities; let facilityIndex = index;">
+      <div class="facility" *ngIf="isUserHavePerJanitor[facilityIndex] || isUserHavePerManager[facilityIndex] || loggedUser.isRegionalManager || loggedUser.position == 'Regional Manager'">
+        <div class="facility-number">{{facilityIndex + 1}}</div>
+        <img *ngIf="!facility.key && facilities.length > 1" class="delete-facility clickable" (click)="facilities.splice(facilityIndex, 1)"
+          src="/assets/img/x-icon.png">
+        <div class="facility-form">
+          <div class="first-column">
+            <div class="name input-holder">
+              <div class="name-label input-label">Facility Name</div>
+              <input type="text" [(ngModel)]="facility.name">
+              <div *ngIf="errors[facilityIndex] && errors[facilityIndex].name" class="input-error">
+                {{errors[facilityIndex].name}}
+              </div>
+            </div>
+            <div class="image input-holder">
+              <div class="image-label input-label">
+                <span>Image (Optional)</span>
+                <span class="sub-label">Upload JPG or PNG format</span>
+              </div>
+              <app-image-upload #imageUpload (imageUploaded)="facility.imageUrl = $event"></app-image-upload>
+              <div class="image-holder" (click)="imageUpload.click()">
+                <div *ngIf="!facility.imageUrl" class="no-image">
+                  <div class="plus-button">+</div>
+                  <div class="add-image-label">Add Image</div>
+                </div>
+                <img *ngIf="facility.imageUrl" class="img" [src]="facility.imageUrl">
+              </div>
+            </div>
+          </div>
+          <div class="second-column">
+            <div class="address input-holder">
+              <div class="address-label input-label">Address</div>
+              <app-google-address [address]="facility | extractGoogleAddress" [objectWithFlatAddress]="facility"></app-google-address>
+              <div *ngIf="errors[facilityIndex] && errors[facilityIndex].address" class="input-error">
+                {{errors[facilityIndex].address}}
+              </div>
+            </div>
+            <div class="location-managers input-holder">
+              <div class="location-managers-label input-label">Location Manager</div>
+              <div class="location-managers-list c2-list">
+                <div class="selector" (click)="dropDowna.style.display = 'block'">
+                  <ng-container *ngIf="facility.locationManagerKeys?.length === users.locationManagers?.length">
+                    All
+                  </ng-container>
+                  <ng-container *ngIf="facility.locationManagerKeys?.length !== users.locationManagers?.length">
+                    {{facility.locationManagerKeys.length}}
+                  </ng-container>
+                  location managers
+                </div>
+                <div class="drop-down" #dropDowna>
+                  <div class="list-item" *ngFor="let user of users.locationManagers" (click)="toggleLocationManagerInFacility(facilityIndex, user); dropDown.style.display = 'none'"
+                    [ngClass]="{selected: isLocationManagerSelected(facility, user.key)}">
+                    {{user.firstName}} {{user.lastName}}
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="errors[facilityIndex] && errors[facilityIndex].locationManagerKeys" class="input-error">
+                {{errors[facilityIndex].locationManagerKeys}}
+              </div>
+            </div>
+            <div class="staff-members input-holder">
+              <div class="staff-members-label input-label">Responsbile Staff Members</div>
+              <div class="staff-members-list c2-list">
+                <div class="selector" (click)="dropDown.style.display = 'block'">
+                  <ng-container *ngIf="facility.janitorKeys?.length === users.staffMembers?.length">
+                    All
+                  </ng-container>
+                  <ng-container *ngIf="facility.janitorKeys?.length !== users.staffMembers?.length">
+                    {{facility.janitorKeys.length}}
+                  </ng-container>
+                  staff members
+                </div>
+                <div class="drop-down" #dropDown>
+                  <div class="list-item" *ngFor="let user of users.staffMembers" (click)="toggleJanitorInFacility(facilityIndex, user) && dropDown.style.display = 'none'"
+                    [ngClass]="{selected: isJanitorSelected(facility, user.key)}">
+                    {{user.firstName}} {{user.lastName}}
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="errors[facilityIndex] && errors[facilityIndex].janitorKeys" class="input-error">
+                {{errors[facilityIndex].janitorKeys}}
+              </div>
+            </div>
+          </div>
+          <div class="third-column">
+            <div class="buildings-amenities">
+              <div class="add-buildings input-holder">
+                <div class="input-label">Buildings</div>
+                <div class="add-box" (click)="toggleBuildings(facilityIndex)">
+                  <div class="plus-holder">
+                    <div class="plus-button">+</div>
+                    <div class="counter">
+                      {{facility.buildings?.length}} Buildings
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="errors[facilityIndex] && errors[facilityIndex].buildings" class="input-error">
+                  <ng-container *ngIf="errors[facilityIndex].buildings.buildingErrors">
+                    Error in one of the buildings
+                  </ng-container>
+                  <ng-container *ngIf="!errors[facilityIndex].buildings.buildingErrors">
+                    {{errors[facilityIndex].buildings}}
+                  </ng-container>
+                </div>
+              </div>
+              <div class="add-buildings input-holder">
+                <div class="input-label">Amenities</div>
+                <div class="add-box" (click)="toggleAmenities(facilityIndex)">
+                  <div class="plus-holder">
+                    <div class="plus-button">+</div>
+                    <div class="counter">
+                      {{facility.amenities?.length}} Amenities
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="errors[facilityIndex] && errors[facilityIndex].amenities" class="input-error">
+                  <ng-container *ngIf="errors[facilityIndex].amenities.amenityErrors">
+                    Error in one of the amenities
+                  </ng-container>
+                  <ng-container *ngIf="!errors[facilityIndex].amenities.amenityErrors">
+                    {{errors[facilityIndex].amenities}}
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+            <div class="stripe-connect">
+              <div class="no-complex-key" *ngIf="!facility.key">Please save this complex before connecting it to Stripe</div>
+              <div class="already-connected" *ngIf="facility.stripeConnectId">
+                This community has and active Stripe connection.
+                <br> To make any changes, please contact your administrator.
+              </div>
+              <span *ngIf="!facility.stripeConnectId" class="stripe-connect-button" (click)="goToStripeConnect(facility.key)">
+                <span>Connect with Stripe</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- BUILDINGS -->
+        <div class="buildings" [id]="'buildings'+facilityIndex">
+          <div class="back" (click)="toggleBuildings(facilityIndex)">
+            <img src="/assets/img/arrow-down.png"> Back To facilities
+          </div>
+          <div class="header">
+            <h3>{{facility.name}} Buildings</h3>
+          </div>
+          <div class="building" *ngFor="let building of facility.buildings; let buildingIndex = index">
+            <img *ngIf="!building.key && facility.buildings?.length !== 1" class="delete-building" (click)="facility.buildings.splice(buildingIndex, 1)"
+              src="/assets/img/x-icon.png">
+            <div class="form-top">
+              <div class="input-holders">
+                <div class="name-input input-holder">
+                  <div class="input-label">
+                    Building Name
+                  </div>
+                  <div class="input">
+                    <input type="text" [(ngModel)]="building.name">
+                    <div *ngIf="errors[facilityIndex]?.buildings?.buildingErrors[buildingIndex]?.name" class="input-error">
+                      {{errors[facilityIndex].buildings.buildingErrors[buildingIndex].name}}
+                    </div>
+                  </div>
+                </div>
+                <div class="address input-holder">
+                  <div class="address-label input-label">Address</div>
+                  <app-google-address [address]="building | extractGoogleAddress" [objectWithFlatAddress]="building"></app-google-address>
+                  <div *ngIf="errors[facilityIndex]?.buildings?.buildingErrors[buildingIndex]?.address" class="input-error">
+                    {{errors[facilityIndex].buildings.buildingErrors[buildingIndex].address}}
+                  </div>
+                </div>
+                <div class="staff-members input-holder">
+                  <div class="staff-members-label input-label">Staff Members</div>
+                  <div class="staff-members-list c2-list">
+                    <div class="selector" (click)="dropDown.style.display = 'block'">
+                      <ng-container *ngIf="building.janitorKeys?.length === users.staffMembers?.length">
+                        All
+                      </ng-container>
+                      <ng-container *ngIf="building?.janitorKeys?.length !== users?.staffMembers?.length">
+                        {{building?.janitorKeys?.length}}
+                      </ng-container>
+                      staff members
+                    </div>
+                    <div class="drop-down" #dropDown>
+                      <div class="list-item" *ngFor="let user of users.staffMembers" (click)="toggleJanitorInBuilding(building, user)" [ngClass]="{selected: isJanitorSelected(building, user.key)}">
+                        {{user.firstName}} {{user.lastName}}
+                      </div>
+                    </div>
+                    <div *ngIf="errors[facilityIndex]?.buildings?.buildingErrors[buildingIndex]?.janitorKeys" class="input-error">
+                      {{errors[facilityIndex].buildings.buildingErrors[buildingIndex].janitorKeys}}
+                    </div>
+                  </div>
+                </div>
+                <div class="floors-num input-holder">
+                  <div class="input-label">No. of Floors</div>
+                  <input class="building-floors" [value]="building?.floors?.length" (keyup)="floorsNumKeyUp.next({ building: building, num: $event.srcElement.value })"
+                    type="text">
+                </div>
+                <div class="toggle-floors">
+                  <div class="clickable" (click)="toggleTable(floorsTable)">
+                    Units
+                    <img src="/assets/img/arrow-down.png" [ngClass]="{'rotate-arrow': floorsTable.style.display === 'block'}">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="floors-table" #floorsTable>
+              <div class="apt-total-num">
+                {{getUnitsTootal(building)}} units in building
+              </div>
+              <div class="floor-raw" *ngFor="let floor of building.floors; let floorIndex = index">
+                <div class="floor-small-input">
+                  <div class="input-label">
+                    Floor
+                  </div>
+                  <div class="input">
+                    <input type="text" [(ngModel)]="floor.floorName" [disabled]="facility.key">
+                  </div>
+                </div>
+                <div class="floor-small-input">
+                  <div class="input-label">
+                    No. of Units
+                  </div>
+                  <div class="input">
+                    <input type="text" [value]="floor.apartments?.length" (keyup)="firstLastAptFloorChange(buildingIndex, floorIndex, $event)"
+                      [disabled]="facility.key">
+                  </div>
+                </div>
+                <div class="floor-small-input last-apt">
+                  <div class="input-label">
+                    Last unit
+                  </div>
+                  <div class="input">
+                    <input type="text" [value]="floor.apartments[0].name" [disabled]="building.key">
+                  </div>
+                </div>
+                <div class="floor-apts">
+                  <div class="input-label">
+                    Units
+                  </div>
+                  <div class="apts-holder">
+                    <div class="apt" *ngFor="let apt of floor.apartments; let aptIndex = index">
+                      <input type="text" [(ngModel)]="apt.name" (change)="onAptNameChange(buildingIndex, floorIndex, aptIndex)">
+                      <!-- <div *ngIf="!apt.isOccupied" class="remove-apt clickable" (click)="promptRemoveFloor(foor, aptIndex)">&times;</div> -->
+                    </div>
+                    <div class="apt-num-label">
+                      {{floor.apartments.length}} units
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-item-add-input clickable" (click)="appendBuilding(facility)">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div class="add-input-label">
+              Add building
+            </div>
+          </div>
+          <app-dialog [(visible)]="showModal" [header]="modalHeader">
+            <div class="dialog-body">
+              <div class="dialog-msg">
+                Are you sure you want to delete this unit?
+              </div>
+              <div class="dialog-buttons">
+                <div>
+                  <button class="c2-cancel-button" (click)="showModal = false">
+                    NO, CANCEL
+                  </button>
+                </div>
+                <div>
+                  <button class="c2-ok-button" (click)="removeAptFunction()">
+                    YES, DELETE IT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </app-dialog>
+        </div>
+        <!-- END OF BUILDINGS -->
+        <!-- AMENITIES -->
+        <div class="amenities" [id]="'amenities'+facilityIndex">
+          <div class="back" (click)="toggleAmenities(facilityIndex)">
+            <img src="/assets/img/arrow-down.png"> Back To facilities
+          </div>
+          <div class="header">
+            <h3>{{facility.name}} Amenities</h3>
+          </div>
+          <div class="amenity" *ngFor="let amenity of facility.amenities; let amenityIndex = index">
+            <img *ngIf="!amenity.key && facility.amenities.length !== 1" class="delete-amenity" (click)="facility.amenities.splice(amenityIndex, 1)"
+              src="/assets/img/x-icon.png">
+            <div class="form-top">
+              <div class="input-holders">
+                <div class="name-input input-holder">
+                  <div class="input-label">
+                    Amenity Name
+                  </div>
+                  <div class="input name-input">
+                    <input class="selector" type="text" [(ngModel)]="amenity.name" (click)="dropDownb.style.display = 'block'" (focus)="dropDownb.style.display = 'block'">
+                    <div class="drop-down" #dropDownb>
+                      <div class="name-item" *ngFor="let name of defaultAmenitiesNames | filterRoles : amenity.name" (click)="amenity.name = name; dropDownb.style.display = 'none'">
+                        {{name}}
+                      </div>
+                    </div>
+                    <div *ngIf="errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.name" class="input-error">
+                      {{errors[facilityIndex].amenities.amenityErrors[amenityIndex].name}}
+                    </div>
+                  </div>
+                </div>
+                <div class="input-holder">
+                  <div class="input-label">Directions</div>
+                  <input type="text" [(ngModel)]="amenity.directions">
+                  <div *ngIf="errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.directions" class="input-error">
+                    {{errors[facilityIndex].amenities.amenityErrors[amenityIndex].directions}}
+                  </div>
+                </div>
+                <div class="staff-members input-holder">
+                  <div class="staff-members-label input-label">Staff Members</div>
+                  <div class="staff-members-list c2-list">
+                    <div class="selector" (click)="dropDowna.style.display = 'block'">
+                      <ng-container *ngIf="amenity.janitorKeys?.length === users.staffMembers.length">
+                        All
+                      </ng-container>
+                      <ng-container *ngIf="amenity.janitorKeys?.length !== users.staffMembers.length">
+                        {{amenity.janitorKeys?.length}}
+                      </ng-container>
+                      staff members
+                    </div>
+                    <div class="drop-down" #dropDowna>
+                      <div class="list-item" *ngFor="let user of users.staffMembers" (click)="toggleJanitorInAmenity(amenity, user)" [ngClass]="{selected: isJanitorSelected(amenity, user.key)}">
+                        {{user.firstName}} {{user.lastName}}
+                      </div>
+                    </div>
+                    <div *ngIf="errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.janitorKeys" class="input-error">
+                      {{errors[facilityIndex].amenities.amenityErrors[amenityIndex].janitorKeys}}
+                    </div>
+                  </div>
+                </div>
+                <div class="amenity-buildings input-holder">
+                  <div class="input-label">Associate to</div>
+                  <div class="staff-members-list c2-list">
+                    <div class="selector" (click)="dropDown.style.display = 'block'">
+                      <ng-container *ngIf="amenity.buildings?.length === facility.buildings.length">
+                        All
+                      </ng-container>
+                      <ng-container *ngIf="amenity.buildings?.length !== facility.buildings.length">
+                        {{amenity.buildings?.length}}
+                      </ng-container>
+                      buildings
+                    </div>
+                    <div class="drop-down" #dropDown>
+                      <div class="list-item" *ngFor="let building of facility.buildings; let buildingIndex = index" (click)="toggleBuildingInAmenity(amenity, building.tempId)"
+                        [ngClass]="{selected: isBuildingSelected(amenity, building.tempId)}">
+                        {{building.name}}
+                      </div>
+                    </div>
+                    <div *ngIf="errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.buildings" class="input-error">
+                      {{errors[facilityIndex].amenities.amenityErrors[amenityIndex].buildings}}
+                    </div>
+                  </div>
+                </div>
+                <div class="toggle-floors">
+                  <div class="clickable" (click)="toggleTable(detailsTable)">
+                    Details
+                    <img src="/assets/img/arrow-down.png" [ngClass]="{'rotate-arrow': detailsTable.style.display === 'block'}">
+                    <div class="input-error" *ngIf="detailsTable.style.display !== 'block' && errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.rules">
+                      Some error in details
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="details-table" #detailsTable>
+              <div class="table-holder">
+                <div class="first-column">
+                  <div class="activity-hours-label">Activity Hours</div>
+                  <app-opening-hours [(openingHours)]="amenity.openingHours" [(activityMode)]="amenity.activityMode" includeAlwaysOpen="true"></app-opening-hours>
+                  <div class="use-regulation">
+                    <div class="use-regulation-label">Use Regulation</div>
+                    <textarea class="user-regulations-input" (change)="setUseRegulations(amenity, $event.srcElement)" cols="30" rows="4">{{amenity.rules}}</textarea>
+                    <div *ngIf="errors[facilityIndex]?.amenities?.amenityErrors[amenityIndex]?.rules" class="input-error">
+                      {{errors[facilityIndex].amenities.amenityErrors[amenityIndex].rules}}
+                    </div>
+                  </div>
+                  <div class="required-reservation">
+                    <div class="reservation-required-label">Reservation Required</div>
+                    <div class="reservation-required-radios">
+                      <div class="radio" (click)="amenity.reservationRequired = false">
+                        <div class="c2-radio" [ngClass]="{'checked': !amenity.reservationRequired}"></div> No
+                      </div>
+                      <div class="radio second-radio" (click)="amenity.reservationRequired = true">
+                        <div class="c2-radio" [ngClass]="{'checked': amenity.reservationRequired}"></div> Yes
+                      </div>
+                    </div>
+                  </div>
+                  <div class="time-limitations">
+                    <div class="time-limitations-label">Time Limitation</div>
+                    <div class="time-limitations-form">
+                      <div class="toggle-wraper">
+                        <div [ngClass]="{'thapps-toggle': true, 'on': amenity.timeLimitOption, 'off': !amenity.timeLimitOption}" (click)="amenity.timeLimitOption = !amenity.timeLimitOption">
+                          <div class="toggle-button"></div>
+                        </div>
+                      </div>
+                      <span class="limit-up-to-label">Limited up to</span>
+                      <input class="limit-num-input" type="number" [(ngModel)]="amenity.timeLimit">
+                      <div class="toggle-type">
+                        <div class="type-option" [ngClass]="{'choosen': amenity.timeLimitUnit === 'hours' }" (click)="amenity.timeLimitUnit = 'hours'">
+                          <div class="type-label">Hours</div>
+                        </div>
+                        <div class="type-option" [ngClass]="{'choosen': amenity.timeLimitUnit === 'minutes' }" (click)="amenity.timeLimitUnit = 'minutes'">
+                          <div class="type-label">Minutes</div>
+                        </div>
+                      </div>
+                      <span class="a-day-lable">a Day</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="second-column">
+                  <div class="image input-holder">
+                    <div class="image-label input-label">
+                      <span>Image (Optional)</span>
+                      <span class="sub-label">Upload JPG or PNG format</span>
+                    </div>
+
+                    <div class="image-holder" *ngFor="let img of amenity.imagesUrl; let imageIndex = index">
+                      <img class="trash-img clickable" src="/assets/img/trash.png" (click)="amenity.imagesUrl.splice(imageIndex, 1)" />
+                      <img class="img" [src]="img">
+                    </div>
+                    <app-image-upload #imageUpload (imageUploaded)="amenity.imagesUrl.push($event)"></app-image-upload>
+                    <div class="image-holder" (click)="imageUpload.click()">
+                      <div class="no-image">
+                        <div class="plus-button">+</div>
+                        <div class="add-image-label">Add Image</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-item-add-input clickable" (click)="appendAmenity(facility)">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div class="add-input-label">
+              Add amenity
+            </div>
+          </div>
+          <app-dialog [(visible)]="showModal" [header]="modalHeader">
+            <div class="dialog-body">
+              <div class="dialog-msg">
+                Are you sure you want to delete this unit?
+              </div>
+              <div class="dialog-buttons">
+                <div>
+                  <button class="c2-cancel-button" (click)="showModal = false">
+                    NO, CANCEL
+                  </button>
+                </div>
+                <div>
+                  <button class="c2-ok-button" (click)="removeAptFunction()">
+                    YES, DELETE IT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </app-dialog>
+        </div>
+        <!-- END OF AMENITIES -->
+      </div>
+    </div>
+    <div class="form-item-add-input clickable" (click)="appendFacility()">
+      <div class="plus">
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="add-input-label">
+        Add facility
+      </div>
+    </div>
+  </div>
+</div>

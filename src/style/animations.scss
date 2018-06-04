@@ -1,0 +1,76 @@
+@include keyframes(fadein) {
+  from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@include keyframes(fadeout) {
+  from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@include keyframes(slideDownAddInput) {
+  from {
+		transform: translateY(-45px);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@include keyframes(slideUpAddInput) {
+  from {
+		transform: translateY(45px);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@include keyframes(inputErrorBlink) {
+  0%{
+		border: 1px solid rgba(231, 231, 231, 1);
+	}
+	33%{
+		border: 1px solid rgba(255, 3, 3, 1);
+	}
+	66%{
+		border: 1px solid rgba(231, 231, 231, 1);
+	}
+	100%{
+		border: 1px solid rgba(255, 3, 3, 1);
+	}
+}
+
+@include keyframes(hideTable){
+	0%{
+		transform: translateY(0);
+		opacity: 1;
+		z-index: 0;
+	}
+	100%{
+		transform: translateY(-50%);
+		opacity: 0;
+		z-index: -1000
+	}
+}
+
+@include keyframes(showTable){
+	0%{
+		transform: translateY(-50%);
+		opacity: 0;
+		z-index: -1000
+	}
+	100%{
+		transform: translateY(0);
+		opacity: 1;
+		z-index: 0;
+	}
+}

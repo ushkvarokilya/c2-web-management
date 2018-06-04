@@ -1,0 +1,26 @@
+@import '../../../style/variables.scss';
+.page-holder {
+    margin: 25px;
+    border-top: 3px solid $squareButtonColor;
+    background: white;
+    font-size: 13px;
+    .page-header {
+        display: flex;
+        font-weight: 600;
+        box-sizing: border-box;
+        padding: 1% 2%;
+        border-bottom: 1px solid $inputBorderColor;
+        .page-title {
+            margin: auto 0;
+        }
+        .page-stats {
+            color: #2a2a2a;
+            font-weight: bold;
+            display: flex;
+            margin: auto 0 auto auto;
+            .number-label {
+                margin-left: 10px;
+            }
+        }
+    }
+}

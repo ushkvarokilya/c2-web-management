@@ -1,0 +1,409 @@
+.calendar-holder {
+    background: white;
+    .add-event-holder {
+        height: 59px;
+        background: white;
+        display: flex;
+        .loading {
+            font-size: 13px;
+            font-weight: 600;
+            margin: auto 0 auto 19px;
+        }
+        .form-item-add-input {
+            margin: auto 19px auto auto;
+        }
+    }
+    .calendar-wraper {
+        .calendar-header {
+            height: 47px;
+            background-color: rgba(102, 175, 181, 1);
+            display: flex;
+            .left-arrow {
+                margin: auto 0;
+                margin-left: 15px;
+                flex: 0 0 8px;
+                height: 18px;
+                width: 10px;
+                visibility: hidden;
+                &.display {
+                    visibility: visible;
+                }
+            }
+            .header-date {
+                margin: auto 0;
+                color: white;
+                font-size: 16px;
+                font-weight: 600;
+                text-align: center;
+                flex: 1 0 auto;
+            }
+            .right-arrow {
+                margin: auto 0;
+                margin-right: 15px;
+                flex: 0 0 8px;
+                height: 18px;
+                width: 10px;
+                visibility: hidden;
+                &.display {
+                    visibility: visible;
+                }
+            }
+        }
+        .cal-row {
+            display: flex;
+            border-bottom: 1px solid rgba(231, 231, 231, 1);
+            .cal-col {
+                overflow-x: hidden;
+                flex: 1 0 80px;
+                color: rgba(42, 42, 42, 1);
+                border-left: 1px solid rgba(231, 231, 231, 1);
+                &:first-child {
+                    border-left: none;
+                }
+            }
+        }
+        .calendar-days-header {
+            .cal-col {
+                height: 38px;
+                line-height: 38px;
+                text-align: center;
+                font-size: 11px;
+                font-weight: 600;
+                color: rgba(42, 42, 42, 1);
+            }
+        }
+        .calendar-days {
+            .cal-row {
+                .cal-col {
+                    height: 114px;
+                    padding: 10px;
+                    .day-wraper {
+                        height: 100%;
+                        .day-label {
+                            text-align: right;
+                            font-size: 13px;
+                            font-weight: 600;
+                            color: rgba(42, 42, 42, 1);
+                        }
+                        .events {
+                            margin-top: -4px;
+                            .event {
+                                display: flex;
+                                .event-icon {
+                                    flex: 0 0 22px;
+                                    svg {
+                                        fill: rgba(205, 205, 205, 1);
+                                        width: 85%;
+                                    }
+                                }
+                                .event-body {
+                                    margin-left: 6px;
+                                    .event-name {
+                                        font-size: 13px;
+                                        color: rgba(57, 57, 57, 1);
+                                        width: 100px;
+                                        text-overflow: ellipsis;
+                                        overflow: hidden;
+                                        white-space: nowrap;
+                                    }
+                                    .event-time {
+                                        font-size: 13px;
+                                        color: rgba(144, 144, 144, 1);
+                                    }
+                                }
+                            }
+                            .more-events {
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: rgba(0, 184, 160, 1);
+                                margin-left: 25px;
+                                margin-top: 17px;
+                            }
+                        }
+                    }
+                    .day-events-list {
+                        .event-item {
+                            height: 60px;
+                            display: flex;
+                            padding: 0 15px 0 20px;
+                            border-bottom: 1px solid rgba(231, 231, 231, 1);
+                            .event-icon {
+                                margin: auto 0;
+                                flex: 0 0 37px;
+                                svg {
+                                    fill: rgba(205, 205, 205, 1);
+                                    width: 85%;
+                                }
+                            }
+                            .event-name {
+                                margin: auto 0;
+                                margin-left: 10px;
+                                font-size: 13px;
+                                color: rgba(57, 57, 57, 1);
+                                width: 250px;
+                                text-overflow: ellipsis;
+                                overflow: hidden;
+                                white-space: nowrap;
+                            }
+                            .event-time {
+                                margin: auto 0 auto auto;
+                                font-size: 13px;
+                                color: rgba(144, 144, 144, 1);
+                                .edit-event {
+                                    cursor: pointer;
+                                    display: none;
+                                    margin-left: 10px;
+                                    height: 20px;
+                                }
+                                .all-day {
+                                    white-space:nowrap;
+                                    overflow:hidden;
+                                }
+                            }
+                            &:first-child {
+                                margin-top: -10px;
+                            }
+                            &:hover {
+                                .event-time>.edit-event {
+                                    display: inline-block;
+                                }
+                            }
+                        }
+                        .form-item-add-input {
+                            margin-top: 13px;
+                            margin-left: 19px;
+                        }
+                    }
+                    &.disabled {
+                        background: rgba(0, 0, 0, 0.03)
+                    }
+                }
+            }
+        }
+    }
+}
+
+.add-event-container {
+    padding: 0px 40px;
+    .event-name {
+        .event-name-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(42, 42, 42, 1);
+        }
+        .event-name-input {
+            margin-top: 10px;
+            input {
+                width: 100%;
+            }
+        }
+    }
+    .event-field {
+        margin-top: 30px;
+        .event-field-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(42, 42, 42, 1);
+        }
+        .event-field-choose {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: space-between;
+            justify-content: space-between;
+            height: 90px;
+            .event-type {
+                height: 42px;
+                width: 123px;
+                cursor: pointer;
+                padding: 0 14px;
+                flex: 0 0 auto; // margin: 0 10px 10px 0;
+                border: 1px solid rgba(231, 231, 231, 1);
+                line-height: 40px;
+                font-size: 13px;
+                font-weight: 600;
+                color: rgba(144, 144, 144, 1);
+                display: flex;
+                justify-content: center;
+                svg {
+                    margin: auto 0;
+                    flex: 0 0 auto;
+                    fill: currentColor;
+                }
+                .event-type-label {
+                    margin: auto;
+                    margin-left: 11px;
+                }
+                &.choosen-type {
+                    border: 1px solid rgba(0, 184, 160, 1);
+                    color: rgba(0, 184, 160, 1);
+                }
+            }
+        }
+    }
+    .event-time {
+        margin-top: 50px;
+        .event-time-label {
+            padding-bottom: 9px;
+            border-bottom: 1px solid rgba(231, 231, 231, 1);
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(42, 42, 42, 1);
+        }
+        .event-time-type {
+            margin-top: 22px;
+            display: flex;
+            .full-day,
+            .time-frame {
+                display: flex;
+                font-size: 13px;
+                color: rgba(57, 57, 57, 1);
+                height: 18px;
+                line-height: 18px;
+                .c2-radio {
+                    margin-right: 9px;
+                }
+            }
+            .full-day {
+                margin-right: 15px;
+            }
+        }
+        .pick-date {
+            margin-top: 20px;
+            .time-range {
+                display: flex;
+				flex-direction: column;
+                .start,
+                .end {
+                    margin-right: 20px;
+                    .start-label,
+                    .end-label {
+                        color: rgba(57, 57, 57, 1);
+                        font-size: 13px;
+                        margin-bottom: 5px;
+                    }
+                }
+            }
+            .time-error {
+                color: rgba(255, 0, 0, 1);
+                font-size: 13px;
+            }
+        }
+    }
+    .event-repeats {
+        margin-top: 20px;
+        .event-repeat-label {
+            padding-bottom: 9px;
+            border-bottom: 1px solid rgba(231, 231, 231, 1);
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(42, 42, 42, 1);
+        }
+        .event-repeats-types {
+            margin-top: 21px;
+            .event-repeat {
+                margin-top: 19px;
+                display: flex;
+                .repeat-radio {
+                    cursor: pointer;
+                    margin: auto 0;
+                    display: flex;
+                    font-size: 13px;
+                    color: rgba(57, 57, 57, 1);
+                    height: 18px;
+                    line-height: 18px;
+                    .c2-radio {
+                        margin-right: 9px;
+                    }
+                }
+                .repeat-end {
+                    margin: auto 0;
+                    margin-left: 26px;
+                }
+                &:first-child {
+                    margin-top: none;
+                }
+            }
+        }
+    }
+    .add-event-button {
+        margin-top: 27px;
+        display: flex;
+        .add-to-calendar {
+            margin-left: auto;
+        }
+        .edit-controls {
+            margin-left: auto;
+            display: flex;
+            .delete-event {
+                margin: auto 0;
+                font-size: 13px;
+                font-weight: 600;
+            }
+            .c2-ok-button {
+                margin-left: 15px;
+            }
+        }
+        .loading {
+            margin: auto 0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    }
+}
+
+.pickers {
+    display: flex;
+    datepicker {
+        margin-right: 7px;
+    }
+    select {
+        height: 30px;
+        width: 48px;
+        background-position: 99% 64%;
+    }
+    div {
+        margin: auto 4.5px auto 4.5px;
+    }
+}
+
+.delete-event-holder,
+.delete-recurrence-event-holder {
+    margin-top: 30px;
+    .delete-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        .delete-name {
+            width: 400px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
+    .delete-buttons {
+        margin-top: 35px;
+        text-align: center;
+        .c2-ok-button {
+            margin-left: 9px;
+        }
+    }
+}
+
+.delete-recurrence-event-holder {
+    .delete-from,
+    .delete-all {
+        text-align: center;
+        button {
+            width: 200px;
+        }
+    }
+    .delete-from {
+        margin-top: 40px;
+    }
+    .delete-all {
+        margin-top: 20px;
+    }
+}

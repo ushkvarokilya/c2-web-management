@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "c2-dev-server",
+    "stage": "c2-stage",
+    "prod": "c2-production"
+  }
+}

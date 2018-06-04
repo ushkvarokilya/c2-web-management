@@ -1,0 +1,229 @@
+<div class="add-tenant-container">
+	<div class="close-addt clickable" (click)="promptClose()">
+		<img src="/assets/img/x-icon.png" alt="">
+	</div>
+	<div class="addt-header">
+		Add Tenants To Apartments
+	</div>
+	<div class="header-label">
+		LEASE
+	</div>
+	<div class="lease-input">
+		<input type="text" [disabled]="editableLease" [(ngModel)]="apartmentName" placeholder="Select apartment" [ngClass]="{'error': errors.apartment}">
+		<div class="apt-list">
+			<div class="apt-label" *ngFor="let apt of (apartments | searchAptByName:apartmentName)" (click)="apartmentName = apt.name; apartmentKey = apt.key;">{{apt.name}}</div>
+		</div>
+		<div *ngIf="errors.apartment" class="form-item-error">
+			{{errors.apartment}}
+		</div>
+	</div>
+	<div class="lease-date" *ngIf="!editableLease">
+		<div class="start">
+			<div class="start-label">Start</div>
+			<div class="pickers">
+				<datepicker [(date)]="startDay"></datepicker>
+			</div>
+		</div>
+		<div class="end">
+			<div class="end-label">End</div>
+			<div class="pickers">
+				<datepicker [(date)]="endDay"></datepicker>
+			</div>
+		</div>
+		<div *ngIf="errors.date" class="form-item-error">
+			{{errors.date}}
+		</div>
+	</div>
+	<div class="renew-lease clickable" (click)="form.autoRenew = !form.autoRenew" *ngIf="!editableLease">
+		<div class="c2-check-box">
+			<div *ngIf="form.autoRenew" class="c2-check-box-checked"></div>
+		</div>
+		<div class="renew-lable">Renew Automatically</div>
+	</div>
+	<div class="lease-file" *ngIf="!editableLease">
+		<div class="file-frame">
+			<img *ngIf="!form.leaseUrl" src="/assets/img/photoIcon.png" alt="">
+			<a *ngIf="form.leaseUrl" target="_blank" [href]="form.leaseUrl">Lease</a>
+		</div>
+		<app-image-upload #imageUpload (imageUploaded)="form.leaseUrl = $event"></app-image-upload>
+		<div class="form-item-add-input clickable" (click)="imageUpload.click()">
+			<div class="plus">
+				<div class="line"></div>
+				<div class="line"></div>
+			</div>
+			<div class="add-input-label">
+				<span *ngIf="!form.leaseUrl">Add</span>
+				<span *ngIf="form.leaseUrl">Change</span> Lease
+			</div>
+		</div>
+	</div>
+	<div *ngIf="errors.leaseUrl" class="form-item-error">
+		{{errors.leaseUrl}}
+	</div>
+	<div *ngIf="!editableLease">
+		<div class="header-label">
+			MONTHLY PAYMENTS
+		</div>
+		<!-- <div class="payment-type">
+            <div class="one-payment clickable" (click)="form.splitPayment = false">
+                <div class="c2-radio" [ngClass]="{'checked': !form.splitPayment}"></div>
+                <div>One payment for all tenants</div>
+            </div>
+            <div class="split-payment clickable" (click)="form.splitPayment = true">
+                <div class="c2-radio" [ngClass]="{'checked': form.splitPayment}"></div>
+                <div>Split Payment</div>
+            </div>
+        </div> -->
+		<div class="due-date">
+			<div class="select-label">Due on the:</div>
+			<select class="due-select" [(ngModel)]="form.dueDate">
+				<option [value]="day" *ngFor="let day of monthDays">{{day}}
+					<span [ngSwitch]="day">
+						<span *ngSwitchCase="1">st</span>
+						<span *ngSwitchCase="2">nd</span>
+						<span *ngSwitchCase="3">rd</span>
+						<span *ngSwitchDefault>th</span>
+					</span>
+				</option>
+			</select>
+		</div>
+		<div class="payments">
+			<div class="payment" *ngFor="let payment of form.payments; let paymentIndex = index;">
+				<div *ngIf="paymentIndex < 2" class="single-input">
+					<div class="select-label">{{payment.monthlyChargeName.substring(0, 1).toUpperCase()}}{{payment.monthlyChargeName.substring(1)}}:</div>
+					<input type="text" [(ngModel)]="payment.monthlyChargeAmount" [placeholder]="'Enter monthly ' + payment.monthlyChargeName + ' cost in $'">
+					<div *ngIf="paymentIndex == 1">(optional)</div>
+				</div>
+				<div *ngIf="paymentIndex >= 2" class="double-input">
+					<input type="text" [(ngModel)]="payment.monthlyChargeName" placeholder="Name">
+					<input type="text" [(ngModel)]="payment.monthlyChargeAmount" placeholder="Cost $">
+					<div class="input-icon clickable" (click)="form.payments.splice(paymentIndex, 1)">
+						<img src="/assets/img/x-icon.png">
+					</div>
+				</div>
+				<div *ngIf="errors.payments && errors.payments[paymentIndex] && errors.payments[paymentIndex].monthlyChargeAmount" class="form-item-error">
+					{{errors.payments[paymentIndex].monthlyChargeAmount}}
+				</div>
+				<div *ngIf="errors.payments && errors.payments[paymentIndex] && errors.payments[paymentIndex].monthlyChargeName" class="form-item-error">
+					{{errors.payments[paymentIndex].monthlyChargeName}}
+				</div>
+			</div>
+			<div class="form-item-add-input clickable" (click)="appendMonthlyCharge()">
+				<div class="plus">
+					<div class="line"></div>
+					<div class="line"></div>
+				</div>
+				<div class="add-input-label">
+					Add Monthly Charge
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="header-label">
+		TENANTS
+	</div>
+	<div class="tenant" *ngFor="let tenant of form.tenants; let tenantIndex = index">
+		<div class="tenant-num">
+			{{tenantIndex + 1}}
+		</div>
+		<div class="first-line">
+			<div class="form-item tenant-name">
+				<div class="form-item-title">First Name</div>
+				<div class="form-item-input-holder">
+					<input type="text" [(ngModel)]="tenant.firstName" [ngClass]="{'error': errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].firstName}">
+					<div *ngIf="errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].firstName" class="form-item-error">
+						{{errors.tenants[tenantIndex].firstName}}
+					</div>
+				</div>
+			</div>
+			<div class="form-item tenant-name">
+				<div class="form-item-title">Last Name</div>
+				<div class="form-item-input-holder">
+					<input type="text" [(ngModel)]="tenant.lastName" [ngClass]="{'error': errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].lastName}">
+					<div *ngIf="errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].lastName" class="form-item-error">
+						{{errors.tenants[tenantIndex].lastName}}
+					</div>
+				</div>
+			</div>
+			<div class="form-item">
+				<div class="form-item-title">Date Of Birth</div>
+				<div class="form-item-input-holder">
+					<datepicker [(date)]="tenant.birthDateHolder" [isBirthDate]="true"></datepicker>
+					<div *ngIf="errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].birthDate" class="form-item-error">
+						{{errors.tenants[tenantIndex].birthDate}}
+					</div>
+				</div>
+			</div>
+			<div *ngIf="form.tenants.length > 1" class="delete-tenant" (click)="form.tenants.splice(tenantIndex, 1)">
+				<img src="/assets/img/trash.png">
+				<span>DELETE THIS TENANT</span>
+			</div>
+		</div>
+		<div class="phone-or-email">
+			<div class="phone-or-email-label">Phone Number</div>
+			<div class="phone-or-email-holder" *ngFor="let phone of tenant.phoneNumbers; let phoneIndex = index">
+				<div class="phone-or-email-input">
+					<input type="text" [value]="phone" [id]="'tenant'+tenantIndex+'phone'+phoneIndex">
+					<img *ngIf="tenant.phoneNumbers.length > 1" class="remove-number clickable" src="/assets/img/x-icon.png" (click)="tenant.phoneNumbers.splice(phoneIndex, 1)"
+					/>
+				</div>
+				<div *ngIf="phoneIndex == tenant.phoneNumbers.length - 1" class="form-item-add-input clickable" (click)="tenant.phoneNumbers.push('')">
+					<div class="plus">
+						<div class="line"></div>
+						<div class="line"></div>
+					</div>
+					<div class="add-input-label">
+						Add Phone number
+					</div>
+				</div>
+			</div>
+			<div *ngIf="errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].phoneNumbers" class="form-item-error">
+				{{errors.tenants[tenantIndex].phoneNumbers}}
+			</div>
+		</div>
+		<div class="phone-or-email">
+			<div class="phone-or-email-label">Email</div>
+			<div class="phone-or-email-holder">
+				<div class="phone-or-email-input">
+					<input type="text" [(ngModel)]="tenant.email" [ngClass]="{'error': errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].email}">
+					<div *ngIf="errors && errors.tenants && errors.tenants[tenantIndex] && errors.tenants[tenantIndex].email" class="form-item-error">
+						{{errors.tenants[tenantIndex].email}}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="payment-res" *ngIf="!editableLease">
+			<div class="pay-res-holder">
+				<div class="pay-res-label">Payments Responsibility</div>
+				<div class="toggle-type">
+					<div class="type-option" [ngClass]="{'choosen': tenant.rentPercantage != 0 }" (click)="tenant.rentPercantage == 0 && changePayResType(tenant)">
+						<div class="type-label">PAYING</div>
+					</div>
+					<div class="type-option" [ngClass]="{'choosen': tenant.rentPercantage == 0 }" (click)="tenant.rentPercantage != 0 && changePayResType(tenant)">
+						<div class="type-label">NOT PAYING</div>
+					</div>
+				</div>
+			</div>
+			<div class="pay-input" *ngIf="tenant.rentPercantage != 0 && form.splitPayment">
+				<div class="pay-input-label">Payment Percentage</div>
+				<input type="text" [(ngModel)]="tenant.rentPercantage">%
+			</div>
+		</div>
+	</div>
+	<div class="form-item-add-input add-tenant clickable" (click)="appendTenant()">
+		<div class="plus">
+			<div class="line"></div>
+			<div class="line"></div>
+		</div>
+		<div class="add-input-label">
+			Add Tenant
+		</div>
+	</div>
+	<div class="save-button">
+		<button id="saveButton" class="c2-ok-button" (click)="save()" [ngClass]="{loading: loading}">SAVE</button>
+		<div *ngIf="errors.save" class="form-item-error">
+			{{errors.save}}
+		</div>
+	</div>
+</div>
+<form id="uploadForm"></form>

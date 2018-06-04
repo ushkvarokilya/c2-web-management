@@ -1,0 +1,280 @@
+@import '../../../style/variables.scss';
+.loading {
+    margin-top: 10%;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.page-holder {
+    margin: 25px;
+    border-top: 3px solid $squareButtonColor;
+    background: white;
+    font-size: 13px;
+    .page-header {
+        display: flex;
+        font-weight: 600;
+        box-sizing: border-box;
+        padding: 1% 2%;
+        border-bottom: 1px solid $inputBorderColor;
+    }
+    .collection-container {
+        padding: 0 20px 60px 20px;
+        .collection-top {
+            margin-top: 12px;
+            display: flex;
+            .payment-total {
+                margin: auto 0 auto 13px;
+                .payment-num {
+                    font-size: 40px;
+                    font-weight: 300;
+                    color: rgba(144, 144, 144, 1);
+                }
+                .payment-label {
+                    margin-top: 4px;
+                    font-size: 13px;
+                    color: rgba(42, 42, 42, 1);
+                }
+            }
+            .controllers {
+                margin: auto 0 auto auto;
+                display: flex;
+                .day-overdue {
+                    display: flex;
+                    .day-overdue-label {
+                        margin: auto 0;
+                        font-size: 13px;
+                        color: #a2a2a2;
+                    }
+                    .day-overdue-input {
+                        margin: auto 0;
+                        width: 50px;
+                        margin-left: 8px;
+                        input {
+                            &::-webkit-input-placeholder {
+                                color: #909090 !important;
+                            }
+                            &:-moz-placeholder {
+                                /* Firefox 18- */
+                                color: #909090 !important;
+                            }
+                            &::-moz-placeholder {
+                                /* Firefox 19+ */
+                                color: #909090 !important;
+                            }
+                            &:-ms-input-placeholder {
+                                color: #909090 !important;
+                            }
+                            border: none;
+                            color: #a2a2a2;
+                            text-align: center;
+                        }
+                    }
+                }
+                .search-form {
+                    display: flex;
+                    margin-left: 51px;
+                    .search-form-label {
+                        margin: auto 0;
+                        font-size: 13px;
+                        color: rgba(57, 57, 57, 1);
+                    }
+                    .search-form-input {
+                        margin: auto 0;
+                        width: 273px;
+                        margin-left: 10px;
+                    }
+                }
+            }
+        }
+        .collection-card {
+            margin-top: 21px;
+            border: 1px solid rgba(231, 231, 231, 1);
+            .progress-bar {
+                margin: 20px 40px 0 40px;
+                height: 6px;
+                background-color: rgba(246, 180, 101, 1);
+                border-radius: 3px;
+                position: relative;
+                .bar-fill {
+                    height: inherit;
+                    background-color: rgba(167, 224, 163, 1);
+                    border-radius: 3px;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                }
+            }
+            .cards {
+                margin-top: 19px;
+                display: flex;
+                justify-content: center;
+                .paid-card,
+                .havent-paid-card {
+                    padding-bottom: 87px;
+                    height: 70px;
+                    width: 293px;
+                    background-color: rgba(248, 248, 246, 1);
+                    border: 1px solid rgba(229, 229, 229, 1);
+                    border-radius: 10px;
+                    .paid-amount {
+                        margin-top: 18px;
+                        text-align: center;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                    }
+                    .paid-label {
+                        margin-top: 6px;
+                        text-align: center;
+                        font-size: 13px;
+                        color: #2a2a2a;
+                    }
+                }
+                .paid-card {
+                    .paid-amount {
+                        color: rgba(167, 224, 163, 1);
+                    }
+                }
+                .havent-paid-card {
+                    margin-left: 30px;
+                    .paid-amount {
+                        color: rgba(246, 180, 101, 1);
+                    }
+                }
+            }
+            .overdue-payments {
+                margin-top: 20px;
+                padding: 16px 0 13px 0;
+                border-top: 1px solid rgba(231, 231, 231, 1);
+                font-size: 13px;
+                color: rgba(255, 63, 61, 1);
+                text-align: center;
+                span {
+                    font-weight: 600;
+                    font-size: 16px;
+                }
+            }
+        }
+        .items-controllers {
+            margin-top: 24px;
+            display: flex;
+            .toggle-buttons {
+                display: flex;
+                .toggle-type {
+                    display: flex;
+                    cursor: pointer;
+                    margin-right: 19px;
+                    .type-option {
+                        display: flex;
+                        height: 41px;
+                        width: 121px;
+                        color: rgba(42, 42, 42, 1);
+                        background: white;
+                        border: 1px solid rgba(231, 231, 231, 1);
+                        transition-property: all;
+                        transition-duration: .3s;
+                        &:nth-child(2) {
+                            border-left: none;
+                        }
+                        .type-label {
+                            margin: auto;
+                            font-size: 13px;
+                            font-weight: 400;
+                        }
+                        &.choosen {
+                            color: white;
+                            background: rgba(0, 184, 160, 1);
+                        }
+                    }
+                }
+            }
+            .query-form {
+                margin: auto 0 auto auto;
+                display: flex;
+                .dropdown {
+                    margin-right: 10px;
+                    select {
+                        -webkit-appearance: none;
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        background: url(/assets/img/down_arrow.svg) no-repeat right;
+                        background-position: right 14px;
+                        text-align: center;
+                        height: 35px;
+                        width: 173px;
+                        border: 1px solid #e7e7e7;
+                        border-radius: 0px;
+                        font-size: 12px;
+                        color: #909090;
+                    }
+                }
+                .query-search {
+                    width: 290px;
+                    input {
+                        box-sizing: border-box;
+                        width: 100%;
+                        height: 35px;
+                        border-radius: 18px;
+                        outline: none;
+                        padding-left: 20px;
+                        padding-right: 24px;
+                        font-size: 12px;
+                        color: #909090;
+                        line-height: 15px;
+                        background: url(/assets/img/searchIcon.svg) no-repeat right;
+                        background-position: 96% 50%;
+                        background-size: 14px;
+                    }
+                }
+            }
+        }
+        .payments {
+            margin-top: 30px;
+            .table-header {
+                font-size: 13px;
+                color: rgba(42, 42, 42, 1);
+                margin-bottom: 16px;
+            }
+        }
+    }
+}
+
+.lease-row {
+    display: flex;
+    justify-content: space-between;
+    .col-1,
+    .col-2,
+    .col-3,
+    .col-4 {
+        margin: auto 0;
+        font-size: 13px;
+        color: rgba(42, 42, 42, 1);
+    }
+    .col-1 {
+        height: 100%;
+        flex: 0 0 20%;
+        display: flex;
+        span {
+            margin: auto 0;
+        }
+        .apt-label {
+            margin-left: 21px;
+        }
+        .align-right {
+            margin: auto 0 auto auto;
+        }
+    }
+    .col-2 {
+        flex: 0 0 35%;
+        margin-left: 15%
+    }
+    .col-3 {
+        flex: 0 0 20%;
+    }
+    .col-4 {
+        height: 100%;
+        flex: 0 0 55px;
+    }
+}

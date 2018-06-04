@@ -1,0 +1,555 @@
+<div class="page-holder" *ngIf="amenity">
+  <div class="first-row">
+    <div class="details">
+      <div class="top-bar">
+        <span>{{DefaultAmenities[amenity.name] ? DefaultAmenities[amenity.name].name : amenity.name}}</span>
+        <!-- <a>Edit</a> -->
+      </div>
+      <div class="form-holder">
+        <div class="row" *ngIf="amenity.selectedManagers && amenity.selectedManagers[0]">
+          <div class="name-col">Staff Member</div>
+          <div class="info-col">
+            <div class="left-side">
+              <img class="profile-picture" [src]="amenity.selectedManagers[0].imageUrl" />
+              <div class="name-label">{{amenity.selectedManagers[0].firstName}} {{amenity.selectedManagers[0].lastName}}</div>
+            </div>
+            <div class="right-side">
+              <div class="phone-label">{{amenity.selectedManagers[0].phoneNumber}}</div>
+              <a *ngIf="amenity.selectedManagers[0].email" [href]="'mailto:'+amenity.selectedManagers[0].email">
+                <img class="envelope" src="/assets/img/envelope.png">
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="name-col">Directions</div>
+          <div class="info-col">
+            {{amenity.directions}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="name-col">Activity Hours</div>
+          <div class="info-col activity-hours">
+            <ng-container *ngIf="amenity.activityMode === ActivityMode.dailySchedule">
+              <div *ngFor="let opening of amenity.openingHours; let last = last">
+                <span>{{getDayName(opening.day)}}</span>
+                <span>{{opening.fromHour
+                  < 10 ? 0 : ""}}{{opening.fromHour}}:{{opening.fromMinute < 10 ? 0 : ""}}{{opening.fromMinute}}</span>
+                    <span> - </span>
+                    <span>{{opening.toHour
+                      < 10 ? 0 : ""}}{{opening.toHour}}:{{opening.toMinute < 10 ? 0 : ""}}{{opening.toMinute}}</span>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="amenity.activityMode === ActivityMode.weeklySchedule">
+              <div>
+                <span>{{getDayName(amenity.openingHours[0].day)}}</span>
+                <span> - {{getDayName(amenity.openingHours[amenity.openingHours.length - 1].day)}}</span>
+                <span>{{amenity.openingHours[0].fromHour
+                  < 10 ? 0 : ""}}{{amenity.openingHours[0].fromHour}}:{{amenity.openingHours[0].fromMinute < 10 ? 0 : ""}}{{amenity.openingHours[0].fromMinute}}</span>
+                    <span> - </span>
+                    <span>{{amenity.openingHours[0].toHour
+                      < 10 ? 0 : ""}}{{amenity.openingHours[0].toHour}}:{{amenity.openingHours[0].toMinute < 10 ? 0 : ""}}{{amenity.openingHours[0].toMinute}}</span>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="amenity.activityMode === ActivityMode.alwaysOpen">
+              24/7
+            </ng-container>
+          </div>
+        </div>
+        <div class="row">
+          <div class="name-col">Rules</div>
+          <div class="info-col">
+            <ng-container *ngFor="let rule of amenity.rules; let last = last">
+              {{rule}}
+              <br *ngIf="!last" />
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="images">
+      <div class="carousel-wraper" *ngIf="amenity?.imagesUrl?.length > 0">
+        <div id="carousel" class="carousel" style="left: 0;">
+          <div class="image" *ngFor="let image of amenity.imagesUrl">
+            <img [src]="image">
+          </div>
+        </div>
+        <div class="controllers">
+          <div class="right-arrow" (click)="moveCarouselRight()">
+            <svg width="10" height="18" viewBox="0 0 10 18" stroke="#ffffff">
+              <use xlink:href="./assets/icons.svg#arrow"></use>
+            </svg>
+          </div>
+          <div class="left-arrow" (click)="moveCarouselLeft()">
+            <svg width="10" height="18" viewBox="0 0 10 18" stroke="#ffffff">
+              <use xlink:href="./assets/icons.svg#arrow"></use>
+            </svg>
+          </div>
+        </div>
+        <div class="bullets">
+          <div class="bullet" *ngFor="let a of amenity.imagesUrl; let annIndex = index" [ngClass]="{'active': carouselStep == annIndex}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="(user$ |async)?.viewPermissions?.includes('Announcements')" class="announcements">
+    <div class="page-header">
+      <div class="page-title">
+        ACTIVE ANNOUNCEMENTS
+      </div>
+    </div>
+    <div class="content">
+      <div *ngIf="(user$ |async)?.actionPermissions?.includes('Announcements')" class="publish-ann">
+        <div class="publish-info">
+          Announcements will be displayed at the tenants app. Keep it short as possible.
+        </div>
+        <div class="publish-text">
+          <textarea rows="3" maxlength="140" [(ngModel)]="newAnnoun.announcementBody" [ngClass]="{'error': errors && errors.publishBody}"></textarea>
+          <div class="letter-num" [ngClass]="{'error': 140 - newAnnoun.announcementBody.length < 0}">{{ 140 - newAnnoun.announcementBody.length}}</div>
+          <!-- <div *ngIf="errors && errors.publishBody" class="form-item-error">
+            {{errors.publishBody}}
+          </div> -->
+        </div>
+        <div class="schedule-toggle clickable" (click)="newAnnoun.showSchedule = !newAnnoun.showSchedule">
+          <div class="c2-radio" [ngClass]="{'checked': newAnnoun.showSchedule}"></div> Display for Scheduled time
+        </div>
+        <div *ngIf="newAnnoun.showSchedule" class="schedule-select">
+          <div class="start">
+            <div class="start-label">Start</div>
+            <div class="pickers">
+              <datepicker [(date)]="newAnnoun.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+              <select id="" [(ngModel)]="newAnnoun.fromHour">
+                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+              </select>
+              <div>:</div>
+              <select class="last-select" id="" [(ngModel)]="newAnnoun.fromMinute">
+                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="end">
+            <div class="end-label">End</div>
+            <div class="pickers">
+              <datepicker [(date)]="newAnnoun.toDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+              <select id="" [(ngModel)]="newAnnoun.toHour">
+                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+              </select>
+              <div>:</div>
+              <select class="last-select" id="" [(ngModel)]="newAnnoun.toMinute">
+                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="publis-button">
+          <button class="c2-ok-button" [disabled]="publishing" [ngClass]="{loading: publishing}" (click)="publishAnnouncement()">
+            <span *ngIf="!newAnnoun.key">PUBLISH</span>
+            <span *ngIf="newAnnoun.key">EDIT</span>
+          </button>
+          <a class="cancle-announcment" (click)="initNewAnnou()">CANCEL</a>
+        </div>
+      </div>
+      <div class="active-ann">
+        <div class="no-announcements" *ngIf="amenity?.announcements?.length === 0">
+          <h3>No active announcements</h3>
+        </div>
+        <div class="ann-row table-header" *ngIf="amenity?.announcements?.length > 0">
+          <div class="col-publisher">PUBLISHER</div>
+          <div class="col-text">TEXT</div>
+          <div class="col-scheduled">SCHEDULED</div>
+          <div class="col-options"></div>
+        </div>
+        <div class="ann-row announcement" *ngFor="let ann of amenity.announcements">
+          <div class="col-publisher">{{ann.publisherName}}</div>
+          <div class="col-text">
+            <p class="col-msg">{{ann.message}}</p>
+          </div>
+          <div class="col-scheduled">
+            <span *ngIf="ann.scheduled">{{getScheduleDate(ann.scheduled.from)}} - {{getScheduleDate(ann.scheduled.to)}}</span>
+            <span *ngIf="!ann.scheduled">Not Scheduled</span>
+          </div>
+          <div *ngIf="(user$ |async)?.actionPermissions?.includes('Announcements')" class="col-options">
+            <img class="pencil-img clickable" src="/assets/img/pencil.png" (click)="editAnnouncement(ann)" />
+            <img class="trash-img clickable" src="/assets/img/trash.png" (click)="ann.showDeleteDialog = true;" />
+          </div>
+          <app-dialog *ngIf="ann.showDeleteDialog" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="ann.showDeleteDialog = false">
+            <div class="delete-announcement-holder">
+              <div class="delete-label">
+                Are you sure you want to delete this announcement?
+              </div>
+              <div class="delete-buttons">
+                <button class="c2-cancel-button" (click)="ann.showDeleteDialog = false">CANCEL</button>
+                <button class="c2-ok-button" (click)="deleteAnnoun(ann)">DELETE</button>
+              </div>
+            </div>
+          </app-dialog>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="calendar-holder">
+    <div class="add-event-holder">
+      <span>RESERVATION</span>
+      <div *ngIf="loadingReservations" class="loading">
+        <img src="/assets/img/loader_big.gif" alt="">
+      </div>
+      <!-- <div *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="form-item-add-input clickable" (click)="showNewEvent = true;">
+        <div class="plus">
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+        <div class="add-input-label">
+          Add Event
+        </div>
+      </div> -->
+    </div>
+    <div class="calendar-wraper" *ngIf="months.length > 0 && (user$ |async)?.viewPermissions?.includes('Calendar')">
+      <div class="calendar-header">
+        <img class="left-arrow" [ngClass]="{'clickable display': currentMonthIndex != 0}" src="/assets/img/arrow_left_white.png"
+          (click)="changeIndex(-1)">
+        <div class="header-date">{{months[currentMonthIndex].year}} {{months[currentMonthIndex].month}}</div>
+        <img class="right-arrow" [ngClass]="{'clickable display': currentMonthIndex != months.length - 1}" src="/assets/img/arrow_right_white.png"
+          (click)="changeIndex(1)">
+      </div>
+      <div class="calendar-days-header cal-row">
+        <div class="cal-col" *ngFor="let day of days">{{day.toUpperCase()}}</div>
+      </div>
+      <div class="calendar-days">
+        <div class="week cal-row" *ngFor="let week of months[currentMonthIndex].weeks; let weekIndex = index">
+          <div class="cal-col" *ngFor="let day of days" [ngClass]="{disabled: week[day] && week[day].disabled}">
+            <div class="day-wraper" *ngIf="week[day]" [ngClass]="{clickable: !week[day].disabled}" (click)="week[day] && !week[day].disabled && week[day].showEvents = true">
+              <div class="day-label">{{week[day].date}}</div>
+              <div *ngIf="amenity.activityMode !== 'always_open'" class="available-hours">
+                <ng-container *ngIf="getDayOpeningHours(day)">
+                  {{availableDailyHours(day)}} hours available
+                </ng-container>
+
+              </div>
+              <div class="event" *ngIf="week[day]?.events?.length > 0">
+                <div class="event-header">
+                  <div [ngSwitch]="week[day].events[0].type" class="event-icon">
+                    <svg *ngSwitchCase="'Reservations'" width="21" height="25" viewBox="0 -2 21 25">
+                      <use xlink:href="./assets/icons.svg#calendar"></use>
+                    </svg>
+                    <svg *ngSwitchCase="'Maintenance'" width="23" height="24" viewBox="0 0 23 24">
+                      <use xlink:href="./assets/icons.svg#wrench"></use>
+                    </svg>
+                    <svg *ngSwitchCase="'Vendors'" width="25" height="23" viewBox="0 0 25 23">
+                      <use xlink:href="./assets/icons.svg#helemet"></use>
+                    </svg>
+                    <svg *ngSwitchDefault width="12" height="12" viewBox="0 0 12 12">
+                      <use xlink:href="./assets/icons.svg#others"></use>
+                    </svg>
+                  </div>
+                  <div class="event-title">
+                    <span>{{week[day].events[0].startDate | date:"HH:mm"}}-{{week[day].events[0].endDate | date:"HH:mm"}}</span>
+                    <span *ngIf="week[day].events[0]?.title?.length > 0">{{week[day].events[0].title}}</span>
+                  </div>
+                </div>
+                <div class="event-invitees">
+                  <div class="event-invitees-text" *ngIf="!week[day].events[0]?.inviteAllComplex && week[day].events[0]?.invitees?.length > 0">
+                    {{week[day].events[0]?.invitees | showInviteesReservation : (currentComplex$ | async)?.tenants}}
+                  </div>
+                  <div *ngIf="week[day].events[0]?.inviteAllComplex">
+                    All Complex
+                  </div>
+                </div>
+              </div>
+              <div class="more-events" [ngClass]="{overlapping: hasOverlappingEvents(week[day].events)}" *ngIf="week[day]?.events?.length > 1">
+                <div class="bullet"></div>
+                <span>{{week[day]?.events?.length - 1}} More Events</span>
+              </div>
+            </div>
+            <app-dialog class="daily-events" *ngIf="week[day]?.showEvents" [size]="'medium'" [visible]="true" [header]="week[day].date + ' ' + months[currentMonthIndex].month + ' ' + months[currentMonthIndex].year"
+              (visibleChange)="week[day].showEvents = false">
+              <div class="event-day-list">
+                <div class="event-item" *ngFor="let event of week[day].events; let eventIndex = index" [ngClass]="{overlapping: isOverlappingEvent(event, eventIndex, week[day].events)}">
+                  <div class="event-header">
+                    <div [ngSwitch]="event.type" class="event-icon">
+                      <svg *ngSwitchCase="'Reservations'" width="21" height="25" viewBox="0 -2 21 25">
+                        <use xlink:href="./assets/icons.svg#calendar"></use>
+                      </svg>
+                      <svg *ngSwitchCase="'Maintenance'" width="23" height="24" viewBox="0 0 23 24">
+                        <use xlink:href="./assets/icons.svg#wrench"></use>
+                      </svg>
+                      <svg *ngSwitchCase="'Vendors'" width="25" height="23" viewBox="0 0 25 23">
+                        <use xlink:href="./assets/icons.svg#helemet"></use>
+                      </svg>
+                      <svg *ngSwitchDefault width="12" height="12" viewBox="0 0 12 12">
+                        <use xlink:href="./assets/icons.svg#others"></use>
+                      </svg>
+                    </div>
+                    <div class="event-name">
+                      <span *ngIf="event.title?.length > 0">{{event.title}}</span>
+                      <span *ngIf="event.title?.length == 0 && event?.invitees?.length > 0">
+                          {{event.invitees | showInviteesReservation : (currentComplex$ | async)?.tenants}}
+                      </span>
+                    </div>
+                    <div class="event-time">
+                      <span>{{event.startDate | date:"HH:mm"}}-{{event.endDate | date:"HH:mm"}}</span>
+                    </div>
+                    <div class="delete-event">
+                      <img src="/assets/img/pencil.png" (click)="week[day].showEvents = false; showEditEvent(event)">
+                    </div>
+                  </div>
+                  <div class="event-invitees">
+                    <span *ngIf="event.inviteAllComplex">All Complex</span>
+                    <span *ngIf="!event.inviteAllComplex">
+                        {{event.invitees | showInviteesReservation : (currentComplex$ | async)?.tenants}}
+                    </span>
+                  </div>
+                  <div *ngIf="event.announcement" class="event-announcement-holder">
+                    <input type="hidden" #showAnnouncement value="false">
+                    <div class="announcement" *ngIf="showAnnouncement.value === 'true'">
+                      {{event.announcement}}
+                    </div>
+                    <div class="toggle-announcement" (click)="showAnnouncement.value === 'true' ? showAnnouncement.value = 'false' : showAnnouncement.value = 'true'">
+                      <ng-container *ngIf="showAnnouncement.value === 'true'">
+                        Close
+                      </ng-container>
+                      <ng-container *ngIf="showAnnouncement.value === 'false'">
+                        Show
+                      </ng-container>
+                      Announcement
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="day-time">
+                <ng-container *ngIf="availableDailyHours(day)">
+                  {{availableDailyHours(day, week[day].events)}} Hours Available
+                </ng-container>
+              </div>
+              <div class="add-event-holder" *ngIf="(user$ |async)?.actionPermissions?.includes('Calendar') && (availableDailyHours(day, week[day].events) !== 'No')">
+                <button class="c2-ok-button" (click)="week[day].showEvents = false; openNewEvent(months[currentMonthIndex].year, months[currentMonthIndex].month, week[day].date)">Add Event</button>
+              </div>
+            </app-dialog>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <app-dialog [size]="'huge'" [visible]="showNewEvent" [header]="(newEvent.key ? 'EDIT' : 'Add') + ' Event'" (modalClosed)="newEventModalClosed()">
+    <div class="new-event">
+      <div class="time-frame">
+        <div class="title">
+          <div class="title-label">SELECT TIME FRAME</div>
+          <div class="check-full-day" (click)="onFullDayClick()">
+            <div class="c2-check-box">
+              <div *ngIf="newEvent.fullDay" class="c2-check-box-checked"></div>
+            </div>
+            Select all day
+          </div>
+        </div>
+        <div class="day-time-list">
+          <div class="grid" (mousemove)="dragging($event)">
+            <div class="time-entry" *ngFor="let time of newEventTimes; let timeIndex = index" (click)="timeLinePressed(timeIndex)">
+              <div class="time">
+                <ng-container *ngIf="!hasHalfAnHour(time)">
+                  <span>{{time}}</span>
+                  <span class="ampm">{{timeIndex >= 24 ? 'PM' : 'AM'}}</span>
+                </ng-container>
+              </div>
+              <div class="line" [ngClass]="{'gray': hasHalfAnHour(time) }"></div>
+            </div>
+            <div class="selector" #timeSelector>
+              <div class="tooltip-time" id="tooltipTime">
+                <div class="tooltip-time-frame">{{newEventTimes[timeTopBorder]}} {{timeTopBorder >= 24 ? 'PM' : 'AM'}} - {{newEventTimes[timeBottomBorder]}}
+                  {{timeBottomBorder >= 24 ? 'PM' : 'AM'}}</div>
+                <div>
+                  <b>{{0.5 * (timeBottomBorder - timeTopBorder)}} Hours</b>
+                </div>
+                <div>Drag to modify</div>
+                <div class="arrow-box"></div>
+              </div>
+              <div *ngIf="!newEvent.fullDay" class="drag-up" id="dragUp" (mousedown)="dragginUpMouseDown()">
+                <img draggable="false" src="/assets/img/slide_up.png">
+              </div>
+              <div *ngIf="!newEvent.fullDay" class="drag-down" id="dragDown" (mousedown)="dragginDownMouseDown()">
+                <img draggable="false" src="/assets/img/slide_down.png">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="event-field">
+        <div class="title">SELECT EVENT FIELD</div>
+        <div class="event-types">
+          <div *ngIf="amenity.reservable" class="event-type" [ngClass]="{'choosen-type': newEvent.type == reservationTypes.reservations}" (click)="!newEvent.key && newEvent.type = reservationTypes.reservations"
+            style="width: 139px;">
+            <svg width="21" height="25" viewBox="0 -2 21 25">
+              <use xlink:href="./assets/icons.svg#calendar"></use>
+            </svg>
+            <div class="event-type-label">Reservations</div>
+          </div>
+          <div class="event-type" [ngClass]="{'choosen-type': newEvent.type == reservationTypes.maintenance}" (click)="!newEvent.key && newEvent.type = reservationTypes.maintenance"
+            style="width: 125px;">
+            <svg width="23" height="24" viewBox="0 0 23 24">
+              <use xlink:href="./assets/icons.svg#wrench"></use>
+            </svg>
+            <div class="event-type-label">Maintenance</div>
+          </div>
+          <div class="event-type" [ngClass]="{'choosen-type': newEvent.type == reservationTypes.vendors}" (click)="!newEvent.key && newEvent.type = reservationTypes.vendors"
+            style="width: 112px;">
+            <svg width="25" height="23" viewBox="0 0 25 23">
+              <use xlink:href="./assets/icons.svg#helemet"></use>
+            </svg>
+            <div class="event-type-label">Vendors</div>
+          </div>
+          <div class="event-type" [ngClass]="{'choosen-type': newEvent.type == reservationTypes.others}" (click)="!newEvent.key && newEvent.type = reservationTypes.others"
+            style="width: 112px;">
+            <svg width="12" height="12" viewBox="0 0 12 12">
+              <use xlink:href="./assets/icons.svg#others"></use>
+            </svg>
+            <div class="event-type-label">Others</div>
+          </div>
+        </div>
+        <div class="form-holder">
+          <div class="event-title" *ngIf="newEvent.type == reservationTypes.maintenance || newEvent.type == reservationTypes.vendors || newEvent.type == reservationTypes.others">
+            <div class="title-label">Title:</div>
+            <input class="event-title-input" type="text" [(ngModel)]="newEvent.title">
+            <div *ngIf="newEventErrors?.title" class="form-item-error">
+              {{newEventErrors.title}}
+            </div>
+          </div>
+          <div class="invitees" *ngIf="newEvent.type == reservationTypes.others || newEvent.type == reservationTypes.reservations">
+            <div class="invitees-label">Invite by:</div>
+            <div class="radio first-radio" (click)="newEvent.inviteAllComplex = true">
+              <div class="c2-radio" [ngClass]="{'checked': newEvent.inviteAllComplex == true}"></div> Facility
+            </div>
+            <div class="radio first-radio" (click)="newEvent.inviteAllComplex = false">
+              <div class="c2-radio" [ngClass]="{'checked': newEvent.inviteAllComplex == false}"></div> Buildings & Tenants
+            </div>
+            <div class="invitees-input" [ngClass]="{focused: newEventSearchFocus, empty: newEvent.invitees.length === 0}" *ngIf="newEvent.inviteAllComplex == false">
+              <div class="invitees-bullets">
+                <div class="invitee-bullet" *ngFor="let key of newEvent.invitees">{{key | getTenantByKey}}</div>
+                <input id="newEventSearchTenantSelector" class="selector" type="text" placeholder="Search tenants and buildings" #tenantsSearch
+                  (focus)="newEventSearchFocus = true">
+              </div>
+              <div id="newEventTenantDropDown" class="tenants-list drop-down" *ngIf="newEventSearchFocus">
+                <div class="tenants-list-holder">
+                  <div class="building-item" *ngFor="let building of ((currentComplex$ | async)?.tenants | tenantsToBuildings)">
+                    <input type="hidden" #showTenantList value="false">
+                    <div class="building-header">
+                      <div (click)="addBuildingInNewReservation(building)" class="c2-check-box">
+                        <div *ngIf="isBuildingInNewReservation(building)" class="c2-check-box-checked"></div>
+                      </div>
+                      <div class="building-label" (click)="showTenantList.value = (showTenantList.value === 'true' ? showTenantList.value = 'false' : 'true') ">Building {{building.name}}</div>
+                      <svg class="arrow-down" width="25" height="23" viewBox="0 0 25 23" (click)="showTenantList.value = (showTenantList.value === 'true' ? 'false' : 'true') ">
+                        <use xlink:href="./assets/icons.svg#arrow"></use>
+                      </svg>
+                    </div>
+                    <div class="tenants" *ngIf="showTenantList.value === 'true'">
+                      <div class="tenant" *ngFor="let tenant of building.tenants" (click)="toggleTenantInNewReservation(tenant)">
+                        <div class="c2-check-box">
+                          <div *ngIf="isTenantInNewReservation(tenant)" class="c2-check-box-checked"></div>
+                        </div>
+                        <div class="tenant-label">{{tenant.name}}, unit {{tenant.apartment}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="invitees-message">We will send a personal message to all invitees</div>
+            <div *ngIf="newEventErrors?.invitees" class="form-item-error">
+              {{newEventErrors.invitees}}
+            </div>
+          </div>
+          <div class="event-repeats" *ngIf="newEvent.type == reservationTypes.maintenance || newEvent.type == reservationTypes.vendors">
+            <div class="event-repeats-types">
+              <div class="event-repeat" (click)="newEvent.recurrenceType = 'once'">
+                <div class="repeat-radio">
+                  <div class="c2-radio" [ngClass]="{'checked': newEvent.recurrenceType == 'once'}"></div> One Time Event
+                </div>
+              </div>
+              <div class="event-repeat" (click)="newEvent.recurrenceType = 'weekly'">
+                <div class="repeat-radio">
+                  <div class="c2-radio" [ngClass]="{'checked': newEvent.recurrenceType == 'weekly'}"></div> Every Week
+                  <span *ngIf="newEvent.recurrenceType == 'weekly'">&nbsp;Until</span>
+                </div>
+                <div class="repeat-end pickers" *ngIf="newEvent.recurrenceType == 'weekly'">
+                  <datepicker (dateChange)="newEventRecurrenceDateChange($event)" [historyDisabled]="true" [width]="'97px'" [height]="'30px'"
+                    [format]="'DD MMM YY'"></datepicker>
+                </div>
+              </div>
+              <div class="event-repeat" (click)="newEvent.recurrenceType = 'monthly'">
+                <div class="repeat-radio">
+                  <div class="c2-radio" [ngClass]="{'checked': newEvent.recurrenceType == 'monthly'}"></div> Every Month
+                  <span *ngIf="newEvent.recurrenceType == 'monthly'">&nbsp;Until</span>
+                </div>
+                <div class="repeat-end pickers" *ngIf="newEvent.recurrenceType == 'monthly'">
+                  <datepicker (dateChange)="newEventRecurrenceDateChange($event)" [historyDisabled]="true" [width]="'97px'" [height]="'30px'"
+                    [format]="'DD MMM YY'"></datepicker>
+                </div>
+              </div>
+              <div class="event-repeat" (click)="newEvent.recurrenceType = 'yearly'">
+                <div class="repeat-radio">
+                  <div class="c2-radio" [ngClass]="{'checked': newEvent.recurrenceType == 'yearly'}"></div> Every Year
+                  <span *ngIf="newEvent.recurrenceType == 'yearly'">&nbsp;Until</span>
+                </div>
+                <div class="repeat-end pickers" *ngIf="newEvent.recurrenceType == 'yearly'">
+                  <datepicker (dateChange)="newEventRecurrenceDateChange($event)" [historyDisabled]="true" [width]="'97px'" [height]="'30px'"
+                    [format]="'DD MMM YY'"></datepicker>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="newEventErrors?.recurrenceUntil" class="form-item-error">
+              {{newEventErrors.recurrenceUntil}}
+            </div>
+          </div>
+          <div class="event-anouncement" *ngIf="newEvent.type == reservationTypes.others">
+            <div class="announcement-label">Announcement (Optional):</div>
+            <textarea cols="30" rows="2" [(ngModel)]="newEvent.announcement"></textarea>
+            <div class="announcement-message">Announcement will be displayed at the tenants' app</div>
+            <div *ngIf="newEventErrors?.announcement" class="form-item-error">
+              {{newEventErrors.announcement}}
+            </div>
+          </div>
+          <div class="event-blocking" *ngIf="newEvent.type == reservationTypes.maintenance || newEvent.type == reservationTypes.vendors">
+            <div class="c2-check-box" (click)="newEvent.blocking = !newEvent.blocking">
+              <div *ngIf="newEvent.blocking" class="c2-check-box-checked"></div>
+            </div>
+            <span>Block event time for other reservations</span>
+          </div>
+        </div>
+        <div class="add-event-button">
+          <button *ngIf="!newEvent.key" class="c2-ok-button add-to-calendar" (click)="publishEvent()" [ngClass]="{loading: loadingNewEvent}">
+            ADD TO CALENDAR
+          </button>
+          <div *ngIf="newEvent.key" class="edit-controls">
+            <a class="delete-event" (click)="showDeleteEvent()">Delete Event</a>
+            <button class="c2-ok-button" [ngClass]="{loading: loadingNewEvent}" (click)="publishEvent()">SAVE CHANGES</button>
+          </div>
+          <div *ngIf="newEventErrors?.startDate" class="form-item-error">
+            {{newEventErrors.startDate}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-dialog>
+  <app-dialog *ngIf="showDeleteDialog" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="''">
+    <div class="delete-event-holder">
+      <div class="delete-label">
+        Are you sure you want to delete this event?
+      </div>
+      <div class="delete-buttons">
+        <button *ngIf="!deletingEvent" class="c2-cancel-button" (click)="showDeleteDialog = false">CANCEL</button>
+        <button class="c2-ok-button" [ngClass]="{loading: deletingEvent}" (click)="deleteEvent()">DELETE</button>
+      </div>
+    </div>
+  </app-dialog>
+  <app-dialog *ngIf="showDeleteRecurrence" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="showDeleteRecurrence = false">
+    <div class="delete-recurrence-event-holder">
+      <div class="delete-label">
+        Delete a repeating event
+      </div>
+      <div class="delete-from">
+        <button *ngIf="!deletingEvent" class="c2-cancel-button" (click)="deleteRecurentEvent('from')">DELETE FROM {{getDateDisplayable(newEvent.startDate)}}</button>
+      </div>
+      <div class="delete-all">
+        <button class="c2-ok-button" [ngClass]="{loading: deletingEvent}" (click)="deleteRecurentEvent('all')">DELETE FROM ALL DATES</button>
+      </div>
+    </div>
+  </app-dialog>
+</div>

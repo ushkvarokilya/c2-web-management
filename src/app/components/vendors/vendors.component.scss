@@ -1,0 +1,284 @@
+@import '../../../style/variables.scss';
+@import '../../../style/mixins.scss';
+.vendors-page {
+  margin: 2%;
+  border-top: 3px solid $squareButtonColor;
+  background: white;
+  font-size: 13px;
+  .page-header {
+    display: flex;
+    font-weight: 600;
+    box-sizing: border-box;
+    padding: 1% 2%;
+    border-bottom: 1px solid $inputBorderColor;
+    font-size: 13px;
+    .page-title {
+      margin: auto 0;
+    }
+    .page-info {
+      color: #2a2a2a;
+      font-weight: bold;
+      margin: auto 0 auto auto;
+    }
+  }
+  .page-content {
+    padding: 1% 2%;
+    .page-controls {
+      display: flex;
+    }
+    .main-message {
+      margin-top: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .vendor-table {
+      .vendor-table-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(42, 42, 42, 1);
+        margin-top: 25px;
+      }
+    }
+    .vendor-item {
+      margin-top: 20px;
+      background-color: rgba(248, 248, 246, 1);
+      border: 1px solid rgba(231, 231, 231, 1);
+      font-size: 13px;
+      color: rgba(42, 42, 42, 1);
+      .vendor-table-item {
+        line-height: 60px;
+        vertical-align: middle;
+        cursor: pointer;
+        height: 60px;
+      }
+      .vendor-details {
+        padding: 27px 0 39px 0;
+        border-top: 1px solid rgba(231, 231, 231, 1);
+        display: flex;
+        opacity: 1;
+        overflow-y: hidden;
+        max-height: 400px;
+        transition-property: all;
+        transition-duration: .8s;
+        .left-pane {
+          width: 36%;
+          margin-left: 23px;
+          .full-name{
+            font-weight: 600;
+            margin-left: 38px;
+            margin-bottom: 16px;
+          }
+          .vendor-datails {
+            .right-content {
+              div {
+                margin-bottom: 8px;
+                &:last-child {
+                  margin-bottom: 0;
+                }
+              }
+              .content-label {
+                margin-bottom: 16px;
+              }
+            }
+          }
+          .vendor-pros {
+            margin-top: 27px;
+          }
+        }
+        .middle-pane {
+          width: 50%;
+          .vendor-notes {
+            margin-top: 33px;
+            .right-content {
+              .content-label {
+                margin-bottom: 11px;
+              }
+            }
+          }
+        }
+        .right-pane {
+          width: 14%;
+          text-align: right;
+          margin-right: 36px;
+          .c2-ok-button {
+            height: 35px;
+            width: 148px;
+          }
+        }
+        &.hide-details {
+          padding: 0;
+          max-height: 0;
+          opacity: 0;
+        }
+      }
+      &:first-child {
+        margin-top: 0px;
+      }
+    }
+  }
+}
+
+.vendor-table-item {
+  display: flex;
+  color: rgba(42, 42, 42, 1);
+  width: 100%;
+  .vendor-name {
+    width: 16%;
+    margin-left: 20px;
+    margin-right: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vendor-distance {
+    width: 12%;
+    img {
+      width: 14px;
+      margin-right: 9px;
+      vertical-align: middle;
+    }
+  }
+  .vendor-assignedTickets {
+    width: 9%;
+    text-align: center;
+    margin-right: 6%;
+  }
+  .vendor-responseTime {
+    width: 17%;
+    img {
+      width: 18px;
+      margin-right: 11px;
+      vertical-align: middle;
+      margin-bottom: 2px;
+    }
+  }
+  .vendor-professions {
+    width: 23%;
+  }
+  .vendor-rating {
+    width: 10%;
+    margin-right: 51px;
+    display: flex;
+    flex-wrap: nowrap;
+    img {
+      margin: auto 0;
+      width: 14px;
+      height: 13px;
+      margin-right: 5px;
+    }
+  }
+}
+
+.pane-item {
+  display: flex;
+  .left-icon {
+    width: 21px;
+    margin-right: 17px;
+    img {
+      width: inherit;
+    }
+  }
+  .right-content {
+    .content-label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+  }
+}
+
+.add-vendor {
+  padding: 0 39px 20px 39px;
+  .label {
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(42, 42, 42, 1);
+  }
+  .name {
+    .name-input {
+      margin-top: 9px;
+    }
+  }
+  .prefession {
+    margin-top: 25px;
+    .label {
+      margin-bottom: 12px;
+    }
+    .profession-bullet {
+      margin-top: 15px;
+      margin-right: 8px;
+      padding: 0 14px;
+      cursor: pointer;
+      flex: 0 auto;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      background-color: rgba(248, 248, 246, 1);
+      border: 1px solid rgba(231, 231, 231, 1);
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(102, 175, 181, 1);
+    }
+    .vendor-professions {
+      display: flex;
+      flex-wrap: wrap;
+      width: 90%;
+      border: 1px solid #e7e7e7;
+      .profession-bullet {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .profession-input {
+        flex: 1 auto;
+        margin: auto 0;
+        input {
+          &::-webkit-input-placeholder {
+            color: #909090 !important;
+          }
+          &:-moz-placeholder {
+            /* Firefox 18- */
+            color: #909090 !important;
+          }
+          &::-moz-placeholder {
+            /* Firefox 19+ */
+            color: #909090 !important;
+          }
+          &:-ms-input-placeholder {
+            color: #909090 !important;
+          }
+          border: none;
+          width: 100%;
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+    }
+    .professions-list {
+      display: flex;
+      flex-wrap: wrap;
+      width: 90%;
+    }
+  }
+  .address {
+    margin-top: 20px
+  }
+  .phone-number {
+    margin-top: 25px;
+  }
+  .email {
+    margin-top: 25px;
+  }
+  .save-button {
+    margin-top: 25px;
+    width: 90%;
+    text-align: right;
+    button {
+      margin-right: 0;
+    }
+  }
+}

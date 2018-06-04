@@ -1,0 +1,191 @@
+<div class="page-container">
+	<div class="col">
+		<div class="panel to-do">
+			<div class="panel-header">
+				<div class="panel-label">TO DO LIST</div>
+				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility') && (user$ |async)?.viewPermissions?.includes('Calendar')"
+				 class="panel-link">
+					<a [routerLink]="['../', 'facility']">See Calendar</a>
+				</div>
+			</div>
+			<div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="days">
+				<div class="day" *ngFor="let day of toDoList">
+					<div class="label">{{day.label}}</div>
+					<div class="events">
+						<div *ngIf="day.events.length == 0" class="no-events">
+							No Assignments Yet
+						</div>
+						<div class="event" *ngFor="let event of day.events">
+							<div class="img" [ngSwitch]="event.eventType">
+								<svg *ngSwitchCase="'Facility'" width="27" height="20" viewBox="0 0 27 20">
+									<use xlink:href="./assets/icons.svg#facility"></use>
+								</svg>
+								<svg *ngSwitchCase="'Maintenance'" width="23" height="24" viewBox="0 0 23 24">
+									<use xlink:href="./assets/icons.svg#wrench"></use>
+								</svg>
+								<svg *ngSwitchCase="'Vendors'" width="25" height="23" viewBox="0 0 25 23">
+									<use xlink:href="./assets/icons.svg#helemet"></use>
+								</svg>
+								<svg *ngSwitchCase="'Tenants'" width="30" height="23" viewBox="0 0 30 23">
+									<use xlink:href="./assets/icons.svg#tenants"></use>
+								</svg>
+								<svg *ngSwitchCase="'Bookkeeping'" width="22" height="23" viewBox="0 0 22 23">
+									<use xlink:href="./assets/icons.svg#bookkeeping"></use>
+								</svg>
+								<svg *ngSwitchCase="'General'" width="20" height="20" viewBox="0 0 20 20">
+									<use xlink:href="./assets/icons.svg#general"></use>
+								</svg>
+							</div>
+							<div class="event-content">
+								<div class="event-title">{{event.name}}</div>
+								<div class="event-time">{{event.time}}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="panel maintenance">
+			<div class="panel-header">
+				<div class="panel-label">MAINTENANCE</div>
+				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="panel-link">
+					<a [routerLink]="['../', 'maintenance']">View All Tickets</a>
+				</div>
+			</div>
+			<div class="counters">
+				<div class="counter new">
+					<div class="num">{{newCount}}</div>
+					<div class="coutner-label">
+						New Tickets
+					</div>
+				</div>
+				<div class="counter inProgress">
+					<div class="num">{{inProgressCount}}</div>
+					<div class="coutner-label">
+						In Progress
+					</div>
+				</div>
+				<div class="counter vendor-required">
+					<div class="num">{{vendorsCount}}</div>
+					<div class="coutner-label">
+						Vendros Required
+					</div>
+				</div>
+			</div>
+			<div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="tickets">
+				<div [class]="'ticket ' + ticket.status" *ngFor="let ticket of tickets">
+					<div class="apt">
+						<span *ngIf="ticket.problemArea !== 'complexArea'">{{ticket.moreInfo[0].apartmentName ? ticket.moreInfo[0].apartmentName : (ticket.moreInfo[1].apartmentName ? ticket.moreInfo[1].apartmentName : '')}}</span>
+						<svg class="img-vertical-center" *ngIf="ticket.problemArea === 'complexArea'" width="27" height="20" viewBox="0 0 27 20">
+							<use xlink:href="./assets/icons.svg#facility"></use>
+						</svg>
+					</div>
+					<div class="num-type">
+						<div class="ticket-num">{{ticket.ticketNumber}}</div>
+						<div class="ticket-type">{{statuses[ticket.status]}}</div>
+					</div>
+					<div class="label">{{ticket.problemDescription}}</div>
+					<div class="date">
+						<div>{{ticket.dateCreated}}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel announcements">
+			<div class="panel-header">
+				<div class="panel-label">ANNOUNCEMENTS</div>
+				<div class="panel-link">
+					<a *ngIf="(user$ |async)?.viewPermissions?.includes('Announcements')" [routerLink]="['../', 'announcements']">View all & Edit</a>
+				</div>
+			</div>
+			<div class="no-announcemets" *ngIf="(activeAnnouncemets$ | async).length == 0">
+				<p>No Active Announcements</p>
+			</div>
+			<div class="carousel-wraper" *ngIf="(activeAnnouncemets$ | async).length > 0">
+				<div id="carousel" class="carousel" style="left: 0;">
+					<div class="announcemet" *ngFor="let announcement of (activeAnnouncemets$ | async)">
+						<div class="label">
+							{{announcement.message}}
+						</div>
+						<div class="ann-date">
+							<span *ngIf="announcement.scheduled.from">{{getScheduleDate(announcement.scheduled.from)}} - {{getScheduleDate(announcement.scheduled.to)}}</span>
+						</div>
+					</div>
+				</div>
+				<div class="controllers">
+					<div class="right-arrow" (click)="moveCarouselRight()">
+						<svg width="10" height="18" viewBox="0 0 10 18" stroke="#989898">
+							<use xlink:href="./assets/icons.svg#arrow"></use>
+						</svg>
+					</div>
+					<div class="left-arrow" (click)="moveCarouselLeft()">
+						<svg width="10" height="18" viewBox="0 0 10 18" stroke="#989898">
+							<use xlink:href="./assets/icons.svg#arrow"></use>
+						</svg>
+					</div>
+				</div>
+				<div class="bullets">
+					<div class="bullet" *ngFor="let a of (activeAnnouncemets$ | async); let annIndex = index" [ngClass]="{'active': carouselStep == annIndex}"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<!-- <div class="panel collection" *ngIf="payments && (user$ |async)?.viewPermissions?.includes('Collections')">
+			<div class="panel-header">
+				<div class="panel-label">COLLECTION</div>
+				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Collections')" class="panel-link"><a [routerLink]="['../', 'collection']">View All Payments</a></div>
+			</div>
+			<div class="expected">
+				<div class="num">{{payments.paidSum + payments.unpaidSum + payments.overdueSum | currency:'USD':'symbol':'1.0-2'}}</div>
+				<div class="label">{{moment().format('MMMM')}} expected payment total</div>
+			</div>
+			<div class="bar">
+				<div *ngIf="payments" class="fill"  [ngStyle]="{right: (100 - ((payments.paidCount * 100) / (payments.unpaidCount + payments.paidCount))) + '%'}"></div>
+			</div>
+			<div class="cards">
+				<div class="card paid">
+					<div class="num">{{payments.paidSum | currency:'USD':'symbol':'1.0-2'}}</div>
+					<div class="label">{{payments.paidCount}} tenants paid</div>
+				</div>
+				<div class="card havent-paid">
+					<div class="num">{{payments.unpaidSum | currency:'USD':'symbol':'1.0-2'}}</div>
+					<div class="label">{{payments.unpaidCount}} tenants haven't paid yet</div>
+				</div>
+			</div>
+			<div class="overdue">
+				<b>{{payments.overdueSum | currency:'USD':'symbol':'1.0-2'}}</b> &nbsp; <span>{{payments.overdueCount}} overdue payments</span>
+			</div>
+		</div> -->
+		<div class="panel facility">
+			<div class="panel-header">
+				<div class="panel-label facility-panel">FACILITY</div>
+				<div class="last-sync">Last Sync: <span> {{lastSync}} </span> </div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<div class="num">{{tenantCount || 0}}</div>
+					<div class="label">Tenants</div>
+				</div>
+				<div class="col">
+					<div class="num">{{occupiedApartment || 0}}</div>
+					<div class="label"><b>Occupied</b> Units</div>
+				</div>
+				<div class="col">
+					<div class="num">{{vacantApartment || 0}}</div>
+					<div class="label"><b>Vacant</b> Units</div>
+				</div>
+			</div>
+			<div class="button">
+				<button *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="c2-ok-button" [routerLink]="['../setup', 'company']"
+				 [queryParams]="{ stage: 'facilities' }">EDIT FACILITY</button>
+				<!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="menu-item" [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'facilities' }">Edit Facilities</div> -->
+			</div>
+		</div>
+	</div>
+	<div class="footer">
+		&copy; All rights reserved C² 2017
+	</div>
+</div>

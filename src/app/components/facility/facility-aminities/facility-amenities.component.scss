@@ -1,0 +1,117 @@
+.amenities-holder,
+.select-amenities {
+  background: white;
+  .page-header {
+    padding: 12px 0 10px 21px;
+    border-top: 3px solid rgba(102, 175, 181, 1);
+    border-bottom: 1px solid rgba(231, 231, 231, 1);
+    display: flex;
+    .page-title {
+      margin: auto 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(42, 42, 42, 1);
+    }
+    .edit-amenities {
+      margin: auto 20px auto auto;
+      font-weight: 600;
+      font-size: 13px;
+    }
+  }
+  .amenities {
+    display: flex;
+    flex-wrap: wrap;
+    .amenity {
+      flex: 0 0 124px;
+      height: 112px;
+      display: flex;
+      border: 1px solid rgba(231, 231, 231, 1);
+      margin-top: -1px;
+      margin-left: -1px;
+      cursor: pointer;
+      .amenity-holder {
+        margin: auto;
+        .amenity-image {
+          text-align: center;
+          img {
+            height: 40px;
+            width: auto;
+            &.swimming_pool {
+              height: 30px;
+              width: 44px;
+            }
+            &.laundry_service {
+              height: 35px;
+              width: 28px;
+            }
+            &.tennis_court {
+              height: 39px;
+              width: 34px;
+            }
+            &.parking_lot,
+            &.guest_parking {
+              height: 29px;
+              width: 53px;
+            }
+            &.meeting_room {
+              height: 44px;
+              width: 31px;
+            }
+            &.cleaning_service {
+              height: 41px;
+              width: 32px;
+            }
+            &.gym {
+              height: 19px;
+              width: 38px;
+            }
+            &.lobby_service {
+              height: 24px;
+              width: 30px;
+            }
+            &.secured_entrance {
+              height: 30px;
+              width: 21px;
+            }
+            &.elevator {
+              height: 33px;
+              width: 34px;
+            }
+            &.sauna {
+              height: 33px;
+              width: 36px;
+            }
+            &.gardening_service {
+              height: 46px;
+              width: 30px;
+            }
+            &.others {
+              width: 81px;
+              height: auto;
+            }
+          }
+        }
+        .amenity-label {
+          margin-top: 20px;
+          text-align: center;
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(57, 57, 57, 1);
+        }
+      }
+    }
+  }
+}
+
+.select-amenities {
+  .amenities {
+    .amenity {
+      &.choosen {
+        background: rgba(244, 243, 240, 1);
+      }
+    }
+  }
+  .save-amenities {
+    margin-top: 20px;
+  }
+}

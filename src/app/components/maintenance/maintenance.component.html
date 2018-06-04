@@ -1,0 +1,513 @@
+<div class="page-holder">
+  <div class="page-header">
+    <div class="page-title">
+      MAINTENANCE
+    </div>
+    <div class="page-stats">
+      <div class="number-label">
+        {{newNum}} New Tickets
+      </div>
+      <div class="number-label">
+        {{inProgressNum}} In Progress
+      </div>
+      <div class="number-label">
+        {{vendorNum}} Vendors Required
+      </div>
+    </div>
+  </div>
+  <div class="maint-content">
+    <div class="maint-content-header">
+      <div class="merge-tickets" [ngClass]="{'clickable': canMerge}" (click)="mergeTickets()">
+        <img src="/assets/img/mergeTicketsIcon.png">
+        <div class="merge-tickets-label">Merge Tickets</div>
+      </div>
+      <div class="query-form">
+        <div class="dropdown">
+          <label for="sortBy">Sort By:</label>
+          <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
+            <option value="apartementName" selected>Unit</option>
+            <option value="ticketNumber">Ticket Number</option>
+            <option value="dateCreated$">Most Recent</option>
+            <option value="dateCreated">Oldest</option>
+          </select>
+        </div>
+        <div class="dropdown">
+          <label for="show">Show:</label>
+          <select id="show" [(ngModel)]="showBy" class="show">
+            <option value="All">All</option>
+            <option value="New">New</option>
+            <option value="In_Progress">In Progress</option>
+            <option value="Vendor">Vendor</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div class="query-search">
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search by ticket, apt, date etc...">
+        </div>
+      </div>
+    </div>
+    <div *ngIf="mainMessage" class="main-message">
+      <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
+      <ng-container *ngIf="mainMessage !== 'Loading...'">
+        {{mainMessage}}
+      </ng-container>
+    </div>
+    <div *ngIf="tickets.length > 0" class="tickets-holder">
+      <div class="ticket" *ngFor="let ticket of (tickets | searchTicket:searchQuery | sortByPipe:sortBy | filterByStatus:showBy )">
+        <div class="ticket-check-box">
+          <div class="c2-check-box" (click)="ticket.selected = !ticket.selected; countSelectedTickets()">
+            <div *ngIf="ticket.selected" class="c2-check-box-checked"></div>
+          </div>
+        </div>
+        <div [class]="'ticket-body clickable ' + ticket.status" (click)="ticket.showDetails = !ticket.showDetails">
+          <div class="apt-name">
+            <!-- <span *ngIf="ticket.problemArea !== 'complexArea' && ticket.apartments">{{ticket.apartments[0]}}</span> -->
+            <span *ngIf="ticket.problemArea !== 'complexArea'">{{ticket.moreInfo[0].apartmentName ? ticket.moreInfo[0].apartmentName : (ticket.moreInfo[1].apartmentName ? ticket.moreInfo[1].apartmentName : '')}}</span>
+            <svg *ngIf="ticket.problemArea === 'complexArea'" width="27" height="20" viewBox="0 0 27 20">
+              <use xlink:href="./assets/icons.svg#facility"></use>
+            </svg>
+          </div>
+          <div class="ticket-number-status">
+            <div class="ticket-number">{{ticket.ticketNumber}}</div>
+            <div class="ticket-status">{{statuses[ticket.status]}}</div>
+          </div>
+          <div class="ticket-description">
+            {{ticket.problemDescription}}
+          </div>
+          <div class="ticket-date">
+            {{moment(ticket.dateCreated).format('DD MMM YY hh:mm A')}}
+          </div>
+          <div class="ticket-options">
+            <img *ngIf="ticket.moreInfo && ticket.moreInfo.length > 0" src="/assets/img/info.png">
+            <img *ngIf="ticket.photosUrl && ticket.photosUrl.length > 0" src="/assets/img/photoIcon.png">
+            <img *ngIf="ticket.groupChatKey" src="/assets/img/messagesIconGrey.png">
+          </div>
+          <div class="ticket-chat">
+            <div *ngIf="show == 'Janitor'">
+              <div *ngIf="!ticket.estimatedWorkTime || ticket.estimatedWorkTime.length == 0">
+                <a (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Chat</a> with tenant to schedule a service slot</div>
+              <div *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0">{{moment(ticket.estimatedWorkTime).toNow(true)}}</div>
+            </div>
+            <div *ngIf="show !== 'Janitor'">
+              <div *ngIf="ticket.status == statuses.Vendor" class="request-sent">
+                <div class="title">Vendor request sent</div>
+                <div class="time" style="text-align: left;">
+                  <ng-container *ngIf="!isPast(ticket.offerDeadline)">
+                    Offers can be received<br>until {{moment(ticket.offerDeadline).format('DD MMM YY hh:mm A')}}
+                  </ng-container>
+                  <ng-container *ngIf="isPast(ticket.offerDeadline)">
+                    Offers application are now closed
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ticket-button">
+          <div *ngIf="show == 'Janitor'">
+            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === statuses.New" class="c2-ok-button"
+              (click)="showSetTimeDialog(ticket)">TIME ESTIMATE</button>
+            <div *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0 && ticket.status === statuses.In-Progress" class="work-scheduled">
+              <div>Work Scheduled</div>
+            </div>
+          </div>
+          <div style="text-align: center;" *ngIf="show == 'Location Manager'">
+
+            <div class="buttons">
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status !== statuses.Done" class="c2-ok-button" (click)="clickMarkAsFix(ticket)">Mark as fixed</button>              
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.Vendor && !ticket.offerResponses"
+                class="c2-ok-button" (click)="showGetVendorDialog(ticket)">GET VENDOR OFFER</button>
+              <span *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.Vendor && ticket.offerResponses && ticket.offerResponses === 0"
+                class="no-offers">No Offers Yet</span>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.Vendor && ticket.offerResponses && ticket.offerResponses > 0"
+                class="c2-ok-button" (click)="showVendorOffersResponses(ticket.key)">SEE {{ticket.offerResponses}} OFFERS</button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.New" class="c2-cancel-button"
+                (click)="sendReminderToJanitor(ticket)">SEND A REMINDER</button>
+            </div>
+
+            <div *ngIf="ticket.status == statuses.In-Progress">
+              <div class="ticket-gist" *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0">
+                <div class="gist-icon">
+                  <img src="/assets/img/hours_icon.png">
+                </div>
+                <div class="gist-text">
+                  <div>Estimated work time:</div>
+                  <div>{{moment(ticket.estimatedWorkTime).toNow(true)}}</div>
+                </div>
+              </div>
+              <div class="ticket-gist" *ngIf="!ticket.estimatedWorkTime || ticket.estimatedWorkTime.length == 0">
+                <div class="gist-icon">
+                  <img src="/assets/img/messagesIconGrey.png">
+                </div>
+                <div class="gist-text">
+                  <div>A message was sent to tenant</div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="ticket.status == statuses.Done" class="ticket-gist">
+              <div class="gist-icon">
+                <img src="/assets/img/v_icon-big.png">
+              </div>
+              <div class="gist-text">
+                <div *ngIf="ticket.vendor">
+                  <b>Vendor:</b>
+                  <a [routerLink]="['/vendors', { searchQuery: ticket.vendor.firstName + ' ' + ticket.vendor.lastName }]">{{ticket.vendor.firstName + ' ' + ticket.vendor.lastName}}</a>
+                </div>
+                <div *ngIf="!ticket.vendor">
+                  <b *ngIf="ticket.moreInfo[ticket.moreInfo.length - 1].body == 'TICKET-DONE'">{{ticket.moreInfo[ticket.moreInfo.length - 1].name}}</b>
+                  <!-- <b>{{personWhoFix}}</b>  -->
+                </div>
+                <div *ngIf="ticket.lastStatusChanged">Fixed at {{ticket.lastStatusChanged | date}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ticket-details" [ngClass]="{'hide-details': !ticket.showDetails}">
+          <div class="ticket-left-pane">
+            <div *ngIf="ticket.merged" class="merged">
+              <div class="left-icon">
+                <img src="/assets/img/mergeTicketsIcon.png">
+              </div>
+              <div class="right-content">
+                <div class="merged-label">Merged</div>
+                <div class="merged-ticket" *ngFor="let apt of ticket.apartments">
+                  <div>{{apt}}</div>
+                </div>
+                <div class="merged-seperate">
+                  <a (click)="seperateTickets(ticket.key)">Seperate</a>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="show == 'Location Manager'" class="joined-tenants">
+              <div class="left-icon">
+                <img src="/assets/img/mergeTicketsIcon.png">
+              </div>
+              <div class="right-content">
+                <div class="joined-tenants-label">Joined Tenants</div>
+                <div class="joined-tenants-holder">
+                  <div class="joined-tenant" *ngFor="let tenant of (ticket.joinedPeople | slice:0:5)">
+                    <img [src]="tenant.profileUrl" [alt]="tenant.firstName + ' ' + tenant.lastName">
+                  </div>
+                  <div class="more-tenants" *ngIf="ticket.joinedPeople?.length > 6">+{{ticket.joinedPeople.length - 6}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="added-details">
+              <div class="left-icon">
+                <img src="/assets/img/info.png">
+              </div>
+              <div class="right-content">
+                <div class="added-details-label">Added Details</div>
+                <div *ngFor="let info of ticket.moreInfo">
+                  <a *ngIf="info.body != 'TICKET-DONE'">{{info.name}}:</a>&nbsp;
+                  <div *ngIf="info.body != 'TICKET-DONE'" class="mainProblemDetail">{{info.body}}</div>
+                  <!-- <a>{{info.name}}:</a>&nbsp; 
+                  <div class="mainProblemDetail">{{info.body}}</div>  -->
+                </div>
+                <div *ngIf="translateTrueOrFalse(ticket.approvedEnteringTheApartment)" class="unattended-entrance">Unattended entrance: {{translateTrueOrFalse(ticket.approvedEnteringTheApartment)}}</div>
+                <div *ngIf="translateTrueOrFalse(ticket.petOwner)" class="unattended-entrance">Pets: {{translateTrueOrFalse(ticket.petOwner)}}</div>
+              </div>
+            </div>
+            <div class="more-info-input">
+              <div class="left-icon">
+                <img src="/assets/img/editIcon.png">
+              </div>
+              <div class="right-content">
+                <textarea rows="4" (keyup.enter)="addMoreInfo($event, ticket.key)" placeholder="Write more information here"></textarea>
+              </div>
+            </div>
+            <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
+              <div class="left-icon">
+                <img src="/assets/img/messagesIconGrey.png">
+              </div>
+              <div class="right-content">
+                <b>No Messages Yet
+                  <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
+                </b>
+              </div>
+            </div>
+          </div>
+          <div class="ticket-middle-pane">
+            <div class="left-icon">
+              <img src="/assets/img/photoIcon.png">
+            </div>
+            <div class="middle-content">
+              <div class="pictures-header">
+                <div class="photos-label">Photos</div>
+                <app-image-upload #imageUpload (imageUploaded)="addImageToTicket(ticket, $event)"></app-image-upload>
+                <div class="form-item-add-input add-photo clickable" (click)="imageUpload.click()">
+                  <div class="plus">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                  </div>
+                  <div class="add-input-label">Add photo</div>
+                </div>
+              </div>
+              <div class="pictures-holder" *ngIf="ticket.photosUrl && ticket.photosUrl.length > 0">
+                <div class="main-picture">
+                  <img [src]="ticket.currentPhoto">
+                </div>
+                <div class="pictures-list">
+                  <img [src]="photo" class="clickable" *ngFor="let photo of ticket.photosUrl" (click)="ticket.currentPhoto = photo">
+                </div>
+              </div>
+              <div class="no-pictures" *ngIf="!ticket.photosUrl || ticket.photosUrl.length == 0">
+              </div>
+            </div>
+          </div>
+          <div class="ticket-right-pane">
+            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && show == 'Janitor' && ticket.status === 'New'"
+              class="c2-cancel-button" (click)="vendorRequired(ticket)">
+              VENDOR REQUIRED
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-dialog class="set-time-dialog" *ngIf="show == 'Janitor' && clickedTicket" [greenHeader]="true" [visible]="true" [header]="'Set estimate work time for ' + clickedTicket.ticketNumber"
+  (visibleChange)="modalVisibiltyChanged($event)">
+  <div class="set-time-dialog">
+    <div *ngIf="!clickedTicket.approvedEnteringTheApartment" class="set-time-label">Note: This tenants asked to schedule a time frame for visiting</div>
+    <div class="choose-date">
+      <div class="left-icon">
+        <img src="/assets/img/calander_icon.png">
+      </div>
+      <div class="date-options">
+        <div class="today" [ngClass]="{'choosen': clickedTicket.date == 'today'}" (click)="clickedTicket.date = 'today'">
+          <div>Today</div>
+          <div>{{moment().format('MM/DD/YY')}}</div>
+        </div>
+        <div class="tomorrow" [ngClass]="{'choosen': clickedTicket.date == 'tomorrow'}" (click)="clickedTicket.date = 'tomorrow'">
+          <div>Tomorrow</div>
+          <div>{{moment().add(1, 'days').format('MM/DD/YY')}}</div>
+        </div>
+        <div class="monday" *ngIf="moment().day() == 5" [ngClass]="{'choosen': clickedTicket.date == 'monday'}" (click)="clickedTicket.date = 'monday'">
+          <div>Monday</div>
+          <div>{{moment().add(2, 'days').format('MM/DD/YY')}}</div>
+        </div>
+        <div class="manual" [ngClass]="{'choosen': clickedTicket.date == 'manual'}" (click)="clickedTicket.date = 'manual'">
+          <div>Set</div>
+          <div>Manually</div>
+        </div>
+      </div>
+      <div class="date-picker">
+        <datepicker [(date)]="datepicker" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'" [ngStyle]="{display: clickedTicket.date == 'manual' ? 'block' : 'none'}"></datepicker>
+      </div>
+    </div>
+    <div class="choose-time">
+      <div class="left-icon">
+        <img src="/assets/img/hours_icon.png">
+      </div>
+      <div class="set-time">
+        <div class="select-hours">
+          <select id="selectEstHour">
+            <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+          </select>
+        </div>
+        <div class="select-minutes">
+          <select name="" id="selectEstMinute">
+            <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="clickedTicket.error" class="form-item-error">
+      {{clickedTicket.error}}
+    </div>
+    <div class="set-button">
+      <button class="c2-ok-button" (click)="setEstTime()">SET</button>
+    </div>
+  </div>
+</app-dialog>
+<app-dialog class="choose-vendor-dialog" *ngIf=" show == 'Location Manager' && clickedTicket" [size]="'large'" [visible]="true"
+  [header]="'GET OFFERS FOR ' + clickedTicket.ticketNumber" (visibleChange)="modalVisibiltyChanged($event)">
+  <div class="choose-vendor">
+    <div class="right-pane">
+      <div class="pane-header">
+        TIME FRAME FOR FIXING
+      </div>
+      <div class="time-type">
+        <div class="full-day clickable" (click)="chooseVendor.timeType = 'ASAP'; clearDateChoices();">
+          <div class="c2-radio" [ngClass]="{'checked': chooseVendor.timeType == 'ASAP'}"></div> As Soon As Possible
+        </div>
+        <div class="time-frame clickable" (click)="chooseVendor.timeType = 'TIMEFRAME'">
+          <div class="c2-radio" [ngClass]="{'checked': chooseVendor.timeType == 'TIMEFRAME'}"></div> Time Frame
+        </div>
+      </div>
+      <div class="pick-date">
+        <div class="single-day" *ngIf="chooseVendor.timeType == 'ASAP'">
+        </div>
+        <div class="time-range" *ngIf="chooseVendor.timeType == 'TIMEFRAME'">
+          <div class="start">
+            <div class="start-label">Starts at</div>
+            <div class="pickers">
+              <datepicker [(date)]="chooseVendor.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+              <select id="" [(ngModel)]="chooseVendor.fromHour">
+                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+              </select>
+              <div>:</div>
+              <select class="last-select" id="" [(ngModel)]="chooseVendor.fromMinute">
+                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="end">
+            <div class="end-label">Ends at</div>
+            <div class="pickers">
+              <datepicker [(date)]="chooseVendor.toDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+              <select id="" [(ngModel)]="chooseVendor.toHour">
+                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+              </select>
+              <div>:</div>
+              <select class="last-select" id="" [(ngModel)]="chooseVendor.toMinute">
+                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="chooseVendorErrors && chooseVendorErrors.timeType == 'TIMEFRAME' && chooseVendorErrors.timeRangeError" class="time-error">
+          {{chooseVendorErrors.timeRangeError}}
+        </div>
+      </div>
+      <div class="vendors-to-request">
+        <div class="vendors-to-request-label">VENDORS TO REQUEST</div>
+        <div class="vendors-box">
+          <div class="vendors-search">
+            <div class="choosen-vendors" *ngFor="let vendor of this.chooseVendor.choosenVendors; let choosenVendorIndex = index">
+              {{vendor.firstName}} {{vendor.lastName}}
+              <span class="clickable" (click)="removeVendor(choosenVendorIndex)">&times;</span>
+            </div>
+          </div>
+          <div class="vendors-list">
+            <div class="loading-vendors" *ngIf="loadingVendors">Loading vendors...</div>
+            <div class="vendor-type" *ngFor="let group of vendors">
+              <div class="type-header">
+                <div class="type-label">{{group.type}}s</div>
+                <div class="all-type">All {{group.type}}s</div>
+                <div class="c2-check-box" (click)="checkGroup(group)">
+                  <div *ngIf="group.checked" class="c2-check-box-checked"></div>
+                </div>
+              </div>
+              <div class="type-vendors">
+                <div class="vendor" *ngFor="let vendor of group.vendors">
+                  <div class="vendor-name">{{vendor.firstName}} {{vendor.lastName}}</div>
+                  <div class="c2-check-box" (click)="checkVendor(vendor, group)">
+                    <div *ngIf="vendor.checked" class="c2-check-box-checked"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="offer-deadline">
+        <div class="offer-deadline-label">OFFER DEADLINE</div>
+        <div class="pickers">
+          <datepicker [(date)]="chooseVendor.offerDeadlineDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+          <select id="" [(ngModel)]="chooseVendor.offerDeadlineHour">
+            <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+          </select>
+          <div>:</div>
+          <select class="last-select" [(ngModel)]="chooseVendor.offerDeadlineMinute" id="">
+            <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="send-to-vendors">
+        <button class="c2-ok-button" (click)="sendToVendors()" [ngClass]="{loading: sendingToVendors}">SEND TO VENDORS</button>
+      </div>
+    </div>
+    <div class="left-pane">
+      <div class="pane-header">TICKET DETAILS</div>
+      <div class="ticket-details">
+        <div class="details-header">
+          {{clickedTicket.problemDescription}}, {{clickedTicket.apartementName}}
+        </div>
+        <div class="details-body">
+          <div *ngFor="let info of clickedTicket.moreInfo">
+            <a>{{info.name}}:</a>&nbsp;
+            <span>{{info.body}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="photos">
+        <div class="photos-header">
+          <div class="photos-label">PHOTOS</div>
+        </div>
+        <div class="photos-holder">
+          <img *ngFor="let photo of (clickedTicket.photosUrl | slice:0:3)" [src]="photo">
+        </div>
+      </div>
+    </div>
+  </div>
+</app-dialog>
+<app-dialog class="check-offers-dialog" *ngIf="clickedTicketEditOffers" [greenHeader]="false" [visible]="true" [size]="'large'"
+  [header]="'Vendor Offers ' " (visibleChange)="modalVisibiltyChanged($event)">
+  <div class="payments">
+    <div class="table-header lease-row">
+      <div class="col-1">
+        Vendor Name
+      </div>
+      <div class="col-2">Distance</div>
+      <div class="col-3">Price</div>
+      <div class="col-4">Note</div>
+      <div class="col-5">Rating</div>
+      <div class="col-6"> &nbsp; </div>
+    </div>
+  </div>
+  <div class="item" *ngFor="let offer of vendorOffers">
+    <div class="item-header lease-row" (click)="expandPayment = !expandPayment">
+      <div class="col-1">
+        {{offer.vendorName}}
+      </div>
+      <div class="col-2">
+        {{offer.vendorDistance}}
+      </div>
+      <div class="col-3">
+        ${{offer.price}}
+      </div>
+      <div class="col-4">
+        {{offer.note}}
+      </div>
+      <div class="col-5">
+        {{offer.vendorRating}}
+      </div>
+      <div class="col-6">
+        <button class="c2-ok-button" (click)="assignVendor(offer.key, offer.ticket.key)"> Assign Vendor</button>
+      </div>
+    </div>
+    <div class="item-body" [ngClass]="{'hidden-body': !expandPayment}">
+      {{offer.note}}
+    </div>
+  </div>
+</app-dialog>
+<app-dialog class="rating-vendors-dialog" *ngIf="currentlyRating" [greenHeader]="false" visible="true" size="medium" [header]="'Please Rate ' + currentlyRating?.vendor?.firstName + currentlyRating?.vendor?.lastName + ' For This Service Call' "
+  (visibleChange)="modalVisibiltyChanged($event)">
+  <div class="vendor-rating" *ngIf="isHoverMode">
+    <div *ngFor="let gold of getArray(rating); let goldIndex = index" (mouseover)='changeRating(goldIndex)' (click)='clickChangeRating(goldIndex)'
+      (mouseleave)='changeRatingLeave()'>
+      <img src="/assets/img/star_gold.png">
+    </div>
+    <div *ngFor="let grey of getArray(5 - rating); let goldIndex = index" (mouseover)='changeRating(goldIndex + rating + 1)'
+      (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
+      <img src="/assets/img/star_grey.png">
+    </div>
+  </div>
+  <div class="vendor-rating" *ngIf="!isHoverMode">
+    <div *ngFor="let gold of getArray(currentlyRating.vendor.rating); let goldIndex = index" (mouseover)='toggleHover()' (mouseleave)='toggleLeave()'
+      (click)='clickChangeRating(goldIndex)'>
+      <img src="/assets/img/star_gold.png">
+    </div>
+    <div *ngFor="let grey of getArray(5 - currentlyRating.vendor.rating); let goldIndex = index" (mouseover)='toggleHover()'
+      (mouseleave)='toggleLeave()' (click)='clickChangeRating(goldIndex)'>
+      <img src="/assets/img/star_grey.png">
+    </div>
+  </div>
+  <div class="add-note-label">ADD NOTE(OPTIONAL)</div>
+  <textarea class="note-text-area"></textarea>
+  <div class="set-button">
+    <button class="c2-ok-button" (click)="rateVendor()" [ngClass]="{loading: ratingLoading}">Rate</button>
+  </div>
+</app-dialog>

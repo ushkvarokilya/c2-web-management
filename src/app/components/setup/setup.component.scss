@@ -1,0 +1,131 @@
+@import '../../../style/mixins.scss';
+$section-top-bottom-padding: 15px;
+$arrow-height: ($section-top-bottom-padding * 2)+5.9;
+$arrow-side-length: 21px;
+.flow-bar {
+	display: flex;
+	position: relative;
+	.section {
+		width: 33.33333333%;
+		font-size: 18px;
+		font-weight: 600;
+		text-align: center;
+		line-height: 40px;
+		padding: $section-top-bottom-padding 0;
+		background-color: rgba(243, 242, 239, 1);
+		position: relative;
+		color: rgba(144, 144, 144, 1);
+		.arrow {
+			width: 0;
+			height: 0;
+			border-top: $arrow-height solid transparent;
+			border-bottom: $arrow-height solid transparent;
+			border-left: $arrow-side-length solid rgba(243, 242, 239, 1);
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			right: -($arrow-side-length - 1);
+			z-index: 100;
+			img {
+				position: absolute;
+				top: 50%;
+				transform: translateY(-50%);
+				right: 0;
+			}
+		}
+		.progress-bar {
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 4px;
+			bottom: 0;
+			.fill {
+				background: rgba(0, 184, 160, 1);
+				z-index: 100;
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				transition: right 1s;
+				.arrow {
+					display: none;
+					width: 0;
+					height: 0;
+					border-top: 4px solid transparent;
+					border-bottom: 4px solid transparent;
+					border-left: 4px solid rgba(243, 242, 239, 1);
+					transform: translateY(-50%) rotate(45deg);
+					position: absolute;
+					top: 67%;
+					right: -1px;
+				}
+			}
+		}
+		&.active {
+			color: rgba(0, 184, 160, 1);
+			background-color: rgba(231, 230, 227, 1);
+			.arrow {
+				border-left: $arrow-side-length solid rgba(231, 230, 227, 1);
+			}
+			.progress-bar>.fill>.arrow{
+				border-left: 4px solid rgba(231, 230, 227, 1);
+			}
+		}
+		&.error {
+			color: rgba(243, 63, 45, 1);
+			.progress-bar>.fill {
+				background-color: rgba(243, 63, 45, 1);
+			}
+		}
+	}
+}
+
+.stage-holder {
+	&.fadeout {
+		@include animation('fadeout 0.4s');
+	}
+	&.fadein {
+		@include animation('fadein 0.4s');
+	}
+}
+
+.action-footer {
+	background-color: rgba(248, 248, 246, 1);
+	border-top: 1px solid rgba(231, 231, 231, 1);
+	height: 96px;
+	display: flex;
+	.loading-holder {
+		margin: auto 45px auto auto;
+		min-width: 1px;
+		.loading {
+			font-size: 13px;
+			font-weight: 600;
+		}
+		.loadingError {
+			font-size: 13px;
+			color: rgba(255, 3, 3, 1);
+		}
+	}
+	.buttons-holder {
+		margin: auto 0;
+		margin-right: 5%;
+		button {
+			height: 40px;
+			width: 157px;
+			margin-right: 10px;
+			font-size: 13px;
+			font-weight: 600;
+			text-align: center;
+			&.previous {
+				background-color: rgba(255, 255, 255, 1);
+				border: 1px solid rgba(0, 184, 160, 1);
+				color: rgba(0, 184, 160, 1);
+			}
+			&.next {
+				background-color: rgba(0, 184, 160, 1);
+				border: 1px solid rgba(0, 184, 160, 1);
+				color: rgb(255, 255, 255);
+			}
+		}
+	}
+}

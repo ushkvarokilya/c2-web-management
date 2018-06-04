@@ -1,0 +1,91 @@
+<div class="loading" *ngIf="!dataLoaded || loading">
+    <img src="/assets/img/loader_big.gif" alt="">
+</div>
+<div class="page-holder" *ngIf="dataLoaded && !loading">
+    <div class="page-header">
+        <div class="page-title">
+            COLLECTION
+        </div>
+    </div>
+    <div class="collection-container">
+        <div class="collection-top">
+            <div class="payment-total">
+                <div class="payment-num" *ngIf="paidSum + unpaidSum + overdueSum >= 0">{{(paidSum + unpaidSum + overdueSum | currency:'USD':'symbol':'1.0-2')}}</div>
+                <div class="payment-label">{{moment().format('MMMM')}} expected payment total</div>
+            </div>
+            <div class="controllers">
+                <div class="day-overdue">
+                    <div class="day-overdue-label">Charge for day overdue $</div>
+                    <div class="day-overdue-input"><input type="text" [(ngModel)]="dayOverdue" placeholder="25"></div>
+                </div>
+            </div>
+        </div>
+        <div class="collection-card">
+            <div class="progress-bar">
+                <div *ngIf="paidSum && unpaidSum && (paidSum + unpaidSum !== 0)" 
+                class="bar-fill" [ngStyle]="{right: (100 - ((paidCount * 100) / (unpaidCount + paidCount))) + '%'}"></div>
+            </div>
+            <div class="cards">
+                <div class="paid-card clickable" (click)="showBy = 'Paid'">
+                    <div class="paid-amount" >{{paidSum | currency:'USD':'symbol':'1.0-2'}}</div>
+                    <div class="paid-label" >{{paidCount}} tenants paid</div>
+                </div>
+                <div class="havent-paid-card clickable" (click)="showBy = 'Unpaid'">
+                    <div class="paid-amount">{{unpaidSum | currency:'USD':'symbol':'1.0-2'}}</div>
+                    <div class="paid-label" >{{unpaidCount}} tenants haven't paid yet</div>
+                </div>
+            </div>
+            <div class="overdue-payments clickable" (click)="showBy = 'Overdue'">
+                <span>{{overdueSum | currency:'USD':'symbol':'1.0-2'}}</span> - {{overdueCount}} overdue payments
+            </div>
+        </div>
+        <div class="items-controllers">
+            <div class="toggle-buttons">
+                <div class="toggle-type" (click)="itemsType == 0 ? itemsType = 1 : itemsType = 0">
+                    <div class="type-option" [ngClass]="{'choosen': itemsType == 0 }">
+                        <div class="type-label">This Month</div>
+                    </div>
+                    <div class="type-option" [ngClass]="{'choosen': itemsType == 1 }">
+                        <div class="type-label">Archive</div>
+                    </div>
+                </div>
+            </div>
+            <div class="query-form">
+                <div class="dropdown">
+                    <label for="sortBy">Sort By:</label>
+                    <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
+                        <option value="name">Unit</option>
+                        <option value="dueDate">Due Date</option>
+                        <option value="dateCreated$">Payed First</option>
+                        <option value="dateCreated">Unpaid First</option>
+                        <option value="dateCreated">OverDue First</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="show">Show:</label>
+                    <select id="show" [(ngModel)]="showBy" class="show">
+                        <option value="All">All</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="query-search">
+                    <input type="text" [(ngModel)]="searchQuery" placeholder="Search by tenant name, apartment, etc.">
+                </div>
+            </div>
+        </div>
+        <div class="payments">
+            <div class="table-header lease-row">
+                <div class="col-1">
+                    <span class="apt-label">Unit</span>
+                    <span class="align-right">Rent</span>
+                </div>
+                <div class="col-2">Due Date</div>
+                <div class="col-3">Status</div>
+                <div class="col-4">&nbsp;</div>
+            </div>
+            <payment-item *ngFor="let payment of (payments| searchCollection:searchQuery | sortByPipe:sortBy | filterByStatus: showBy)" [payment]="payment"></payment-item>
+        </div>
+    </div>
+</div>

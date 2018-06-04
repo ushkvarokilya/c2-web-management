@@ -1,0 +1,13 @@
+<div *ngIf="visible">
+    <div class="dialog" [class]="size + ' dialog'">
+        <header *ngIf="header" [ngClass]="{'green-header': greenHeader}">
+            {{header}}
+            <button *ngIf="closable" (click)="close()" aria-label="Close" class="dialog__close-btn">x</button>
+        </header>
+        <div class="spacer-div"></div>
+        <div class="content" [ngClass]="{'remove-padding': removePdding}">
+            <ng-content></ng-content>
+        </div>
+    </div>
+    <div class="overlay" style="height: 100%; width: 100%;" (click)='close()'> </div>
+</div>

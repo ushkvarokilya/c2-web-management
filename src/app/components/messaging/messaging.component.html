@@ -1,0 +1,85 @@
+<div class="page-holder">
+    <div class="page-header">
+        <div class="page-title">
+            MESSAGES
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="top-action">
+            <div class="auto-group">
+                <button *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="showAutoGroup = true">Automatic Groups: By Floor</button>
+            </div>
+            <div *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="edit-welcome clickable" (click)="openWelcomeMessageDialog()">Edit Welcome Messages</div>
+        </div>
+        <div class="messages-frame">
+            <div class="left-panel">
+                <div class="top-panel">
+                    <label for="show">Show:</label>
+                    <select id="show" class="show-select">
+                        <option value="">All</option>
+                        <option value="unread">Unread</option>
+                        <option value="tenantOnly">Tenant Only</option>
+                        <option value="Roles Only">Roles Only</option>
+                        <option value="Group Only">Group Only</option>
+                    </select>
+                    <img *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="new-group clickable" src="/assets/img/new_message.png" alt="New conversations" (click)="newGroup()">
+                </div>
+                <div class="groups-holder">
+                    <div class="search-group">
+                        <input type="text" [(ngModel)]="searchQuery" placeholder="Search by apartments, tenants, role or group">
+                    </div>
+                    <div class="groups">
+                        <div *ngFor="let group of (groups$ | async | searchAptByName: searchQuery)" class="group" [ngClass]="{'current': (currentGroup$ | async) && (currentGroupKey$ | async) == group.key }"
+                            (click)="setCurrentGroup(group.key)">
+                            <div class="group-img">
+                                <img *ngFor="let p of (group.participants | slice : 0 : 1)" [src]="p.imageUrl">
+                            </div>
+                            <div class="group-details">
+                                <div class="group-name">{{group.name}}</div>
+                                <div *ngIf="group.lastMessage" class="group-last-msg" [ngClass]="{'unread': group.unreadCount > 0}">{{group.lastMessage.message}}</div>
+                                <div *ngIf="group.lastMessageSentDate != 0" class="group-last-msg-time">{{getDisplayDate(group.lastMessageSentDate)}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <group-view [group]="(currentGroup$ | async)" [company]="(company$ | async)"></group-view>
+            </div>
+        </div>
+    </div>
+</div>
+<app-dialog *ngIf="showWelcomeMessage" [visible]="true" header="Welcome Message" (visibleChange)="showWelcomeMessage = false">
+    <div class="welcome-message">
+        <div class="description">
+            This message will be sent to every tenant. Make sure they feel welcome.
+        </div>
+        <div class="message-input">
+            <div class="header">Hi <b>(tenant name)</b>!</div>
+            <textarea [(ngModel)]="welcomeMessage" rows="2" placeholder="Write your welcome message here"></textarea>
+        </div>
+        <div class="form-item-error" *ngIf="welcomeMessageError">
+            {{welcomeMessageError}}
+        </div>
+        <div class="buttons">
+            <button *ngIf="!loading" class="c2-cancel-button" (click)="showWelcomeMessage = false">CANCEL</button>
+            <button class="c2-ok-button" (click)="changeWelcomeMessage()" [ngClass]="{loading: loading}">SAVE</button>
+        </div>
+    </div>
+</app-dialog>
+<app-dialog *ngIf="showAutoGroup" [visible]="true" header="Automatic groups" (visibleChange)="showAutoGroup = false">
+    <div class="auto-group">
+        <div class="description">
+            This is created automatically for your tenants. We recommend having no more then 50 tenants in one group.
+        </div>
+        <div class="options">
+            <div class="option" [ngClass]="{'choosen': autoGroupType == 1}" (click)="autoGroupType = 1">Floor</div>
+            <div class="option" [ngClass]="{'choosen': autoGroupType == 2}" (click)="autoGroupType = 2">2 Floors</div>
+            <div class="option" [ngClass]="{'choosen': autoGroupType == 3}" (click)="autoGroupType = 3">All Tenants</div>
+        </div>
+        <div class="buttons">
+            <button class="c2-cancel-button" (click)="showAutoGroup = false">CANCEL</button>
+            <button class="c2-ok-button">SAVE</button>
+        </div>
+    </div>
+</app-dialog>

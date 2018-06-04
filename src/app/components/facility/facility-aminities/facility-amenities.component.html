@@ -1,0 +1,45 @@
+<div class="amenities-holder">
+	<div class="page-header">
+		<div class="page-title">
+			AMENITIES
+		</div>
+		<!-- <div class="edit-amenities">
+			<a *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" (click)="checkAvailableAmenities() ;showSelectAmenities = true">Edit</a>
+		</div> -->
+	</div>
+	<div class="amenities">
+		<div class="amenity" *ngFor="let am of amenities" routerLink="/amenity/{{am.amenityKey}}">
+			<div class="amenity-holder">
+				<div class="amenity-image">
+					<img *ngIf="DefaultAmenities[am.name]" [src]="DefaultAmenities[am.name]?.image">
+					<img *ngIf="!DefaultAmenities[am.name]" class="others" src="/assets/img/amenities/other.svg">
+				</div>
+				<div class="amenity-label">
+					<span *ngIf="DefaultAmenities[am.name]">{{DefaultAmenities[am.name].name}}</span>
+					<span *ngIf="!DefaultAmenities[am.name]">{{am.name}}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- <app-dialog *ngIf="showSelectAmenities" [size]="'medium'" [visible]="true" [header]="'SELECT THE AMENITIES THAT ARE AVAILABLE IN THE FACILITY'"
+		(visibleChange)="showSelectAmenities = false">
+	<div class="select-amenities">
+		<div class="amenities">
+			<div class="amenity clickable" *ngFor="let am of availableAmenities"
+			[ngClass]="{'choosen': am.choosen}" (click)="am.choosen = !am.choosen">
+				<div class="amenity-holder">
+					<div class="amenity-image">
+						<img [src]="am.image" [class]="am.name">
+					</div>
+					<div class="amenity-label">
+						<span>{{renderAmenityName(am.name)}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="save-amenities">
+			<button class="c2-ok-button" (click)="save()" [ngClass]="{loading: loading}">SAVE</button>
+		</div>
+	</div>
+</app-dialog> -->

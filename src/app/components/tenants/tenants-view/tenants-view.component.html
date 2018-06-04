@@ -1,0 +1,226 @@
+<div class="contain-view">
+  <div class="tenants-header">
+    <div *ngIf="!environment.production && (user$ |async)?.actionPermissions?.includes('Tenants')" class="form-item-add-input clickable"
+      (click)="addTenants.emit(true)">
+      <div class="plus">
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="add-input-label">
+        Add Tenants To Unit
+      </div>
+    </div>
+    <div class="query-form">
+      <div class="dropdown">
+        <label for="sortBy">Sort By:</label>
+        <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
+          <option value="apartment" selected>Unit</option>
+          <option value="endDate">Lease Ending Date</option>
+          <option value="paymentScore">Payment Score</option>
+          <option value="tickets">Open Tickets</option>
+          <option value="rent">Rent (low to high)</option>
+          <option value="rent$">Rent (high to low)</option>
+        </select>
+      </div>
+      <div class="dropdown">
+        <label for="show">Show:</label>
+        <select id="show" [(ngModel)]="show" class="show">
+          <option value="active" selected>Active Leases</option>
+          <option value="archived">Archive</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="query-search">
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Search by ticket, unit, date etc...">
+      </div>
+    </div>
+  </div>
+  <div *ngIf="mainMessage" class="main-message">
+    <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
+    <ng-container *ngIf="mainMessage !== 'Loading...'">
+      {{mainMessage}}
+    </ng-container>
+  </div>
+  <div *ngIf="!mainMessage" class="table-header lease-row">
+    <div class="col-1"> UNIT</div>
+    <div class="col-2"> TENANTS</div>
+    <div class="col-3"> RENT</div>
+    <div class="col-4"> PAYMENT SCORE</div>
+    <div class="col-5"> OPEN TICKETS</div>
+    <div class="col-6"> LEASE ENDS IN</div>
+    <div class="col-7"> CHAT</div>
+    <div class="col-8"> &nbsp;</div>
+  </div>
+  <div class="leases" [ngClass]="{'hide': mainMessage}">
+    <div class="lease" *ngFor="let lease of (leases | searchTenant:searchQuery | sortByPipe:sortBy | filterLease:show ); let leaseIndex = index">
+      <div class="lease-main lease-row clickable" (click)="lease.visible = !lease.visible">
+        <div class="col-1">{{lease.apartment}}</div>
+        <div class="col-2">
+          <span *ngFor="let tenant of (lease.tenants | slice:0:2); let tenantIndex = index">
+            <span *ngIf="tenantIndex != 0">, </span>
+            <span>{{tenant.firstName}} {{tenant.lastName}}</span>
+          </span>
+          <span *ngIf="lease.tenants.length > 2"> and {{lease.tenants.length - 2}} more</span>
+        </div>
+        <div class="col-3">{{(lease.rent / 100) | currency:'USD':'symbol':'1.0-2'}}</div>
+        <div class="col-4">
+          <svg class="score-circle" height="45" width="45">
+            <circle cx="22.5" cy="22.5" r="20" stroke="#66afb5" stroke-width="3" fill="none" />
+          </svg>
+          <span class="score-number">{{lease.paymentScore}}</span>
+        </div>
+        <div class="col-5">{{lease.ticketsNum}}</div>
+        <div class="col-6 fix-lines">
+          <span *ngIf="!lease.archived">{{lease.endDate | dateRange}}</span>
+          <span *ngIf="lease.archived">Lease is archived</span>
+        </div>
+        <div class="col-7">
+          <img *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="clickable" src="/assets/img/messagesIcon.png" (click)="navigateToChatWithGroup(lease.tenants, lease.apartment)">
+        </div>
+        <div class="col-8">
+          <div class="more-options" [ngClass]="{'active': lease.showTooltip}">
+            <div class="three-dots" (click)="lease.showTooltip = !lease.showTooltip">
+              <svg width="21" height="5" viewBox="0 0 21 5">
+                <use xlink:href="./assets/icons.svg#threeDots"></use>
+              </svg>
+            </div>
+            <div *ngIf="lease.showTooltip" class="c2-menulist">
+              <!--<div *ngIf="(user$ | async)?.actionPermissions.includes('Tenants')" class="option" (click)="lease.showTooltip = false;sendToEdit(lease);">Edit</div>-->
+              <div class="option" (click)="lease.showTooltip = false; lease.unitDetails = true;">Unit Details</div>
+              <div class="option" (click)="lease.showTooltip = false; seeScanedLease(leaseIndex)">See Scaned Lease</div>
+            </div>
+          </div>
+        </div>
+        <app-dialog [id]="'scannedLease'+leaseIndex" class="scanned-lease" [visible]="lease.showScannedLease" size="large" (visibleChange)="lease.showScannedLease = false">
+          <iframe *ngIf="lease.scannedLeaseUrl" frameborder="0"></iframe>
+          <ng-container *ngIf="!lease.scannedLeaseUrl">No scanned lease</ng-container>
+        </app-dialog>
+        <app-dialog class="unit-details" [visible]="lease.unitDetails" size="large" (visibleChange)="lease.unitDetails = false">
+          <div class="unit" *ngIf="lease.unit">
+            <div class="unit-show">
+              <div class="unit-header clickable">
+                <div class="unit-picture unit-col">
+                  <img [src]="lease.unit.planImageUrl">
+                </div>
+                <div class="unit-name unit-col">
+                  <span>{{lease.unit.name}}</span>
+                </div>
+                <div class="unit-apt-num unit-col">{{lease.unit.aptCount}} Units</div>
+                <div class="unit-size unit-col">{{lease.unit.size}} SQ F</div>
+                <div class="unit-bedrooms unit-col">
+                  <img src="/assets/img/bed_icon.png">
+                  <div class="unit-col-label">{{lease.unit.bedrooms}} Bedrooms</div>
+                </div>
+                <div class="unit-bathrooms unit-col">
+                  <img src="/assets/img/shower_icon.png">
+                  <div class="unit-col-label">{{lease.unit.bathrooms}} Bathrooms</div>
+                </div>
+              </div>
+              <div class="unit-body">
+                <div class="unit-amenities">
+                  <div class="amenity" *ngFor="let am of amenities" [ngClass]="{'hide': !lease.unit.amenities[am.name]}">
+                    <img class="amenity-image" [src]="am.image" />
+                    <div class="amenity-label">{{renderAmenityName(am.name)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            Apartment: {{lease.apartment}}
+          </div>
+          <!-- <div (click) = "aasdsad()" class="" *ngIf="!lease.unit">
+            No Unit Details
+          </div> -->
+        </app-dialog>
+      </div>
+      <div class="lease-tenants" [ngClass]="{'hide-table': !lease.visible}">
+        <div class="tenant lease-row" *ngFor="let tenant of lease.tenants; let tenantIndex = index;">
+          <div class="col-1">
+            <img [src]="tenant.imageUrl">
+          </div>
+          <div class="col-2">
+            <div>{{tenant.firstName}} {{tenant.lastName}}</div>
+            <div>{{tenant?.phoneNumber}}</div>
+            <div>{{tenant.email}}</div>
+            <div>{{tenant.age}} YO</div>
+            <img class="open-edit-tenants-info" (click)="tenant.showEditInfo = true; errorInEmail = ''; openUserData(tenant)" src="assets/img/pencil.png">
+            <app-dialog *ngIf="tenant.showEditInfo" [visible]="true" size="medium" [header]="tenant.firstName + ' ' + tenant.lastName + ' INFO'"
+              (visibleChange)="tenant.showEditInfo = false">
+              <div class="update-tenant-info">
+                <div class="form-item tenant-name">
+                  <div class="form-item-title">Email</div>
+                  <div class="form-item-input-holder">
+                    <input [disabled]="tenant.updating" [(ngModel)]="tempEmailForEditWindow" type="email">
+                  </div>
+                  <div class="errorInEmail">{{errorInEmail}}</div>
+                </div>
+                <div class="update-button">
+                  <button class="c2-ok-button" [ngClass]="{loading: tenant.updating}" (click)="updateTenatEmail(tenant)">SAVE</button>
+                </div>
+              </div>
+            </app-dialog>
+          </div>
+          <div class="col-3">
+            <button class="c2-ok-button" *ngIf="canShowTenantInviteButton(tenant)" [ngClass]="{loading: tenant.sendingInvite}" (click)="sendInvite(tenant)">
+              Send invite
+            </button>
+            <!-- <span *ngIf="tenant.partInRent">{{tenant.partInRent | currency:'USD':'symbol':'1.0-2'}}</span> -->
+          </div>
+          <div class="col-4 clickable" [routerLink]="['/collection', {searchQuery: tenant.firstName + ' ' + tenant.lastName }]">
+            <svg class="score-circle" height="45" width="45">
+              <circle cx="22.5" cy="22.5" r="20" stroke="#66afb5" stroke-width="3" fill="none" />
+            </svg>
+            <span class="score-number">{{tenant.paymentScore}}</span>
+          </div>
+          <div class="col-5">
+            <a *ngIf="tenant.ticketKeys" [routerLink]="['/maintenance', { searchQuery: tenant.firstName + ' ' + tenant.lastName }]">{{tenant.ticketKeys.length}}</a>
+          </div>
+          <div class="col-6 fix-lines">
+            <!-- <span>{{tenant.tenantSince | dateRange}}</span> -->
+          </div>
+          <div class="col-7">
+            <img *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="clickable" src="/assets/img/messagesIcon.png" (click)="navigateToChatWithTenant(tenant, lease.apartment)">
+          </div>
+          <div class="col-8 add-note">
+            <div class="add-note-button" (click)="tenant.showNotes = true; tenant.tmpNote = ''">
+              <div class="note-counter" *ngIf="tenant.notes && tenant.notes.length > 0">{{tenant.notes.length}}</div>
+              <div class="note-counter" *ngIf="!tenant.notes || tenant.notes.length == 0">+</div>
+              <img class="note-box" src="/assets/img/box.png">
+            </div>
+            <div class="tooltip">
+              Add Note
+            </div>
+          </div>
+          <app-dialog *ngIf="tenant.showNotes" [visible]="true" size="large" [header]="tenant.firstName + ' ' + tenant.lastName + ' NOTES'"
+            (visibleChange)="tenant.showNotes = false">
+            <div class="tenant-notes">
+              <textarea [(ngModel)]="tenant.tmpNote" name="" rows="5" placeholder="Add your note here"></textarea>
+              <div class="save-button">
+                <button class="c2-ok-button" (click)="saveNote(tenant)">
+                  <span *ngIf="!tenant.previousPublishDate">SAVE</span>
+                  <span *ngIf="tenant.previousPublishDate">EDIT</span>
+                  NOTE
+                </button>
+              </div>
+              <div class="notes" *ngIf="tenant.notes">
+                <div class="note" *ngFor="let note of tenant.notes">
+                  <div class="note-upper">
+                    <div class="note-body">{{note.note}}</div>
+                    <div class="note-buttons">
+                      <img class="trash" src="/assets/img/trash.png" (click)="deleteNote(tenant, note.publishDate)">
+                      <img class="pencil" src="/assets/img/pencil.png" (click)="editNote(tenant, note.note, note.publishDate)">
+                    </div>
+                  </div>
+                  <div class="note-bottom">
+                    {{note.managerName}}, {{getPresentableDate(note.publishDate)}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </app-dialog>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

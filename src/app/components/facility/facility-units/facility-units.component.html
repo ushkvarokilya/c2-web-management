@@ -1,0 +1,200 @@
+<div class="units-holder">
+  <div class="page-header">
+    <div class="page-title">
+      UNIT TYPES
+    </div>
+  </div>
+  <div class="units-content">
+    <div *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="form-item-add-input clickable" (click)="addUnit()">
+      <div class="plus">
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="add-input-label">
+        Add Unit Type
+      </div>
+    </div>
+    <div class="units">
+      <div class="buildings-list c2-list">
+        <div class="selector" (click)="dropDown.style.display = 'block'">
+          <ng-container *ngIf="selectedBuilding">
+            {{selectedBuilding.name}}
+          </ng-container>
+          <ng-container *ngIf="!selectedBuilding">
+            All Buildings
+          </ng-container>
+        </div>
+        <div class="drop-down" #dropDown>
+          <div class="list-item" (click)="selectedBuilding = null; dropDown.style.display = 'none'">
+            All Buildings
+          </div>
+          <div class="list-item" *ngFor="let building of buildings" (click)="selectedBuilding = building; dropDown.style.display = 'none'">
+            {{building.name}}
+          </div>
+        </div>
+      </div>
+      <div class="unit" *ngFor="let unit of units ; let unitIndex = index">
+        <div class="unit-show" *ngIf="!unit.edit">
+          <div class="unit-header clickable" (click)="unit.showBody = !unit.showBody;">
+            <div class="unit-picture unit-col">
+              <img [src]="unit.planImageUrl">
+            </div>
+            <div class="unit-name unit-col">
+              <span>{{unit.name}}</span>
+            </div>
+            <div class="unit-apt-num unit-col">{{unit.apartments.length}} Units</div>
+            <div class="unit-size unit-col">{{unit.size}} SQ F</div>
+            <div class="unit-bedrooms unit-col">
+              <img src="/assets/img/bed_icon.png">
+              <div class="unit-col-label">{{unit.bedrooms}} Bedrooms</div>
+            </div>
+            <div class="unit-bathrooms unit-col">
+              <img src="/assets/img/shower_icon.png">
+              <div class="unit-col-label">{{unit.bathrooms}} Bathrooms</div>
+            </div>
+          </div>
+          <div class="unit-body" [ngClass]="{'hide-body': !unit.showBody}">
+            <div class="unit-amenities">
+              <div class="amenity" *ngFor="let am of amenities" [ngClass]="{'hide': !unit.amenities[am.name]}">
+                <img class="amenity-image" [src]="am.image" />
+                <div class="amenity-label">{{renderAmenityName(am.name)}}</div>
+              </div>
+            </div>
+            <div class="edit-unit">
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="c2-ok-button" (click)="toggleEditUnit(unitIndex)">Edit Unit</button>
+            </div>
+          </div>
+        </div>
+        <div class="unit-edit" *ngIf="unit.edit">
+          <div class="unit-header">
+            <app-image-upload #imageUpload (imageUploaded)="unit.planImageUrl = $event"></app-image-upload>
+            <div class="unit-picture unit-col clickable" (click)="imageUpload.click()">
+              <div class="add-image" *ngIf="!this.units[unitIndex].planImageUrl">
+                <div class="add-photo-image">
+                  <img src="/assets/img/photo-icon.png">
+                </div>
+                <div class="add-photo-label">
+                  Add Plan's Image
+                </div>
+              </div>
+              <div class="image-added" *ngIf="this.units[unitIndex].planImageUrl">
+                <img [src]="this.units[unitIndex].planImageUrl" />
+              </div>
+              <form [id]="'unitInput'+unitIndex"></form>
+            </div>
+            <div class="unit-name unit-col">
+              <input type="text" [(ngModel)]="unit.name" placeholder="Enter Unit Name">
+            </div>
+            <div class="unit-size unit-col">
+              <input type="text" [(ngModel)]="unit.size" placeholder="Size in sqft">
+            </div>
+            <div class="unit-bedrooms unit-col">
+              <div class="unit-size-label">{{unit.bedrooms}} Bedroom
+                <span *ngIf="unit.bedrooms != 1">s</span>
+              </div>
+              <div class="unit-size-control">
+                <div class="clickable" (click)="unit.bedrooms = unit.bedrooms + 1">
+                  <div class="plus"></div>
+                </div>
+                <div class="wall"></div>
+                <div class="clickable" (click)="unit.bedrooms != 0 && unit.bedrooms = unit.bedrooms - 1">
+                  <div class="minus"></div>
+                </div>
+              </div>
+            </div>
+            <div class="unit-bathrooms unit-col">
+              <div class="unit-size-label">{{unit.bathrooms}} Bathroom
+                <span *ngIf="unit.bathrooms != 1">s</span>
+              </div>
+              <div class="unit-size-control">
+                <div class="clickable" (click)="unit.bathrooms = unit.bathrooms + 1">
+                  <div class="plus"></div>
+                </div>
+                <div class="wall"></div>
+                <div class="clickable" (click)="unit.bathrooms != 0 && unit.bathrooms = unit.bathrooms - 1">
+                  <div class="minus clickable"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="unit-body">
+            <div class="unit-body-header">
+              SELECT AVAILABLE AMENITIES
+            </div>
+            <div class="choose-amenities">
+              <!-- <div *ngFor="let am of amenities" class="amenity clickable" (click)="unit.amenities[am.name] = !unit.amenities[am.name]"> -->
+              <div *ngFor="let am of amenities" class="amenity clickable" (click)="clickSelectAmenity(am ,unit)">
+                <div class="c2-check-box">
+                  <div *ngIf="unit.amenities[am.name]" class="c2-check-box-checked"></div>
+                </div>
+                <img class="amenity-image" [src]="am.image" />
+                <div class="amenity-label">{{renderAmenityName(am.name)}}</div>
+              </div>
+            </div>
+            <div class="unit-match-apt">
+              <button class="c2-cancel-button" (click)="openShowAptMatch(unit)">Match Unit To Unit Type</button>
+            </div>
+            <div class="unit-save">
+              <button class="c2-ok-button" (click)="saveUnit(unitIndex)" [ngClass]="{loading: loading}">SAVE</button>
+              <div *ngIf="unit.key" class="delete-unit">
+                <a (click)="unit.showDelete = true">Delete Unit Type</a>
+              </div>
+              <div class="exit-edit-mode">
+                <a (click)="closeEditUnit(unit)">Close</a>
+              </div>
+            </div>
+          </div>
+
+          <app-dialog *ngIf="unit.showMatchApt" [size]="'medium'" [visible]="true" [header]="'SELECT THE ' + unit.name + ' UNITS FOR EACH FLOORS'"
+            (visibleChange)="unit.showMatchApt = false;">
+            <div class="choose-apts-dialog" *ngIf="buildings">
+              <div class="building-label">BUILDING</div>
+              <div class="buildings">
+                <input type="hidden" #choosenBuilding value="0">
+                <div class="building" *ngFor="let building of buildings; let buildingIndex = index" [ngClass]="{'focus': choosenBuilding.value == buildingIndex, 'choosen': isBuildingChoosen(unit, building)}"
+                  (click)="choosenBuilding.value = buildingIndex; choosenFloor.value = 0">
+                  {{building.name}}
+                </div>
+              </div>
+              <div class="floor-label">FLOOR</div>
+              <div class="floors">
+                <input type="hidden" #choosenFloor value="0">
+                <div class="floor" *ngFor="let floor of buildings[choosenBuilding.value]?.floors; let floorIndex = index" [ngClass]="{'focus': choosenFloor.value == floorIndex, 'choosen': isFloorChoosen(unit, floor)}"
+                  (click)="choosenFloor.value = floorIndex">
+                  {{floor.name}}
+                </div>
+              </div>
+              <div class="apartments-label">UNITS</div>
+              <div class="apartments">
+                <div class="apartment" *ngFor="let apt of buildings[choosenBuilding.value].floors[choosenFloor.value].apartments; let aptIndex = index"
+                  [ngClass]="{'choosen': isAptInUnit(unit, apt), 'occupancy': isAptInOtherUnit(apt, unitIndex)}" (click)="!isAptInOtherUnit(apt, unitIndex) && toggleApt(unit, apt)">
+                  {{apt.nameNumber}}
+                </div>
+              </div>
+              <div class="select-all-floor clickable" (click)="selectWholeFloor(unitIndex, buildings[choosenBuilding.value].floors[choosenFloor.value])">
+                <div class="c2-check-box">
+                  <div *ngIf="isWholeFloorSelected(unit, buildings[choosenBuilding.value].floors[choosenFloor.value])" class="c2-check-box-checked"></div>
+                </div>
+                <div class="select-all-floor-label">Select The Whole Floor</div>
+              </div>
+              <div class="save-floors">
+                <button class="c2-ok-button" (click)="unit.showMatchApt = false;">SAVE</button>
+              </div>
+            </div>
+          </app-dialog>
+
+          <app-dialog *ngIf="unit.showDelete" [size]="'small'" [visible]="true" [header]="" (visibleChange)="unit.showDelete = false">
+            <div class="delete-unit-prompt">
+              <div class="delete-unit-label">Are you sure you want to delete this unit type?</div>
+              <div class="delete-unit-buttons">
+                <button class="c2-cancel-button" (click)="unit.showDelete = false;">CANCEL</button>
+                <button class="c2-ok-button" (click)="deletUnit(unitIndex)">DELETE</button>
+              </div>
+            </div>
+          </app-dialog>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

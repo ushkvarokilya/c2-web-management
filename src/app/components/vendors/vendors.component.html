@@ -1,0 +1,185 @@
+<div class="vendors-page">
+  <div class="page-header">
+    <div class="page-title"> VENDORS </div>
+    <div class="page-info"> {{vendors ? vendors.length : 0}} Vendors</div>
+  </div>
+  <div class="page-content">
+    <div class="page-controls">
+      <div *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="form-item-add-input add-photo clickable" (click)="showAddVendor()">
+        <div class="plus">
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+        <div class="add-input-label">Add Vendor</div>
+      </div>
+      <div class="query-form">
+        <div class="dropdown">
+          <label for="sortBy">Sort By:</label>
+          <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
+            <option value="name" selected>Name</option>
+            <option value="distance">Distance</option>
+            <option value="assignedTickets">No. Of Assigned Tickets</option>
+            <option value="rating">Rating</option>
+          </select>
+        </div>
+        <div class="dropdown">
+          <label for="show">Show:</label>
+          <select id="show" [(ngModel)]="show" class="show">
+            <option value="">All</option>
+            <option value="prof" *ngFor="let prof of professions">{{prof}}</option>
+          </select>
+        </div>
+        <div class="query-search">
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search by ticket, unit, date etc...">
+        </div>
+      </div>
+    </div>
+    <div *ngIf="mainMessage" class="main-message">
+      <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
+      <ng-container *ngIf="mainMessage !== 'Loading...'">
+        {{mainMessage}}
+      </ng-container>
+    </div>
+    <div class="vendor-table" *ngIf="vendors && vendors.length > 0">
+      <div class="vendor-table-item vendor-table-title">
+        <div class="vendor-name">NAME</div>
+        <div class="vendor-distance">DISTANCE</div>
+        <div class="vendor-assignedTickets">ASSIGNED TICKETS</div>
+        <div class="vendor-responseTime">RESPONSE WITHIN</div>
+        <div class="vendor-professions">PROFESSIONS</div>
+        <div class="vendor-rating">RATING</div>
+      </div>
+      <div class="vendor-item" *ngFor="let vendor of vendors | searchVendors:searchQuery | sortByPipe:sortBy | filterVendorProfession:show; let vendorIndex = index"
+        [ngStyle]="{'margin-top': (vendorIndex === 0 ? '5px' : '20px')}">
+        <div class="vendor-table-item" (click)="vendor.showDetails = !vendor.showDetails">
+          <div class="vendor-name">{{vendor.name}} </div>
+          <div class="vendor-distance">
+            <img src="/assets/img/pointer.png" />{{vendor.distance}}</div>
+          <div class="vendor-assignedTickets">{{vendor.tickets ? vendor.tickets.length : 0}}</div>
+          <div class="vendor-responseTime">
+            <img src="/assets/img/time_icon.png" />{{vendor.responseMinutes}}</div>
+          <div class="vendor-professions">
+            <span *ngFor="let pro of (vendor.professions | slice:0:2); let proIndex = index">
+              <span *ngIf="proIndex != 0">, </span>{{pro}}
+            </span>
+            <span *ngIf="vendor.professions.length > 2"> and {{vendor.professions.length - 2}} more</span>
+          </div>
+          <div class="vendor-rating">
+            <img src="/assets/img/star_gold.png" *ngFor="let gold of getArray(vendor.rating); let goldIndex = index" [ngStyle]="{'margin-right': goldIndex == vendor.rating.length - 1 ? '3px' : '5px'}">
+            <img src="/assets/img/star_grey.png" *ngFor="let grey of getArray(5 - vendor.rating)">
+          </div>
+        </div>
+        <div class="vendor-details" [ngClass]="{'hide-details': !vendor.showDetails}">
+          <div class="left-pane">
+            <div class="full-name">
+                {{vendor.name}}
+            </div>
+            <div class="vendor-datails pane-item">
+              <div class="left-icon">
+                <img src="/assets/img/info.png">
+              </div>
+              <div class="right-content">
+                <div class="content-label">Details</div>
+                <div>{{vendor.phone}}</div>
+                <div>{{vendor.email}}</div>
+                <div>{{vendor.address}}</div>
+              </div>
+            </div>
+            <div class="vendor-pros pane-item">
+              <div class="left-icon">
+                <img src="/assets/img/helmet.png">
+              </div>
+              <div class="right-content">
+                <span *ngFor="let pro of (vendor.professions | slice : 0 : 9); let proIndex = index">
+                  <span *ngIf="proIndex != 0">, </span>{{pro}}</span>
+              </div>
+            </div>
+          </div>
+          <div class="middle-pane">
+            <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="pane-item" [routerLink]="['../maintenance', { searchQuery: vendor.name }]">
+              <div class="left-icon">
+                <img src="/assets/img/flag.png">
+              </div>
+              <div class="right-content">
+                <a>{{getTicketLabel(vendor)}}</a>
+              </div>
+            </div>
+            <div class="pane-item vendor-notes">
+              <div class="left-icon">
+                <img src="/assets/img/note_icon.png">
+              </div>
+              <div class="right-content">
+                <div class="content-label">Notes</div>
+                <div>
+                  {{vendor.notes}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="right-pane">
+            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Facility') && (user$ |async)?.actionPermissions?.includes('Vendors')" class="c2-ok-button" (click)="showEditVendor(vendor)">EDIT VENDOR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-dialog *ngIf="addVendorVisible" size="large" visible="true" header="ADD NEW VENDOR" (visibleChange)="addVendorClosed()">
+  <div class="add-vendor">
+    <div class="name">
+      <div class="name-label label">VENDOR NAME</div>
+      <div class="name-input">
+        <input type="text" [(ngModel)]="newVendor.name">
+      </div>
+      <div *ngIf="newVendorErrors && newVendorErrors.name" class="form-item-error">
+        {{newVendorErrors.name}}
+      </div>
+    </div>
+    <div class="prefession">
+      <div class="profession-label label">PROFESSION</div>
+      <div class="vendor-professions">
+        <div class="profession-bullet" *ngFor="let prof of newVendor.professions; let profIndex = index" (click)="removeProfession(profIndex)">
+          {{prof}}
+        </div>
+        <div class="profession-input">
+          <input type="text" [(ngModel)]="newVendor.tmpTextProfession" placeholder="Select from list or enter new. Enter comma between professions"
+            (keyup)="addVendorProfession($event)">
+        </div>
+      </div>
+      <div class="professions-list">
+        <div class="profession-bullet" *ngFor="let prof of professions | filterUsedProfessions : newVendor.professions"
+          (click)="addProfession(prof)">
+          {{prof}}
+				</div>
+      </div>
+      <div *ngIf="newVendorErrors && newVendorErrors.professions" class="form-item-error">
+        {{newVendorErrors.professions}}
+      </div>
+    </div>
+    <div class="address">
+      <div class="address-label label">ADDRESS (OPTIONAL)</div>
+      <div class="address-input">
+        <app-google-address [objectWithFlatAddress]="newVendor" [address]="newVendor | extractGoogleAddress"></app-google-address>
+      </div>
+    </div>
+    <div class="phone-number">
+      <div class="phone-number-label label">PHONE NUMBER (OPTIONAL)</div>
+      <div class="phone-number-input">
+        <input type="text" [(ngModel)]="newVendor.phoneNumber">
+      </div>
+    </div>
+    <div class="email">
+      <div class="email-label label">EMAIL</div>
+      <div class="email-input">
+        <input type="email" [(ngModel)]="newVendor.email">
+      </div>
+      <div *ngIf="newVendorErrors && newVendorErrors.email" class="form-item-error">
+        {{newVendorErrors.email}}
+      </div>
+    </div>
+    <div class="save-button">
+      <button class="c2-ok-button" (click)="saveVendor()" [ngClass]="{loading: loading}">SAVE VENDOR</button>
+      <span class="form-item-error" *ngIf="saveVendorError">{{saveVendorError}}</span>
+    </div>
+  </div>
+</app-dialog>

@@ -1,0 +1,117 @@
+<div class="form-container">
+  <div class="header">
+    <h3>FILL IN YOUR COMPANY DETAILS</h3>
+    <p>
+      This information will be displayed to your tenants and between you and C² company
+    </p>
+  </div>
+  <div class="form">
+    <div class="form-item">
+      <div class="form-item-title">Company Name</div>
+      <div class="form-item-input-holder">
+        <div class="form-item-input">
+          <input type="text" [(ngModel)]="name" [ngClass]="{'error': errors.name}">
+        </div>
+        <div *ngIf="errors.name" class="form-item-error">
+          {{errors.name}}
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="form-item-title">Logo</div>
+      <div class="form-item-subtitle">Upload JPG or PNG format</div>
+      <div class="form-item-input-holder">
+        <div class="img-view">
+          <app-image-upload #imageUpload (imageUploaded)="logoImg = $event"></app-image-upload>
+          <div *ngIf="!logoImg && !imageUpload.uploadingInProgress" class="no-img clickable" (click)="imageUpload.click()">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div class="add-img-label">Add logo</div>
+          </div>
+          <div *ngIf="!logoImg && imageUpload.uploadingInProgress" class="uploading">
+            Uploading...
+          </div>
+          <div class="img" *ngIf="logoImg">
+            <img [src]="logoImg">
+            <div class="remove-img clickable" (click)="removeLogoImg()">
+              <img src="/assets/img/x-icon-white.png">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="form-item-title">Address</div>
+      <div class="form-item-input-holder">
+        <div class="form-item-input">
+          <app-google-address [(address)]="address"></app-google-address>
+        </div>
+        <div *ngIf="errors.address" class="form-item-error">
+          {{errors.address}}
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="form-item-title">Phone Number</div>
+      <div class="form-item-input-holder" *ngFor="let phoneNumber of phoneNumbers; let phoneIndex = index" [ngClass]="{
+					'form-item-input-holder': true, 
+					'append': phoneIndex == phoneNumbers.length - 1 && latestPhoneNumberAction == APPEND,
+					'remove': phoneIndex == phoneNumbers.length - 1 && latestPhoneNumberAction == REMOVE
+				}">
+        <div class="form-item-input">
+          <input type="text" [value]="phoneNumber" [ngClass]="{'company-details-phone-number-input': true, 'error': errors.phoneNumbers && errors.phoneNumbers[phoneIndex]}">
+          <div *ngIf="phoneNumbers.length > 1" class="input-icon clickable" (click)="removePhoneNumber(phoneIndex)">
+            <img src="/assets/img/x-icon.png">
+          </div>
+        </div>
+        <div *ngIf="phoneIndex == phoneNumbers.length - 1" class="form-item-add-input clickable" (click)="appendPhoneNumber()">
+          <div class="plus">
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="add-input-label">
+            Add another phone number
+          </div>
+        </div>
+        <div *ngIf="errors.phoneNumbers && errors.phoneNumbers[phoneIndex]" class="form-item-error">
+          {{errors.phoneNumbers[phoneIndex]}}
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="form-item-title">Email</div>
+      <div class="form-item-input-holder" *ngFor="let email of emails; let emailIndex = index" [ngClass]="{
+					'form-item-input-holder': true, 
+					'append': emailIndex == emails.length - 1 && latestEmailAction == APPEND,
+					'remove': emailIndex == emails.length - 1 && latestEmailAction == REMOVE
+				}">
+        <div class="form-item-input-and-add">
+        </div>
+        <div class="form-item-input">
+          <input type="email" [value]="email" [ngClass]="{'company-details-email-input': true, 'error': errors.emails && errors.emails[emailIndex]}">
+          <div *ngIf="emails.length > 1" class="input-icon clickable" (click)="removeEmail(emailIndex)">
+            <img src="/assets/img/x-icon.png">
+          </div>
+        </div>
+        <div *ngIf="emailIndex == emails.length - 1" class="form-item-add-input clickable" (click)="appendEmail()">
+          <div class="plus">
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="add-input-label">
+            Add another email
+          </div>
+        </div>
+        <div *ngIf="errors.emails && errors.emails[emailIndex]" class="form-item-error">
+          {{errors.emails[emailIndex]}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="second-form">
+  <div class="header form-item-title">Activity Hours</div>
+  <app-opening-hours [(openingHours)]="activityDays" [(activityMode)]="activityMode"></app-opening-hours>
+</div>

@@ -1,0 +1,73 @@
+<div class="activity-hours-form">
+  <div class="radios">
+    <div *ngIf="includeAlwaysOpen" class="radio first-radio" (click)="activityMode = ActivityMode.alwaysOpen">
+      <div class="c2-radio" [ngClass]="{'checked': activityMode == ActivityMode.alwaysOpen}"></div> Always Open
+    </div>
+    <div class="radio" [ngClass]="{'no-margin': !includeAlwaysOpen}" (click)="activityMode = ActivityMode.weeklySchedule">
+      <div class="c2-radio" [ngClass]="{'checked': activityMode == ActivityMode.weeklySchedule}"></div> Weekly Schedule
+    </div>
+    <div class="radio" (click)="activityMode = ActivityMode.dailySchedule">
+      <div class="c2-radio" [ngClass]="{'checked': activityMode == ActivityMode.dailySchedule}"></div> Daily Schedule
+    </div>
+  </div>
+  <form class="days week-days" *ngIf="activityMode == ActivityMode.weeklySchedule" (change)="generateOpeningHours()">
+    <div class="selection-row">
+      <div class="days-selection">
+        <select name="from-day" name="fromDay" [(ngModel)]="weeklyOpeningHours.fromDay">
+          <option [value]="day" *ngFor="let day of days">{{day}}</option>
+        </select>
+        <span class="to-lable">To</span>
+        <select name="to-day" name="toDay" [(ngModel)]="weeklyOpeningHours.toDay">
+          <option [value]="day" *ngFor="let day of days">{{day}}</option>
+        </select>
+      </div>
+      <div class="times-selection">
+        <select class="hour-selection" name="from-hour" [(ngModel)]="weeklyOpeningHours.fromHour">
+          <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+        </select>
+        <span>:</span>
+        <select name="from-minute" [(ngModel)]="weeklyOpeningHours.fromMinute">
+          <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+        </select>
+        <span class="to-lable">To</span>
+        <select class="hour-selection" name="from-hour" [(ngModel)]="weeklyOpeningHours.toHour">
+          <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+        </select>
+        <span>:</span>
+        <select name="from-minute" [(ngModel)]="weeklyOpeningHours.toMinute">
+          <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+        </select>
+      </div>
+    </div>
+  </form>
+  <form class="days daily" [style.display]="activityMode == ActivityMode.dailySchedule ? 'block' : 'none'" #dailyForm (change)="generateOpeningHours()">
+    <div class="selection-row" *ngFor="let day of days; let dayIndex = index">
+      <div class="days-selection">
+        <div class="toggle-wraper">
+          <app-toggle (onChange)="dailyOpeningHours[dayIndex].on = $event; generateOpeningHours()" [on]="dailyOpeningHours[dayIndex].on" #activeDay></app-toggle>
+        </div>
+        <div class="day-label">{{day}}</div>
+      </div>
+      <div class="times-selection" [style.display]="activeDay.on ? 'block' : 'none'">
+        <select class="hour-selection" name="from-hour" [(ngModel)]="dailyOpeningHours[dayIndex].fromHour">
+          <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+        </select>
+        <span>:</span>
+        <select name="from-minute" [(ngModel)]="dailyOpeningHours[dayIndex].fromMinute">
+          <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+        </select>
+        <span class="to-lable">To</span>
+        <select class="hour-selection" name="from-hour" [(ngModel)]="dailyOpeningHours[dayIndex].toHour">
+          <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+        </select>
+        <span>:</span>
+        <select name="from-minute" [(ngModel)]="dailyOpeningHours[dayIndex].toMinute">
+          <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+        </select>
+      </div>
+      <div class="times-selection closed" [style.display]="activeDay.on ? 'none' : 'block'">
+        Closed
+      </div>
+    </div>
+  </form>
+</div>

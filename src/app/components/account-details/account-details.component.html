@@ -1,0 +1,59 @@
+<div class="content">
+	<div class="header">
+		ACCOUNT DETAILS
+	</div>
+	<div class="form">
+		<div class="form-label">
+			Current Email: {{(user | async).email}}
+		</div>
+		<div class="form-body">
+			<div class="form-input">
+				<div class="input-label">Enter New Email</div>
+				<input type="email" [(ngModel)]="email" />
+			</div>
+			<div class="form-button">
+				<button class="c2-ok-button" [ngClass]="{loading: loadingEmail}" (click)="changeEmail()">CHANGE EMAIL</button>
+				<span class="error" *ngIf="emailError">{{emailError}}</span>
+			</div>
+			<div *ngIf="emailChanged" class="successful">
+				<div class="ok-sign">
+					<img src="./img/v_icon-big.png">
+				</div>
+				<div class="ok-label">
+					You email has changed successfully
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form">
+		<div class="form-label">
+			Current Password
+		</div>
+		<div class="form-body">
+			<div class="form-input">
+				<div class="input-label">Enter Old Password</div>
+				<input type="password" [(ngModel)]="oldPassword" />
+			</div>
+			<div class="form-input">
+				<div class="input-label">Enter New Password</div>
+				<input type="password" [(ngModel)]="newPassword" />
+			</div>
+			<div class="form-input">
+				<div class="input-label">Confirm New Password</div>
+				<input type="password" [(ngModel)]="repeatNewPassword" />
+			</div>
+			<div class="form-button">
+				<button class="c2-ok-button" [ngClass]="{loading: loadingPassword}" (click)="changePassword()">CHANGE PASSWORD</button>
+				<span class="error" *ngIf="passwordError">{{passwordError}}</span>
+			</div>
+			<div *ngIf="passwordChanged" class="successful">
+				<div class="ok-sign">
+					<img src="./img/v_icon-big.png">
+				</div>
+				<div class="ok-label">
+					You password has changed successfully
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

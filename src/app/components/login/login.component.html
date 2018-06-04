@@ -1,0 +1,70 @@
+<div class="login-page">
+  <div class="title">
+    Login to C²
+  </div>
+
+  <div class="login">
+    <form>
+      <div class="contain-divs">
+        <div class="input">
+          <p>Email</p>
+          <input [(ngModel)]="email" type="text" name="email" (keyup.enter)="login()" [disabled]="loading" [ngClass]="{ 'input-invalid' : !inputValidStatus.email }">
+          <div *ngIf="!inputValidStatus.email" class="message">
+            Please fill your email address
+          </div>
+        </div>
+        <div class="input">
+          <p>Password</p>
+          <input [(ngModel)]="password" type="password" name="password" (keyup.enter)="login()" [disabled]="loading" [ngClass]="{ 'input-invalid' : !inputValidStatus.password }">
+          <div *ngIf="!inputValidStatus.password" class="message">
+            Please fill your password
+          </div>
+          <div *ngIf="error" class="error">
+            {{error}}
+          </div>
+        </div>
+        <div class="btn-container">
+          <button type="submit" (click)="login()" class="btn-login" [disabled]="loading">
+            <span *ngIf="loading">Loading...</span>
+            <span *ngIf="!loading">Log in</span>
+          </button>
+          <img *ngIf="isRegistrationSucsessful" src="assets/img/v_icon.svg" alt="">
+        </div>
+        <p class="accept-text">By logging in you accept C² system
+          <a href="https://www.c2tenants.com/legal/terms/platform/en.php" target="_blank">terms & conditions</a> and
+          <a href="https://www.c2tenants.com/legal/privacy/platform/en.php" target="_blank">privacy policy</a>.</p>
+      </div>
+    </form>
+  </div>
+  <div class="forgot-password">
+    <a [routerLink]="['/forgot_pass']">Forgot password?</a>
+  </div>
+  <!-- <div *ngIf="isAndroid || isIPhon" class="mobile-open-app">
+    <img src="/assets/img/c2.png" alt="">
+    <p *ngIf="isAndroid"> c² Tenants for Android</p>
+    <p *ngIf="isIPhon"> c² Tenants for iPhone</p>
+    <a href="/" class="app-button"> OPEN APP</a>
+  </div>
+  <div *ngIf="isAndroid || isIPhon " class="mobile-download-app">
+    To use C² Managment Service, download our App
+    <a *ngIf="isAndroid" href="//play.google.com/store/apps/details?id=<package_name>">
+      <img src="/assets/img/play_store.png" alt="play-store">
+    </a>
+    <a *ngIf="isIPhon" href="https://itunes.apple.com/gb/app/twitter/id333903271?mt=8">
+      <img src="/assets/img/app_store.png" alt="app-store">
+    </a>
+  </div>
+  <div class="dont-have-account">
+    <a>Don't have an account?</a>
+  </div>
+  <div *ngIf="isWindows" class="register-and-download">
+    <a [routerLink]="['/register']">Register Your Facility</a> |
+    <a href="/">Download Tenants' App</a>
+  </div>
+  <a *ngIf="isAndroid || isIPhon" class="register-button" [routerLink]="['/register']">
+    Register your property
+  </a>
+  <a *ngIf="isAndroid || isIPhon" class="download" [routerLink]="['/existingTenant']">
+    Download Tenants' App
+  </a> -->
+</div>

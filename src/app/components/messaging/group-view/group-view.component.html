@@ -1,0 +1,75 @@
+<div class="group">
+  <div class="participants-holder">
+    <div *ngIf="group" class="to-label">To:</div>
+    <div class="participant" *ngFor="let p of group.participants; let tenantIndex = index">
+      {{p.name}}, unit {{p.apartment}}
+      <span *ngIf="(user$ |async)?.actionPermissions?.includes('Messages') && group.participants.length > 1" class="clickable"
+        (click)="removeTenant(tenantIndex)">&times;</span>
+    </div>
+    <div *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="form-item-add-input clickable" [ngClass]="{'hide': isShowAddParticipant}"
+      (click)="showAddParticipant()">
+      <div class="plus">
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+    </div>
+    <input id="addParticipantInput" [ngClass]="{'hide': !isShowAddParticipant}" type="text" [(ngModel)]="addParticipantText"
+      placeholder="Type tenant's name" (focus)="toggleTenantsList(true)" (focusout)="toggleTenantsList(false)" />
+  </div>
+  <div class="group-name">
+    <div class="name-this-group-label">Name this group conversation:</div>
+    <input *ngIf="group" type="text" [(ngModel)]="group.name" (ngModelChange)="updateGroup()" placeholder="Group name here" [disabled]="group.participants.length == 1">
+    <div class="tenantsNames" *ngIf="showTenants && company.currentComplex.tenants">
+      <div class="tenant" *ngFor="let tenant of (company.currentComplex.tenants | searchTenantsForMessaging : addParticipantText : group.participants)"
+        (click)="focusOnTenant = true; addTenant(tenant)">
+        <div class="tenant-img">
+          <img [src]="tenant.imageUrl">
+        </div>
+        <div class="tenant-name">{{tenant.name}}, unit {{tenant.apartment}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="conversation">
+    <div *ngFor="let message of group.messages" class="message">
+      <div class="me" *ngIf="message.senderKey === myKey">
+        <div class="msg-image">
+          <img src="/assets/img/profile_photo.png">
+        </div>
+        <div class="msg-body">
+          {{message.message}}
+        </div>
+      </div>
+      <div class="other" *ngIf="message.senderKey !== myKey">
+        <div class="msg-body">
+          <div *ngIf="message.attachmentUrl && message.attachmentUrl.length > 0" class="msg-attch">
+            <a [href]="message.attachmentUrl" target="_blank" *ngIf="!isMessageAttachementVideo(message.attachmentUrl)">
+              <img [src]="message.attachmentUrl">
+            </a>
+            <video *ngIf="isMessageAttachementVideo(message.attachmentUrl)" width="320" height="240" controls>
+              <source [src]="message.attachmentUrl" type="video/mp4">
+              <span>
+                Your browser does not support the video tag.
+                <a [href]="message.attachmentUrl" target="_blank"></a>
+              </span>
+            </video>
+          </div>
+          <div>
+            {{message.message}}
+          </div>
+        </div>
+        <div class="msg-image">
+          <img [src]="message.senderPhoto" [alt]="message.senderName">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="send-holder">
+    <div class="input-message">
+      <input *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" type="text" [(ngModel)]="sendMessageText" placeholder="Write your message here"
+        (keyup.enter)="sendMessage()">
+    </div>
+    <div class="send-button">
+      <button *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" class="c2-ok-button" (click)="sendMessage()" [ngClass]="{loading: sendingMessage}">SEND</button>
+    </div>
+  </div>
+</div>

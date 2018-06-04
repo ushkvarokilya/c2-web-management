@@ -1,0 +1,392 @@
+<div class="form-container">
+	<div class="header">
+		<h3>CREATE USERS</h3>
+		<p>
+			Create profiles for the relevant roles and control their permissions.
+			<br> (The default permissions are our suggestion for each role) An email with a password will be send to this users
+		</p>
+	</div>
+	<div class="form">
+		<div class="users-holder">
+			<div class="user-header">
+				<h5>REGIONAL MANAGER</h5>
+				<p>The property owner - uses this platform to keep up with all facilities activities</p>
+			</div>
+			<div class="user" *ngFor="let user of regionalManagers; let userIndex = index">
+				<img *ngIf="!user.key && regionalManagers.length !== 1" class="delete-user" (click)="regionalManagers.splice(userIndex, 1)"
+				  src="/assets/img/x-icon.png">
+				<div class="user-form">
+					<div class="form-top">
+						<div class="me-check-box" *ngIf="user.key === (user$ | async).key">
+							<div class="check-box">
+								<img src="/assets/img/v_icon-big.png">
+							</div>
+							<div class="me-label">It's me</div>
+						</div>
+						<div class="inputs-holder">
+							<div class="name-input">
+								<div class="input-label">
+									First Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.firstName">
+									<div *ngIf="errors?.regionalManagers[userIndex]?.firstName" class="input-error">
+										{{errors.regionalManagers[userIndex].firstName}}
+									</div>
+								</div>
+							</div>
+							<div class="name-input">
+								<div class="input-label">
+									Last Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.lastName">
+									<div *ngIf="errors?.regionalManagers[userIndex]?.lastName" class="input-error">
+										{{errors.regionalManagers[userIndex].firstName}}
+									</div>
+								</div>
+							</div>
+							<div class="email-input">
+								<div class="input-label">
+									Email
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.email">
+									<div *ngIf="errors?.regionalManagers[userIndex]?.email" class="input-error">
+										{{errors.regionalManagers[userIndex].email}}
+									</div>
+								</div>
+							</div>
+							<div class="toggle-permissions">
+								<div class="clickable" (click)="toggleTable(permissionsTable)">
+									Permissions
+									<img src="/assets/img/arrow-down.png" [ngClass]="{'rotate-arrow': permissionsTable.style.display === 'block'}">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="permissions-table" #permissionsTable>
+						<div class="per-row">
+							<div class="first-cell"></div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="role-label">{{permission}}</div>
+								<div class="role-info">
+									<div class="info-icon">
+										<img src="/assets/img/info-filled.png" />
+									</div>
+									<div class="tooltip">
+										<div [ngSwitch]="permission">
+											<span *ngSwitchCase="'Setup'">Setting up company details, users and permission,facilities structure and details</span>
+											<span *ngSwitchCase="'Facility'">Setting up the facility units and amenities</span>
+											<span *ngSwitchCase="'Calendar'">Facility agenda, Daily and repeating events</span>
+											<span *ngSwitchCase="'Maintenance'">Managing maintenance tickets, summoning vendors and tracking progress</span>
+											<span *ngSwitchCase="'Vendors'">Viewing, adding and editing vendors</span>
+											<span *ngSwitchCase="'Tenants'">Viewing and editing tenants information. Creating new leases.</span>
+											<span *ngSwitchCase="'Collections'">Tracking tenants rent and payments</span>
+											<span *ngSwitchCase="'Announcements'">Text announcements targeting tenants</span>
+											<span *ngSwitchCase="'Messages'">Chat with tenants and staff members</span>
+											<span *ngSwitchDefault></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Viewing</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.viewing[permission], 'off': !user.permissions.viewing[permission]}"
+									  (click)="user.permissions.viewing[permission] ? user.permissions.viewing[permission] = false : user.permissions.viewing[permission] = true; !user.permissions.viewing[permission] ? user.permissions.actions[permission] = false : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Actions</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.actions[permission], 'off': !user.permissions.actions[permission]}"
+									  (click)="user.permissions.actions[permission] ? user.permissions.actions[permission] = false : user.permissions.actions[permission] = true; user.permissions.actions[permission] ? user.permissions.viewing[permission] = true : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-item-add-input clickable" (click)="appendRegionalManager()">
+				<div class="plus">
+					<div class="line"></div>
+					<div class="line"></div>
+				</div>
+				<div class="add-input-label">
+					Add regional manager
+				</div>
+			</div>
+			<div class="user-header location-manager-header">
+				<h5>LOCATION MANAGER</h5>
+				<p>The facility manager</p>
+			</div>
+			<div class="user" *ngFor="let user of locationManagers; let userIndex = index">
+				<img *ngIf="!user.key && locationManagers.length !== 1" class="delete-user" (click)="locationManagers.splice(userIndex, 1)"
+				  src="/assets/img/x-icon.png">
+				<div class="user-form">
+					<div class="form-top">
+						<div class="me-check-box" *ngIf="user.key === (user$ | async).key">
+							<div class="check-box">
+								<img src="/assets/img/v_icon-big.png">
+							</div>
+							<div class="me-label">It's me</div>
+						</div>
+						<div class="inputs-holder">
+							<div class="name-input">
+								<div class="input-label">
+									First Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.firstName">
+									<div *ngIf="errors.locationManagers[userIndex] && errors.locationManagers[userIndex].firstName" class="input-error">
+										{{errors.locationManagers[userIndex].firstName}}
+									</div>
+								</div>
+							</div>
+							<div class="name-input">
+								<div class="input-label">
+									Last Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.lastName">
+									<div *ngIf="errors.locationManagers[userIndex] && errors.locationManagers[userIndex].lastName" class="input-error">
+										{{errors.locationManagers[userIndex].lastName}}
+									</div>
+								</div>
+							</div>
+							<div class="email-input">
+								<div class="input-label">
+									Email
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.email">
+									<div *ngIf="errors.locationManagers[userIndex] && errors.locationManagers[userIndex].email" class="input-error">
+										{{errors.locationManagers[userIndex].email}}
+									</div>
+								</div>
+							</div>
+							<div class="toggle-permissions">
+								<div class="clickable" (click)="toggleTable(permissionsTable)">
+									Permissions
+									<img src="/assets/img/arrow-down.png" [ngClass]="{'rotate-arrow': permissionsTable.style.display === 'block'}">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="permissions-table" #permissionsTable>
+						<div class="per-row">
+							<div class="first-cell"></div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="role-label">{{permission}}</div>
+								<div class="role-info">
+									<div class="info-icon">
+										<img src="/assets/img/info-filled.png" />
+									</div>
+									<div class="tooltip">
+										<div [ngSwitch]="permission">
+											<span *ngSwitchCase="'Setup'">Setting up company details, users and permission,facilities structure and details</span>
+											<span *ngSwitchCase="'Facility'">Setting up the facility units and amenities</span>
+											<span *ngSwitchCase="'Calendar'">Facility agenda, Daily and repeating events</span>
+											<span *ngSwitchCase="'Maintenance'">Managing maintenance tickets, summoning vendors and tracking progress</span>
+											<span *ngSwitchCase="'Vendors'">Viewing, adding and editing vendors</span>
+											<span *ngSwitchCase="'Tenants'">Viewing and editing tenants information. Creating new leases.</span>
+											<span *ngSwitchCase="'Collections'">Tracking tenants rent and payments</span>
+											<span *ngSwitchCase="'Announcements'">Text announcements targeting tenants</span>
+											<span *ngSwitchCase="'Messages'">Chat with tenants and staff members</span>
+											<span *ngSwitchDefault></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Viewing</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.viewing[permission], 'off': !user.permissions.viewing[permission]}"
+									  (click)="user.permissions.viewing[permission] ? user.permissions.viewing[permission] = false : user.permissions.viewing[permission] = true; !user.permissions.viewing[permission] ? user.permissions.actions[permission] = false : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Actions</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.actions[permission], 'off': !user.permissions.actions[permission]}"
+									  (click)="user.permissions.actions[permission] ? user.permissions.actions[permission] = false : user.permissions.actions[permission] = true; user.permissions.actions[permission] ? user.permissions.viewing[permission] = true : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-item-add-input clickable" (click)="appendLocationManager()">
+				<div class="plus">
+					<div class="line"></div>
+					<div class="line"></div>
+				</div>
+				<div class="add-input-label">
+					Add location manager
+				</div>
+			</div>
+			<div class="user-header staff-member-header">
+				<h5>STAFF MEMBER</h5>
+			</div>
+			<div class="user" *ngFor="let user of staffMembers; let userIndex = index">
+				<img *ngIf="!user.key && staffMembers.length !== 1" class="delete-user" (click)="staffMembers.splice(userIndex, 1)" src="/assets/img/x-icon.png">
+				<div class="user-form">
+					<div class="form-top">
+						<div class="me-check-box" *ngIf="user.key === (user$ | async).key">
+							<div class="check-box">
+								<img src="/assets/img/v_icon-big.png">
+							</div>
+							<div class="me-label">It's me</div>
+						</div>
+						<div class="inputs-holder staff-members-input">
+							<div class="name-input">
+								<div class="input-label">
+									Job Title
+								</div>
+								<div class="input role-input">
+									<input type="button" [(ngModel)]="user.position" placeholder="Search position or enter new" (click)="dropDown.style.display = 'block'"
+									  (focus)="dropDown.style.display = 'block'" style="text-align: left; cursor: pointer;">
+									<div *ngIf="errors.staffMembers[userIndex] && errors.staffMembers[userIndex].position" class="input-error">
+										{{errors.staffMembers[userIndex].position}}
+									</div>
+									<div class="roles-list" #dropDown>
+										<div class="role" *ngFor="let role of roles" (click)="user.position = role; dropDown.style.display = 'none'">
+											{{role}}
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="name-input">
+								<div class="input-label">
+									First Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.firstName">
+									<div *ngIf="errors.staffMembers[userIndex] && errors.staffMembers[userIndex].firstName" class="input-error">
+										{{errors.staffMembers[userIndex].firstName}}
+									</div>
+								</div>
+							</div>
+							<div class="name-input">
+								<div class="input-label">
+									Last Name
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.lastName">
+									<div *ngIf="errors.staffMembers[userIndex] && errors.staffMembers[userIndex].lastName" class="input-error">
+										{{errors.staffMembers[userIndex].lastName}}
+									</div>
+								</div>
+							</div>
+							<div class="email-input">
+								<div class="input-label">
+									Email
+								</div>
+								<div class="input">
+									<input type="text" [(ngModel)]="user.email">
+									<div *ngIf="errors.staffMembers[userIndex] && errors.staffMembers[userIndex].email" class="input-error">
+										{{errors.staffMembers[userIndex].email}}
+									</div>
+								</div>
+							</div>
+							<div class="toggle-permissions">
+								<div class="clickable" (click)="toggleTable(permissionsTable)">
+									Permissions
+									<img src="/assets/img/arrow-down.png" [ngClass]="{'rotate-arrow': permissionsTable.style.display === 'block'}">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="permissions-table" #permissionsTable>
+						<div class="per-row">
+							<div class="first-cell"></div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="role-label">{{permission}}</div>
+								<div class="role-info">
+									<div class="info-icon">
+										<img src="/assets/img/info-filled.png" />
+									</div>
+									<div class="tooltip">
+										<div [ngSwitch]="permission">
+											<span *ngSwitchCase="'Setup'">Setting up company details, users and permission,facilities structure and details</span>
+											<span *ngSwitchCase="'Facility'">Setting up the facility units and amenities</span>
+											<span *ngSwitchCase="'Calendar'">Facility agenda, Daily and repeating events</span>
+											<span *ngSwitchCase="'Maintenance'">Managing maintenance tickets, summoning vendors and tracking progress</span>
+											<span *ngSwitchCase="'Vendors'">Viewing, adding and editing vendors</span>
+											<span *ngSwitchCase="'Tenants'">Viewing and editing tenants information. Creating new leases.</span>
+											<span *ngSwitchCase="'Collections'">Tracking tenants rent and payments</span>
+											<span *ngSwitchCase="'Announcements'">Text announcements targeting tenants</span>
+											<span *ngSwitchCase="'Messages'">Chat with tenants and staff members</span>
+											<span *ngSwitchDefault></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Viewing</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.viewing[permission], 'off': !user.permissions.viewing[permission]}"
+									  (click)="user.permissions.viewing[permission] ? user.permissions.viewing[permission] = false : user.permissions.viewing[permission] = true; !user.permissions.viewing[permission] ? user.permissions.actions[permission] = false : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="per-row">
+							<div class="first-cell">
+								<div>Actions</div>
+							</div>
+							<div class="gen-cell" *ngFor="let permission of permissions">
+								<div class="toggle-wraper">
+									<div [ngClass]="{'thapps-toggle': true, 'on': user.permissions.actions[permission], 'off': !user.permissions.actions[permission]}"
+									  (click)="user.permissions.actions[permission] ? user.permissions.actions[permission] = false : user.permissions.actions[permission] = true; user.permissions.actions[permission] ? user.permissions.viewing[permission] = true : ''">
+										<div class="toggle-button"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-item-add-input clickable" (click)="appendStaffMember()">
+				<div class="plus">
+					<div class="line"></div>
+					<div class="line"></div>
+				</div>
+				<div class="add-input-label">
+					Add staff member
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>

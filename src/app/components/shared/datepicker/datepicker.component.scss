@@ -1,0 +1,155 @@
+.datepicker {
+	background: url(/assets/img/calendar_icon_green.png) no-repeat;
+	background-size: 21px;
+	border-radius: 0px;
+	width: 243px;
+	height: 38px;
+	background-position: right 3px center;
+	border: 1px solid #e7e7e7;
+	box-shadow: none;
+	font-size: 13px;
+  color: rgb(57, 57, 57);
+}
+
+.pika-single {
+	z-index: 1000001;
+	.pika-lendar {
+		background-color: rgb(255, 255, 255);
+		box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.2);
+		padding-bottom: 8px;
+		position: relative;
+		.pika-title {
+			width: 290px;
+			height: 49px;
+			font-size: 13px;
+			display: flex;
+			justify-content: space-around;
+			background-color: rgba(102, 175, 181, 1);
+			position: relative;
+			.pika-label {
+				margin: auto 0;
+				position: relative;
+				overflow: hidden;
+				background: url(/assets/img/down_arrow.svg) no-repeat;
+				background-position: right 95%;
+				border-radius: 0px;
+				background-size: 20px;
+				z-index: 9999;
+				height: 23px;
+				padding-left: 8px;
+				line-height: 23px;
+				border-width: 1px;
+				border-color: rgb(220, 220, 220);
+				border-style: solid;
+				background-color: rgb(250, 250, 250);
+				font-size: 13px;
+				font-weight: 600;
+				color: rgb(57, 57, 57);
+				select {
+					cursor: pointer;
+					position: absolute;
+					z-index: 9998;
+					margin: 0;
+					left: 0;
+					right: 0;
+					top: 0;
+					filter: alpha(opacity=0);
+					opacity: 0;
+					height: 23px;
+				}
+				&:nth-child(1) {
+					flex: 0 97px;
+					order: 2;
+					select {
+						width: 97px;
+					}
+				}
+				&:nth-child(2) {
+					flex: 0 127px;
+					order: 1;
+					select {
+						width: 127px;
+					}
+				}
+			}
+			button {
+				display: none;
+			}
+		}
+		table {
+			margin: auto;
+			thead,
+			tbody {
+				tr>th,
+				tr>td {
+					width: 38px;
+				}
+			}
+			thead {
+				tr>th {
+					height: 30px;
+					font-size: 13px;
+					color: rgb(57, 57, 57);
+				}
+			}
+			tbody {
+				tr>td {
+					width: 38px;
+					height: 38px;
+					border-right: 1px solid rgb(231, 231, 231);
+					border-bottom: 1px solid rgb(231, 231, 231);
+					button {
+						background: white;
+						font-size: 13px;
+						color: rgb(57, 57, 57);
+						text-align: center;
+						width: 38px;
+						height: 38px;
+						line-height: 38px;
+						border: none;
+						outline: none;
+					}
+					&.is-selected {
+						button {
+							background: rgba(102, 175, 181, 1);
+							color: white;
+						}
+					}
+					&.is-disabled{
+						button{
+							cursor: default;
+							background: rgb(231, 231, 231);
+						}
+					}
+					&:nth-child(1) {
+						border-left: 1px solid rgb(231, 231, 231);
+					}
+				}
+				tr {
+					&:nth-child(1) {
+						td {
+							border-top: 1px solid rgb(231, 231, 231);
+						}
+					}
+				}
+			}
+		}
+		// &:after {
+		// 	bottom: 100%;
+		// 	left: 50%;
+		// 	border: solid transparent;
+		// 	content: attr(data-content);
+		// 	height: 0;
+		// 	width: 0;
+		// 	position: absolute;
+		// 	pointer-events: none;
+		// 	border-color: rgba(136, 183, 213, 0);
+		// 	border-bottom-color: rgba(102, 175, 181, 1);
+		// 	border-width: 7px;
+		// 	margin-left: 24%;
+		// }
+	}
+	&.is-hidden {
+		display: none;
+	}
+}

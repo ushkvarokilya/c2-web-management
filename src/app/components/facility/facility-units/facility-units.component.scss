@@ -1,0 +1,379 @@
+.units-holder {
+	background: white;
+	.page-header {
+		padding: 12px 0 10px 21px;
+		border-top: 3px solid rgba(102, 175, 181, 1);
+		border-bottom: 1px solid rgba(231, 231, 231, 1);
+		.page-title {
+			font-size: 13px;
+			font-weight: 600;
+			color: rgba(42, 42, 42, 1);
+		}
+	}
+	.units-content {
+		padding: 20px;
+		.units {
+			margin-top: 22px;
+			.unit {
+				margin-top: 20px;
+				background-color: rgba(248, 248, 246, 1);
+				border: 1px solid rgba(231, 231, 231, 1);
+				.unit-header {
+					display: flex;
+					justify-content: space-around;
+					height: 60px;
+					border-bottom: 1px solid rgba(231, 231, 231, 1);
+					.unit-col {
+						flex: 1 0 auto;
+						margin: auto 0;
+						font-size: 13px;
+						color: rgba(42, 42, 42, 1);
+						display: flex;
+						img {
+							margin: auto 0;
+						}
+						.unit-col-label {
+							margin: auto 0;
+						}
+						&.unit-picture {
+							flex: 0 0 80px;
+							img {
+								height: 60px;
+								width: 80px;
+							}
+						}
+						&.unit-name {
+							text-align: center;
+							font-weight: bold;
+							color: rgba(42, 42, 42, 1);
+							display: flex;
+							span {
+								margin: auto;
+							}
+						}
+						&.unit-bedrooms {
+							line-height: 20px;
+							img {
+								height: 20px;
+								width: 26px;
+								margin-right: 20px;
+							}
+						}
+						&.unit-bathrooms {
+							flex: 0 1 auto;
+							line-height: 25px;
+							img {
+								margin-right: 21px;
+								height: 25px;
+								width: 15px;
+							}
+						}
+					}
+				}
+				.unit-body {
+					padding: 0 19px;
+					opacity: 1;
+					overflow-y: hidden;
+					max-height: 400px;
+					transition-property: all;
+					transition-duration: .6s;
+					&.hide-body {
+						max-height: 0;
+						opacity: 0;
+						border-bottom: none;
+					}
+				}
+				.unit-show {
+					.unit-body {
+						.unit-amenities {
+							display: flex;
+							margin-top: 30px;
+							align-content: space-around;
+							flex-wrap: wrap;
+							.amenity {
+								flex: 0 0 232px;
+								display: flex;
+								margin-bottom: 25px;
+								.amenity-image {
+									margin: auto 0;
+									max-height: 17px;
+									margin-right: 7px;
+								}
+								.amenity-label {
+									margin: auto 0;
+									font-size: 13px;
+									color: rgba(57, 57, 57, 1);
+								}
+								&.hide {
+									display: none;
+								}
+							}
+						}
+						.edit-unit {
+							margin-top: 20px;
+							margin-bottom: 15px;
+						}
+					}
+				}
+				.unit-edit {
+					.unit-header {
+						height: 80px;
+						justify-content: space-around;
+						.unit-picture {
+							margin-right: 8px;
+							display: block;
+							background: white;
+							flex: 0 0 100px;
+							width: 100px;
+							height: 79px;
+							.add-image {
+								padding: 12px 10px;
+								.add-photo-image {
+									text-align: center;
+									img {
+										height: 19px;
+										width: 26px;
+									}
+								}
+								.add-photo-label {
+									font-size: 13px;
+									color: rgba(57, 57, 57, 1);
+									text-align: center;
+								}
+							}
+							.image-added {
+								width: 100%;
+								height: 100%;
+								img {
+									object-fit: cover;
+									width: 100%;
+									height: 100%;
+								}
+							}
+						}
+						.unit-name {
+							margin-right: 8px;
+							flex: 0 1 213px;
+							input {
+								width: 100%;
+							}
+						}
+						.unit-size {
+							margin-right: 8px;
+							flex: 0 1 100px;
+							input {
+								width: 100%;
+							}
+						}
+						.unit-bedrooms,
+						.unit-bathrooms {
+							margin-right: 8px;
+							flex: 0 1 213px;
+							height: 40px;
+							border: 1px solid #e7e7e7;
+							background: white;
+							line-height: 40px;
+							padding-left: 10px;
+							display: flex;
+							justify-content: space-between;
+							.unit-size-label {
+								flex: 1 0 auto;
+								font-size: 13px;
+								color: #393939;
+							}
+							.unit-size-control {
+								margin: auto 0;
+								flex: 0 0 auto;
+								display: flex;
+								.clickable {
+									margin: auto 0;
+									height: 16px;
+									display: flex;
+								}
+								.plus {
+									width: 16px;
+									height: 2px;
+									background-color: rgba(0, 184, 160, 1);
+									margin: auto 0;
+									position: relative;
+									&::after {
+										content: " ";
+										height: 16px;
+										width: 2px;
+										background-color: rgba(0, 184, 160, 1);
+										top: 50%;
+										left: 50%;
+										transform: translateX(-50%) translateY(-50%);
+										position: absolute;
+									}
+								}
+								.wall {
+									margin: auto 5px;
+									background: rgba(231, 231, 231, 1);
+									height: 30px;
+									width: 1px;
+								}
+								.minus {
+									width: 16px;
+									height: 2px;
+									padding-right: 5px;
+									background-color: rgba(0, 184, 160, 1);
+									margin: auto 0;
+									margin-right: 5px;
+								}
+							}
+						}
+					}
+					.unit-body {
+						max-height: 400px;
+						.unit-body-header {
+							margin-top: 15px;
+							font-size: 13px;
+							font-weight: bold;
+							color: rgba(42, 42, 42, 1);
+						}
+						.choose-amenities {
+							margin-top: 15px;
+							display: flex;
+							justify-content: space-between;
+							align-content: space-around;
+							flex-wrap: wrap;
+							.amenity {
+								flex: 0 0 223px;
+								display: flex;
+								margin-bottom: 25px;
+								.c2-check-box {
+									margin: auto 0;
+									margin-right: 7px;
+								}
+								.amenity-image {
+									margin: auto 0;
+									margin-right: 7px;
+									max-height: 17px;
+								}
+								.amenity-label {
+									margin: auto 0;
+									font-size: 13px;
+									color: rgba(57, 57, 57, 1);
+								}
+							}
+						}
+						.unit-match-apt {
+							margin-top: 5px;
+							button {
+								width: 200px;
+							}
+						}
+						.unit-save {
+							margin-top: 15px;
+							margin-bottom: 15px;
+							display: flex;
+							button {
+								margin: auto 0;
+								width: 200px;
+							}
+							.delete-unit {
+								font-size: 13px;
+								margin: auto 0;
+								margin-left: 13px;
+							}
+							.exit-edit-mode {
+								margin: auto 0 auto auto;
+								font-size: 13px;
+							}
+						}
+					}
+					.choose-apts-dialog {
+						padding: 0 25px 20px 25px;
+						.floor-label,
+						.building-label {
+							font-size: 13px;
+							font-weight: bold;
+							color: rgba(42, 42, 42, 1);
+						}
+						.floor-label {
+							margin-top: 15px;
+						}
+						.floors,
+						.apartments,
+						.buildings {
+							display: flex;
+							margin-top: 15px;
+							flex-wrap: wrap;
+							.floor,
+							.apartment,
+							.building {
+								overflow: hidden;
+								cursor: pointer;
+								flex: 0 0 40px;
+								height: 40px;
+								line-height: 40px;
+								font-size: 13px;
+								text-align: center;
+								border: 1px solid rgba(231, 231, 231, 1);
+								margin-top: -1px;
+								margin-left: -1px;
+								&.focus {
+									background: rgba(248, 248, 246, 1);
+								}
+								&.choosen {
+									background: rgba(102, 175, 181, 1);
+								}
+								&.occupancy {
+									cursor: not-allowed;
+									background: rgba(231, 231, 231, 1);
+								}
+							}
+						}
+						.apartments-label {
+							margin-top: 15px;
+							font-size: 13px;
+							font-weight: bold;
+							color: rgba(42, 42, 42, 1);
+						}
+						.select-all-floor {
+							margin-top: 15px;
+							display: flex;
+							.select-all-floor-label {
+								line-height: 17px;
+								margin-left: 5px;
+								font-size: 13px;
+								color: rgba(42, 42, 42, 1);
+							}
+						}
+						.save-floors {
+							margin-top: 20px;
+						}
+					}
+					.delete-unit-prompt {
+						margin-top: 19px;
+						.delete-unit-label {
+							text-align: center;
+							font-size: 16px;
+							color: rgba(42, 42, 42, 1);
+						}
+						.delete-unit-buttons {
+							margin-top: 30px;
+							text-align: center;
+							display: flex;
+							button {
+								margin: auto 0;
+							}
+							.c2-ok-button {
+								margin-left: 10px;
+							}
+						}
+					}
+				}
+				.unit-show {
+					.unit-header {
+						padding-right: 43px;
+					}
+				}
+				&:first-child {
+					margin-top: 0;
+				}
+			}
+		}
+	}
+}

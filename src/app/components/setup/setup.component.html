@@ -1,0 +1,69 @@
+<div class="flow-bar">
+	<div [ngClass]="{'section': true, 'active': stage == COMPANYDETAILS, 'clickable': stage != COMPANYDETAILS, error: companyInfoErrors}" [routerLink]="['../../', 'setup', 'company']">
+		Company Details
+		<div class="arrow">
+			<img src="/assets/img/right-arrow-panel.png">
+		</div>
+		<div class="progress-bar">
+			<div class="fill" [ngStyle]="{ right: companyInfoErrors ? '50%' : companyInfo ? '0%' : '100%'}">
+				<div class="arrow"></div>
+			</div>
+		</div>
+	</div>
+  <div [ngClass]="{'section': true, 'active': stage == USERSANDROLES, 'clickable': stage != USERSANDROLES, error: usersAndRolesErrors}" [routerLink]="['../../', 'setup', 'company']" [queryParams]="{ stage: 'users and roles' }"> 
+		Users And Roles
+		<div class="arrow">
+			<img src="/assets/img/right-arrow-panel.png">
+		</div>
+		<div class="progress-bar">
+			<div class="fill" [ngStyle]="{ right: usersAndRolesErrors ? '50%' : usersAndRoles ? '0%' : '100%'}">
+				<div class="arrow"></div>
+			</div>
+		</div>
+	</div>
+  <div [ngClass]="{'section': true, 'active': stage == FACILITIES, 'clickable': stage != FACILITIES, error: facilitiesErrors}" [routerLink]="['../../', 'setup', 'company']" [queryParams]="{ stage: 'facilities' }"> 
+		Facilities
+		<div class="progress-bar">
+			<div class="fill" [ngStyle]="{ right: facilitiesErrors ? '50%' : facilities ? '0%' : '100%'}">
+				<div class="arrow"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="stageHolder" class="stage-holder">
+	<app200-company-details 
+		[ngClass]="{'hide': stage != COMPANYDETAILS}"
+		(doneNext)="doneNext($event)" 
+		[doNext]="doNextObservable" 
+		[nextName]="COMPANYDETAILS"
+	></app200-company-details>
+	<app200-users-and-roles 
+		[ngClass]="{'hide': stage != USERSANDROLES}"
+		[doNext]="doNextObservable" 
+		(doneNext)="doneNext($event)"
+		[nextName]="USERSANDROLES"
+		(exposeUsers)="setUsers($event)"
+	></app200-users-and-roles>
+		<app200-facilities 
+		[ngClass]="{'hide': stage != FACILITIES}"
+		[doNext]="doNextObservable"
+		(doneNext)="doneNext($event)"
+		[nextName]="FACILITIES"
+		[users]="usersAndRoles"
+	></app200-facilities>
+</div>
+<div class="action-footer">
+	<div class="loading-holder">
+		<div class="error" *ngIf="loadingError">{{loadingError}}</div>
+	</div>
+	<div class="buttons-holder">
+	
+		<button class="c2-cancel-button" *ngIf="stage != COMPANYDETAILS" (click)="previous()" [disabled]="loading">
+			PREVIOUS
+		</button>
+		<button class="c2-ok-button" (click)="nextClicked()" [ngClass]="{loading: loading}">
+			<span *ngIf="stage != FACILITIES">NEXT</span>
+			<span *ngIf="stage == FACILITIES">FINISH</span>
+		</button>
+	</div>
+</div>

@@ -1,0 +1,216 @@
+@import '../../../style/variables.scss';
+$margin-left: 10px;
+.page-holder {
+    margin: 25px;
+    border-top: 3px solid $squareButtonColor;
+    background: white;
+    font-size: 13px;
+    .page-header {
+        display: flex;
+        font-weight: 600;
+        box-sizing: border-box;
+        padding: 1% 2%;
+        border-bottom: 1px solid $inputBorderColor;
+        .page-title {
+            margin: auto 0;
+        }
+    }
+    .content {
+        margin-right: 21px;
+        margin-left: 19px;
+        margin-top: 10px;
+        padding-bottom: 30px;
+        .top-content {
+            display: flex;
+            .form-item-add-input {
+                margin: auto 0;
+            }
+            .query-search {
+                width: 290px;
+                margin: auto 0 auto auto;
+                input {
+                    box-sizing: border-box;
+                    width: 100%;
+                    height: 35px;
+                    border-radius: 18px;
+                    outline: none;
+                    padding-left: 20px;
+                    padding-right: 24px;
+                    font-size: 12px;
+                    color: #909090;
+                    line-height: 15px;
+                    background: url(/assets/img/searchIcon.svg) no-repeat right;
+                    background-position: 96% 50%;
+                    background-size: 14px;
+                }
+            }
+        }
+        .publish-ann {
+            margin-top: 21px;
+            margin-bottom: 21px;
+            font-size: 13px;
+            color: rgba(42, 42, 42, 1);
+            overflow-y: hidden;
+            max-height: 400px;
+            transition-property: all;
+            transition-duration: .8s;
+            .publish-text {
+                margin-top: 13px;
+                position: relative;
+                textarea {
+                    padding: 14px 32px 14px 12px;
+                    width: 620px;
+                    border: 1px solid rgba(231, 231, 231, 1);
+                    resize: none;
+                }
+                .letter-num {
+                    position: absolute;
+                    left: 590px;
+                    bottom: 9px;
+                    font-size: 13px;
+                    color: rgba(144, 144, 144, 1);
+                    &.error {
+                        color: red;
+                    }
+                }
+            }
+            .schedule-toggle {
+                margin-top: 12px;
+                display: inline-flex;
+                height: 16px;
+                line-height: 16px;
+                .c2-radio {
+                    margin-right: 8px;
+                }
+            }
+            .schedule-select {
+                display: flex;
+                margin-top: 13px;
+                .start,
+                .end {
+                    margin-right: 20px;
+                    .start-label,
+                    .end-label {
+                        color: rgba(57, 57, 57, 1);
+                        font-size: 13px;
+                        margin-bottom: 5px;
+                    }
+                }
+            }
+            .publis-button {
+                margin-top: 17px;
+            }
+            &.hide-publish {
+                max-height: 0;
+            }
+        }
+        .active-ann,
+        .archived-ann {
+            .ann-status-label {
+                margin-left: $margin-left;
+                font-size: 18px;
+                color: rgba(42, 42, 42, 1);
+            }
+            .table-header {
+                margin-top: 21px;
+                margin-bottom: 10px;
+                .col-publisher,
+                .col-text,
+                .col-scheduled {
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: rgba(42, 42, 42, 1);
+                }
+            }
+            .announcement {
+                border: 1px solid rgba(231, 231, 231, 1);
+                height: 60px;
+                line-height: 60px;
+                margin-bottom: 10px;
+                .col-text {
+                    line-height: 22px;
+                    display: flex;
+                    p {
+                        margin: auto 0;
+                    }
+                }
+            }
+        }
+        .active-ann {
+            margin-top: 20px;
+            .announcement {
+                background-color: rgba(0, 184, 160, 1);
+                background-color: rgba(235, 249, 247, 1);
+            }
+        }
+        .archived-ann {
+            margin-top: 35px;
+            .announcement {
+                background-color: rgba(255, 255, 255, 1);
+            }
+        }
+    }
+}
+
+.ann-row {
+    display: flex;
+    padding-left: $margin-left;
+    padding-right: 21px;
+    color: rgba(42, 42, 42, 1);
+    .col-publisher {
+        width: 15%;
+    }
+    .col-text {
+        color: rgba(117, 117, 117, 1);
+        width: 37%;
+        margin-right: 10%;
+    }
+    .col-scheduled {
+        width: 30%;
+    }
+    .col-options {
+        width: 8%;
+        text-align: right;
+        .pencil-img {
+            width: 17px;
+            margin-right: 20px;
+        }
+        .trash-img {
+            width: 16px;
+        }
+        .redo-img {
+            width: 19px;
+        }
+    }
+}
+
+.pickers {
+    display: flex;
+    datepicker {
+        margin-right: 7px;
+    }
+    select {
+        height: 30px;
+        width: 48px;
+        background-position: 99% 64%;
+    }
+    div {
+        margin: auto 4.5px auto 4.5px;
+    }
+}
+
+.delete-announcement-holder {
+    margin-top: 30px;
+    .delete-label {
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+    }
+    .delete-buttons {
+        margin-top: 35px;
+        text-align: center;
+        .c2-ok-button {
+            margin-left: 9px;
+        }
+    }
+}

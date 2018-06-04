@@ -1,0 +1,71 @@
+@import '../../../style/variables.scss';
+@import '../../../style/mixins.scss';
+.page-holder {
+	margin: 25px;
+	.banner {
+		height: 320px;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+		background-color: rgba(188, 188, 188, 1);
+		display: flex;
+		.banner-bottom {
+			display: flex;
+			padding: 13px 19px;
+			margin-top: auto;
+			flex: 1 0 auto;
+			color: white;
+			@include linear-gradient(to bottom,
+			rgba(0, 0, 0, 0.1),
+			rgba(0, 0, 0, 0.5));
+			.complex-label {
+				margin: auto 0;
+				flex: 0 0 auto;
+				.complex-name {
+					font-size: 18px;
+					font-weight: 600;
+					line-height: 20px;
+				}
+				.complex-address {
+					margin-top: 5px;
+					line-height: 20px;
+					font-size: 13px;
+					font-weight: 600;
+				}
+			}
+			.edit-photo {
+				cursor: pointer;
+				margin: auto 0 0 auto;
+				flex: 0 0 auto;
+				display: flex;
+				height: 35px;
+				width: 167px;
+				border: 1px solid rgba(255, 255, 255, 1);
+				color: white;
+				img {
+					margin: auto 0;
+					margin-right: 10px;
+					margin-left: 10px;
+					height: 19px;
+					width: 26px;
+				}
+				.edit-photo-label {
+					margin: auto 0;
+					font-size: 13px;
+					font-weight: 600;
+				}
+			}
+		}
+	}
+	.units-and-amenities {
+		margin-top: 20px;
+		display: flex;
+		facility-units{
+			flex: 1 1 760px;
+			margin-right: 23px;
+		}
+		facility-amenities{
+			flex: 0 0 369px;
+		}
+	}
+}

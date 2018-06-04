@@ -1,0 +1,288 @@
+<div class="calendar-holder">
+	<div class="add-event-holder">
+		<div *ngIf="loading" class="loading">
+			<img src="/assets/img/loader_big.gif" alt="">
+		</div>
+		<div *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="form-item-add-input clickable" (click)="showAddEvent = true;">
+			<div class="plus">
+				<div class="line"></div>
+				<div class="line"></div>
+			</div>
+			<div class="add-input-label">
+				Add Event
+			</div>
+		</div>
+	</div>
+	<div class="calendar-wraper" *ngIf="months.length > 0 && (user$ |async)?.viewPermissions?.includes('Calendar')">
+		<div class="calendar-header">
+			<img class="left-arrow" [ngClass]="{'clickable display': currentMonthIndex != 0}" src="/assets/img/arrow_left_white.png" (click)="changeIndex(-1)">
+			<div class="header-date">{{months[currentMonthIndex].month}} {{months[currentMonthIndex].year}} </div>
+			<img class="right-arrow" [ngClass]="{'clickable display': currentMonthIndex != months.length - 1}" src="/assets/img/arrow_right_white.png"
+			  (click)="changeIndex(1)">
+		</div>
+		<div class="calendar-days-header cal-row">
+			<div class="cal-col" *ngFor="let day of days">{{day.toUpperCase()}}</div>
+		</div>
+		<div class="calendar-days">
+			<div class="week cal-row" *ngFor="let week of months[currentMonthIndex].weeks; let weekIndex = index">
+				<div class="cal-col" *ngFor="let day of days" [ngClass]="{disabled: week[day] && week[day].disabled}">
+					<div class="day-wraper" *ngIf="week[day]" [ngClass]="{clickable: !week[day].disabled}" (click)="week[day] && !week[day].disabled && week[day].showEvents = true">
+						<div class="day-label">{{week[day].date}}</div>
+						<div class="events" *ngIf="week[day].events.length > 0; let eventIndex = index">
+							<div class="event">
+								<div class="event-icon" [ngSwitch]="week[day].events[0].type">
+									<svg *ngSwitchCase="'Facility'" width="27" height="20" viewBox="0 0 27 20">
+										<use xlink:href="./assets/icons.svg#facility"></use>
+									</svg>
+									<svg *ngSwitchCase="'Maintenance'" width="23" height="24" viewBox="0 0 23 24">
+										<use xlink:href="./assets/icons.svg#wrench"></use>
+									</svg>
+									<svg *ngSwitchCase="'Vendors'" width="25" height="23" viewBox="0 0 25 23">
+										<use xlink:href="./assets/icons.svg#helemet"></use>
+									</svg>
+									<svg *ngSwitchCase="'Tenants'" width="30" height="23" viewBox="0 0 30 23">
+										<use xlink:href="./assets/icons.svg#tenants"></use>
+									</svg>
+									<svg *ngSwitchCase="'Bookkeeping'" width="22" height="23" viewBox="0 0 22 23">
+										<use xlink:href="./assets/icons.svg#bookkeeping"></use>
+									</svg>
+									<svg *ngSwitchCase="'General'" width="20" height="20" viewBox="0 0 20 20">
+										<use xlink:href="./assets/icons.svg#general"></use>
+									</svg>
+								</div>
+								<div class="event-body">
+									<div class="event-name c2-length-line">{{week[day].events[0].name}}</div>
+									<div class="event-time">
+										<span *ngIf="week[day].events[0].fullDay">All day</span>
+										<span *ngIf="!week[day].events[0].fullDay">{{moment(week[day].events[0].fromDate).format('hh:mm A')}}</span>
+									</div>
+								</div>
+							</div>
+							<div class="more-events" *ngIf="week[day].events.length > 1">
+								<a>{{week[day].events.length - 1}} More Events</a>
+							</div>
+						</div>
+					</div>
+					<app-dialog *ngIf="week[day] && week[day].showEvents" [size]="'medium'" [visible]="true" [header]="week[day].date + ' ' + months[currentMonthIndex].month + ' ' + months[currentMonthIndex].year"
+					  (visibleChange)="week[day].showEvents = false" [greenHeader]="true">
+						<div class="day-events-list">
+							<div class="event-item" *ngFor="let event of week[day].events">
+								<div class="event-icon" [ngSwitch]="event.type">
+									<svg *ngSwitchCase="'Facility'" width="27" height="20" viewBox="0 0 27 20">
+										<use xlink:href="./assets/icons.svg#facility"></use>
+									</svg>
+									<svg *ngSwitchCase="'Maintenance'" width="23" height="24" viewBox="0 0 23 24">
+										<use xlink:href="./assets/icons.svg#wrench"></use>
+									</svg>
+									<svg *ngSwitchCase="'Vendors'" width="25" height="23" viewBox="0 0 25 23">
+										<use xlink:href="./assets/icons.svg#helemet"></use>
+									</svg>
+									<svg *ngSwitchCase="'Tenants'" width="30" height="23" viewBox="0 0 30 23">
+										<use xlink:href="./assets/icons.svg#tenants"></use>
+									</svg>
+									<svg *ngSwitchCase="'Bookkeeping'" width="22" height="23" viewBox="0 0 22 23">
+										<use xlink:href="./assets/icons.svg#bookkeeping"></use>
+									</svg>
+									<svg *ngSwitchCase="'General'" width="20" height="20" viewBox="0 0 20 20">
+										<use xlink:href="./assets/icons.svg#general"></use>
+									</svg>
+								</div>
+								<div class="event-name c2-length-line">{{event.name}}</div>
+								<div class="event-time">
+									<span class="all-day" *ngIf="event.fullDay">All Day</span>
+									<span *ngIf="!event.fullDay">{{moment(event.fromDate).format('hh:mm A')}}-{{moment(event.toDate).format('hh:mm A')}}</span>
+									<img *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="edit-event" src="/assets/img/pencil.png" (click)="week[day].showEvents = false; openEditEvent(event, weekIndex, day, eventIndex)">
+								</div>
+							</div>
+							<div *ngIf="(user$ |async)?.actionPermissions?.includes('Calendar')" class="form-item-add-input clickable" (click)="openAddEventFromDay(week, day)">
+								<div class="plus">
+									<div class="line"></div>
+									<div class="line"></div>
+								</div>
+								<div class="add-input-label">
+									Add Event
+								</div>
+							</div>
+						</div>
+					</app-dialog>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<app-dialog *ngIf="showAddEvent" [size]="'medium'" [visible]="true" [header]="(this.newEvent.key ? 'EDIT' : 'Add') + ' Event'"
+  (visibleChange)="modalVisibiltyChanged($event)">
+	<div class="add-event-container">
+		<div class="event-name">
+			<div class="event-name-label">EVENT NAME</div>
+			<div class="event-name-input">
+				<input type="text" placeholder="Enter Event Title" [(ngModel)]="newEvent.name">
+				<div *ngIf="newEventErrors && newEventErrors.name" class="form-item-error">
+					{{newEventErrors.name}}
+				</div>
+			</div>
+		</div>
+		<div class="event-field">
+			<div class="event-field-label">SELECT EVENT FIELD</div>
+			<div class="event-field-choose">
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'Facility'}" (click)="newEvent.type = 'Facility'">
+					<svg width="27" height="20" viewBox="0 0 27 20">
+						<use xlink:href="./assets/icons.svg#facility"></use>
+					</svg>
+					<div class="event-type-label">Facility</div>
+				</div>
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'Maintenance'}" (click)="newEvent.type = 'Maintenance'">
+					<svg width="23" height="24" viewBox="0 0 23 24">
+						<use xlink:href="./assets/icons.svg#wrench"></use>
+					</svg>
+					<div class="event-type-label">Maintenance</div>
+				</div>
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'Vendors'}" (click)="newEvent.type = 'Vendors'">
+					<svg width="25" height="23" viewBox="0 0 25 23">
+						<use xlink:href="./assets/icons.svg#helemet"></use>
+					</svg>
+					<div class="event-type-label">Vendors</div>
+				</div>
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'Tenants'}" (click)="newEvent.type = 'Tenants'">
+					<svg width="30" height="23" viewBox="0 0 30 23">
+						<use xlink:href="./assets/icons.svg#tenants"></use>
+					</svg>
+					<div class="event-type-label">Tenants</div>
+				</div>
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'Bookkeeping'}" (click)="newEvent.type = 'Bookkeeping'">
+					<svg width="22" height="23" viewBox="0 0 22 23">
+						<use xlink:href="./assets/icons.svg#bookkeeping"></use>
+					</svg>
+					<div class="event-type-label">Bookkeeping</div>
+				</div>
+				<div class="event-type" [ngClass]="{'choosen-type': newEvent.type == 'General'}" (click)="newEvent.type = 'General'">
+					<svg width="20" height="20" viewBox="0 0 20 20">
+						<use xlink:href="./assets/icons.svg#general"></use>
+					</svg>
+					<div class="event-type-label">General</div>
+				</div>
+			</div>
+		</div>
+		<div class="event-time">
+			<div class="event-time-label">
+				WHEN
+			</div>
+			<div class="event-time-type">
+				<div class="full-day clickable" (click)="newEvent.fullDay = true">
+					<div class="c2-radio" [ngClass]="{'checked': newEvent.fullDay}"></div> Full Day
+				</div>
+				<div class="time-frame clickable" (click)="newEvent.fullDay = false">
+					<div class="c2-radio" [ngClass]="{'checked': !newEvent.fullDay}"></div> Time Frame
+				</div>
+			</div>
+			<div class="pick-date">
+				<div class="single-day" *ngIf="newEvent.fullDay">
+					<datepicker [(date)]="newEvent.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+				</div>
+				<div class="time-range" *ngIf="!newEvent.fullDay">
+					<div class="start">
+						<div class="start-label">Starts at</div>
+						<div class="pickers">
+							<datepicker [(date)]="newEvent.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+							<select [(ngModel)]="newEvent.fromHour">
+								<option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+							</select>
+							<div>:</div>
+							<select class="last-select" [(ngModel)]="newEvent.fromMinute">
+									<option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+							</select>
+						</div>
+					</div>
+					<div class="end">
+						<div class="end-label">Ends at</div>
+						<div class="pickers">
+							<datepicker [(date)]="newEvent.toDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+							<select [(ngModel)]="newEvent.toHour">
+									<option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+							</select>
+							<div>:</div>
+							<select class="last-select" [(ngModel)]="newEvent.toMinute">
+									<option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div *ngIf="newEventErrors && newEventErrors.date" class="form-item-error">
+					{{newEventErrors.date}}
+				</div>
+			</div>
+			<div class="event-repeats">
+				<div class="event-repeat-label">
+					REPEATS
+				</div>
+				<div class="event-repeats-types">
+					<div class="event-repeat" (click)="newEvent.repeats = 'once'">
+						<div class="repeat-radio">
+							<div class="c2-radio" [ngClass]="{'checked': newEvent.repeats == 'once'}"></div> One Time Event
+						</div>
+					</div>
+					<div class="event-repeat" (click)="newEvent.repeats = 'weekly'">
+						<div class="repeat-radio">
+							<div class="c2-radio" [ngClass]="{'checked': newEvent.repeats == 'weekly'}"></div> Every Week <span *ngIf="newEvent.repeats == 'weekly'">&nbsp;Until</span>
+						</div>
+						<div class="repeat-end pickers" *ngIf="newEvent.repeats == 'weekly'">
+							<datepicker [(date)]="newEvent.repeatUntilHolder" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+						</div>
+					</div>
+					<div class="event-repeat" (click)="newEvent.repeats = 'monthly'">
+						<div class="repeat-radio">
+							<div class="c2-radio" [ngClass]="{'checked': newEvent.repeats == 'monthly'}"></div> Every Month <span *ngIf="newEvent.repeats == 'monthly'">&nbsp;Until</span>
+						</div>
+						<div class="repeat-end pickers" *ngIf="newEvent.repeats == 'monthly'">
+							<datepicker [(date)]="newEvent.repeatUntilHolder" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+						</div>
+					</div>
+					<div class="event-repeat" (click)="newEvent.repeats = 'yearly'">
+						<div class="repeat-radio">
+							<div class="c2-radio" [ngClass]="{'checked': newEvent.repeats == 'yearly'}"></div> Every Year <span *ngIf="newEvent.repeats == 'yearly'">&nbsp;Until</span>
+						</div>
+						<div class="repeat-end pickers" *ngIf="newEvent.repeats == 'yearly'">
+							<datepicker [(date)]="newEvent.repeatUntilHolder" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
+						</div>
+					</div>
+				</div>
+				<div *ngIf="newEventErrors && newEventErrors.repeats" class="form-item-error">
+					{{newEventErrors.repeats}}
+				</div>
+			</div>
+			<div class="add-event-button">
+				<button *ngIf="!newEvent.key" class="c2-ok-button add-to-calendar" (click)="addEvent()" [ngClass]="{loading: addingNewEvent}">ADD TO CALENDAR</button>
+				<div *ngIf="newEvent.key" class="edit-controls">
+					<a class="delete-event" (click)="showAddEvent = false; showDeleteDialog = true;">Delete Event</a>
+					<button class="c2-ok-button" (click)="editEvent()" [ngClass]="{loading: addingNewEvent}">SAVE CHANGES</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</app-dialog>
+<app-dialog *ngIf="showDeleteDialog" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="showDeleteDialog = false">
+	<div class="delete-event-holder">
+		<div class="delete-label">
+			<div>Are you sure you want to delete</div> 
+			<div class="delete-name"><a>{{newEvent.name}}</a></div>  
+			<div>event?</div>
+		</div>
+		<div class="delete-buttons">
+			<button *ngIf="!deletingEvent"  class="c2-cancel-button" (click)="showDeleteDialog = false; initNewEvent()">CANCEL</button>
+			<button class="c2-ok-button" [ngClass]="{loading: deletingEvent}" (click)="deleteEvent()">DELETE</button>
+		</div>
+	</div>
+</app-dialog>
+<app-dialog *ngIf="showDeleteRecurrence" [size]="'medium'" [visible]="true" [header]="''" (visibleChange)="showDeleteRecurrence = false">
+	<div class="delete-recurrence-event-holder">
+		<div class="delete-label">
+			Delete a repeating event
+		</div>
+		<div class="delete-from">
+			<button *ngIf="!deletingEvent" class="c2-cancel-button" (click)="deleteRecurentEvent('from')">DELETE FROM {{getDateDisplayable(newEvent.fromDate)}}</button>
+		</div>
+		<div class="delete-all">
+			<button class="c2-ok-button" [ngClass]="{loading: deletingEvent}" (click)="deleteRecurentEvent('all')">DELETE FROM ALL DATES</button>
+		</div>
+	</div>
+</app-dialog>

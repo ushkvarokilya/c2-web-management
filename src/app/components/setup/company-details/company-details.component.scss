@@ -1,0 +1,235 @@
+@import '../../../../style/mixins.scss';
+:host {
+	display: flex;
+}
+
+.form-container {
+	flex-grow: 0;
+	flex-shrink: 0;
+	flex-basis: 810px;
+	background: white;
+	padding: 2.1% 5%;
+	.header {
+		margin-bottom: 20px;
+		h3 {
+			margin-top: 0;
+			margin-bottom: 0;
+			font-size: 18px;
+			color: rgba(42, 42, 42, 1);
+		}
+		p {
+			color: rgba(144, 144, 144, 1);
+			font-size: 13px;
+			margin: 0;
+		}
+	}
+}
+
+.form {
+	width: 100%;
+	.form-item {
+		margin-bottom: 15px;
+		.form-item-title {
+			font-weight: 600;
+			color: rgba(42, 42, 42, 1);
+			font-size: 15px;
+		}
+		.form-item-subtitle {
+			color: rgba(144, 144, 144, 1);
+			font-size: 13px;
+			margin-top: 3px;
+		}
+		.img-view {
+			margin-top: 10px;
+			width: 150px;
+			height: 150px;
+			border: 1px solid rgba(231, 231, 231, 1);
+			.img {
+				width: 100%;
+				height: 100%;
+				position: relative;
+				img {
+					object-fit: contain;
+					width: 100%;
+					height: 100%;
+				}
+				.remove-img {
+					position: absolute;
+					bottom: 0;
+					right: 0;
+					width: 20px;
+					height: 20px;
+					background: rgba(144, 144, 144, 1);
+					text-align: center;
+					img {
+						width: 12px;
+						height: 12px;
+					}
+				}
+			}
+			.uploading {
+				height: 100%;
+				width: 100%;
+				line-height: 100%;
+				font-size: 13px;
+			}
+			.no-img {
+				height: 100%;
+				width: 100%;
+				position: relative;
+				.plus {
+					position: absolute;
+					top: 42%;
+					left: 50%;
+					transform: translateX(-50%) translateY(-50%);
+					margin: 0 auto;
+					width: 32px;
+					height: 32px;
+					.line {
+						width: 16px;
+						height: 2px;
+						background: rgba(144, 144, 144, 1);
+						position: absolute;
+						top: 50%;
+						left: 50%;
+						transform: translateX(-50%) translateY(-50%);
+						&:nth-child(2) {
+							left: 29%;
+							top: 22%;
+							transform: rotate(90deg) translateX(50%) translateY(50%);
+						}
+					}
+				}
+				.add-img-label {
+					color: rgba(144, 144, 144, 1);
+					font-size: 13px;
+					position: absolute;
+					top: 70%;
+					left: 45%;
+					transform: translateX(-41%) translateY(-50%);
+				}
+			}
+		}
+		.form-item-input-holder {
+			display: flex;
+			flex-wrap: wrap;
+			margin-top: 10px;
+			.form-item-input {
+				width: 413px;
+				position: relative;
+				input {
+					width: 100%;
+					font-size: 13px;
+					color: rgba(57, 57, 57, 1);
+					padding: 10px;
+					border: 1px solid rgba(231, 231, 231, 1);
+					&.error {
+						@include animation('inputErrorBlink 1s');
+						border: 1px solid rgba(255, 3, 3, 1);
+					}
+				}
+				.input-icon {
+					position: absolute;
+					top: 50%;
+					transform: translateY(-50%);
+					right: 8px;
+					&.pointer {
+						top: 57%;
+					}
+				}
+			}
+			.form-item-add-input {
+				margin-left: 35px;
+			}
+			&.append {
+				.form-item-input {
+					@include animation('fadein 0.8s');
+				}
+				.form-item-add-input {
+					@include animation('slideDownAddInput 0.8s');
+				}
+			}
+			&.remove {
+				.form-item-add-input {
+					@include animation('slideUpAddInput 0.4s');
+				}
+			}
+		}
+	}
+}
+
+.second-form {
+	flex-grow: 1;
+	background: white;
+	padding-top: 95px;
+	.header {
+		font-weight: 600;
+		color: rgba(42, 42, 42, 1);
+		font-size: 15px;
+	}
+	.radios {
+		display: flex;
+		margin-top: 13px;
+		.radio {
+			cursor: pointer;
+			color: rgba(42, 42, 42, 1);
+			font-size: 14px;
+			display: flex;
+			.c2-radio {
+				margin-top: 3px;
+				margin-right: 11px;
+			}
+			&.radio-two {
+				margin-left: 16px;
+			}
+		}
+	}
+	.days {
+		.selection-row {
+			margin-top: 15px;
+			font-size: 14px;
+			display: flex;
+			margin-bottom: 5px;
+			.to-lable {
+				margin: 0 5px;
+				font-size: 13px;
+			}
+			.days-selection {
+				display: flex;
+				align-items: center;
+				.toggle-wraper {
+					margin-right: 15px;
+				}
+				select {
+					width: 80px;
+				}
+				.day-label {
+					width: 80px;
+					padding-left: 8px;
+					border-radius: 0px;
+					font-size: 12px;
+					height: 35px;
+					line-height: 33px;
+					background-color: #ffffff;
+					border: 1px solid #e7e7e7;
+					color: #909090;
+
+				}
+			}
+			.times-selection {
+				margin-left: 15px;
+				select {
+					width: 40px;
+					padding-left: 4px;
+					&.hour-selection {
+						width: 64px;
+					}
+				}
+			}
+		}
+	}
+}
+
+.cloudinary_fileupload {
+	display: none;
+}

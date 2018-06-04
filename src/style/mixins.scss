@@ -1,0 +1,141 @@
+// global mixins
+@mixin inputSelect() {
+    color: $inputTextColor;
+    background-color: $inputBackgroundColor;
+    border-color: $inputBorderColor;
+    padding: 5px;
+    padding-right: 20px;
+    font-size: 0.8em;
+}
+
+@mixin inputSearch() {
+    font-size: 0.8em;
+    color: $inputTextColor;
+    background-color: $inputBackgroundColor;
+    border: solid 1px $inputBorderColor;
+    border-radius: 50px;
+    padding: 6px;
+    padding-left: 15px;
+    &:focus {
+        border-radius: 50px;
+        outline: none;
+    }
+}
+
+@mixin leftIconButton() {
+    .left-icon-button {
+        display: flex;
+        align-items: center;
+        font-size: 0.8em;
+        font-weight: 600;
+        color: $highlightColor;
+        cursor: pointer;
+        .button-icon {
+            cursor: pointer;
+            width: 25px;
+            height: 25px;
+            margin-right: 15px;
+            background-color: $highlightColor;
+        }
+    }
+}
+
+@mixin squareButton() {
+    .square-button {
+        text-transform: uppercase;
+        padding: 10px;
+        background-color: $squareButtonColor;
+        color: $squareButtonTextColor;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+@mixin circularAddButton() {
+    .circular-add {
+        position: relative;
+        border-radius: 50%;
+        border: 1px solid #66afb5;
+        ;
+        height: 32px;
+        width: 32px;
+        color: #68B8A0;
+        font-size: 28px;
+        margin-right: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        &:hover {
+            color: white;
+            background-color: #66afb5;
+            ;
+        }
+    }
+}
+
+@mixin amenityLayout() {
+    .amenity {
+        min-width: 120px;
+        min-height: 120px;
+        background-color: #ffffff;
+        border: solid 1px #e7e7e7;
+        margin: -1px;
+        cursor: pointer;
+        text-align: center;
+        color: #393939;
+        font-weight: 600;
+        font-size: 0.75em;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        .amenity-icon {
+            margin-right: auto;
+            margin-left: auto;
+            margin-bottom: 10px;
+            height: 35px;
+            max-width: 54px;
+            min-width: 35px;
+        }
+        .amenity-icon.pool {
+            background: url(/assets/img/poolIcon.svg) no-repeat;
+        }
+    }
+}
+
+@mixin keyframes($animation-name) {
+    @-webkit-keyframes #{$animation-name} {
+        @content;
+    }
+    @-moz-keyframes #{$animation-name} {
+        @content;
+    }
+    @-ms-keyframes #{$animation-name} {
+        @content;
+    }
+    @-o-keyframes #{$animation-name} {
+        @content;
+    }
+    @keyframes #{$animation-name} {
+        @content;
+    }
+}
+
+@mixin animation($str) {
+    -webkit-animation: #{$str};
+    -moz-animation: #{$str};
+    -ms-animation: #{$str};
+    -o-animation: #{$str};
+    animation: #{$str};
+}
+
+@mixin linear-gradient($direction, $color-stops...) {
+    background: nth(nth($color-stops, 1), 1);
+    background: -webkit-linear-gradient(legacy-direction($direction), $color-stops);
+    background: linear-gradient($direction, $color-stops);
+}
