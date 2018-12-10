@@ -19,13 +19,18 @@
       "testTsconfig": "tsconfig.spec.json",
       "prefix": "app",
       "styles": [
+        "../node_modules/angular2-lightbox/lightbox.css",
+        "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css",
         "styles.scss"
       ],
-      "scripts": [],
+      "scripts": [
+       
+      ],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",
         "stage": "environments/environment.stage.ts",
+        "stage-team": "environments/environment.stage-team.ts",
         "prod": "environments/environment.prod.ts"
       }
     }

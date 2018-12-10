@@ -11,13 +11,14 @@ export class SearchTicketPipe implements PipeTransform {
   }
 
 	isQueryContains(ticket: 
-	{ ticketNumber: number, apartementName: string, problemDescription: string, dateCreated: string, status: string, joinedPeople: { firstName: string, lastName: string }[] },
+	{ ticketNumber: number, MaintenanceAddress: string, TicketTitle: string, TicketDate: string, status: string, joinedPeople: { firstName: string, lastName: string }[] },
 	query: string) {
 		let contains = (ticket.ticketNumber + '').includes(query) ||
-						(ticket.apartementName && ticket.apartementName.includes(query)) ||
-						ticket.problemDescription.includes(query) ||
-						new Date(ticket.dateCreated).toISOString().includes(query) ||
-						ticket.joinedPeople.reduce((prev, tenant) => prev + ' ' + tenant.firstName + ' ' + tenant.lastName, '').includes(query)
+						(ticket.MaintenanceAddress && ticket.MaintenanceAddress.includes(query)) ||
+						ticket.TicketTitle.includes(query) ||
+						new Date(ticket.TicketDate).toISOString().includes(query) 
 		return contains;
 	}
+	// ||
+	//ticket.joinedPeople.reduce((prev, tenant) => prev + ' ' + tenant.firstName + ' ' + tenant.lastName, '').includes(query)
 }

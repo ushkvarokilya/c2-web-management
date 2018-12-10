@@ -47,7 +47,7 @@ export class CompanyDetailsComponent implements OnInit {
 	latestPhoneNumberAction;
 	latestEmailAction;
 
-	logoImgLocalUrl: string;
+	logoImgLocalUrl;
 	loadingImage = false;
 	imgBarRight = 100;
 

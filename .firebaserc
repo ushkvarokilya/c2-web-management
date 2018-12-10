@@ -2,6 +2,7 @@
   "projects": {
     "default": "c2-dev-server",
     "stage": "c2-stage",
+    "stage-team": "c2-team-stage",
     "prod": "c2-production"
   }
 }

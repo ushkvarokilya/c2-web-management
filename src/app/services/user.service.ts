@@ -83,6 +83,7 @@ export class UserService {
 			.subscribe(user => {
 				if (user.token == null) {
 					localStorage.removeItem('user_bridge')
+					localStorage.removeItem('user_details')
 					window.location.replace(environment.commercialPageDomain);
 				}
 			})

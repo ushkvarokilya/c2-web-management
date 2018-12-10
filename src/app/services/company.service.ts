@@ -36,7 +36,7 @@ export class CompanyService {
 					this.redux.dispatch(CompanyActions.setComplexes(data.items));
 				}
 				return Promise.resolve(data.items);
-			}, Promise.reject)
+			}), Promise.reject
 	}
 
 	getComplexesDetailed(companyKey) {

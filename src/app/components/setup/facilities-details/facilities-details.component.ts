@@ -104,7 +104,7 @@ export class FacilitiesComponent implements OnInit {
 		this.user$
 			.pipe(
 				filter(user => user.token !== null),
-				takeWhile(_ => !dataFromServerFetched)
+			 	takeWhile(_ => !dataFromServerFetched)
 			)
 			.subscribe(user => {
 				dataFromServerFetched = true

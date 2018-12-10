@@ -14,6 +14,8 @@ import { User } from "../../../store/user/user.interface";
 import { environment } from "../../../../environments/environment";
 import { StringValidationService } from '../../../services/string-validation.service';
 
+import { Http , Response} from '@angular/http';
+
 @Component({
   selector: 'tenants-view',
   templateUrl: './tenants-view.component.html',
@@ -70,7 +72,8 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
     private redux: NgRedux<AppState>,
     private router: Router,
     private tenantService: TenantService,
-    private stringValidation: StringValidationService
+    private stringValidation: StringValidationService,
+    private http: Http
   ) {
     this.moment = Moment;
   }
@@ -81,15 +84,18 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
       if (company.currentComplex !== null && !this.dataLoaded) {
         this.mainMessage = "Loading..."
 
+    //  this.http.get('http://35.184.113.205/api/Temp/2101/tenants').subscribe(
+    //    (res: Response) =>{ const t = res.json();
+    //   console.log(t)} );
+
         // this.complexService.getFacilityOverview()
         // 	.then((_) => {})
         // 	.catch(e => e)
         // this.dataLoaded = true;
-
+        //this.complexService.getAllApartmentLeasesFromComplexNew()
         this.complexService.getAllApartmentLeasesFromComplex()
           .then((data: any) => {
             if (data.leases) {
-
               this.leases = data.leases.map(lease => {
                 if (!lease.paymentScore) lease.paymentScore = 100;
                 if (!lease.rent) lease.rent = 0;

@@ -31,9 +31,10 @@ export class MessagingService {
 					this.redux.dispatch(MessagesActions.loadGroups(groups))
 				}
 				return Promise.resolve()
-			}, Promise.reject)
+			})
 	}
-
+	//, Promise.reject
+	
 	getGroupMessages(groupKey, fromKey, amount) {
 		return this.http.get(`/messaging/messages/group/${groupKey}/message/${fromKey}/amount/${amount}`)
 			.catch(err => this.http.commonCatchAndReject(err, 'MessagesService', 'getGroupMessages'));
@@ -47,7 +48,7 @@ export class MessagingService {
 				if (!messages) messages = [];
 				this.redux.dispatch(MessagesActions.updateCurrentGroupMessages(messages));
 				return Promise.resolve()
-			}, Promise.reject)
+			}), Promise.reject
 	}
 
 	setCurrentGroupByParticipant(user) {

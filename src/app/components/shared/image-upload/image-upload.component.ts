@@ -1,6 +1,7 @@
 import { Component, OnInit, EventEmitter, Output, Input, ElementRef, ViewChild } from '@angular/core';
 
 import { environment } from "../../../../environments/environment";
+import { FormBuilder } from '@angular/forms';
 
 
 @Component({
@@ -10,6 +11,7 @@ import { environment } from "../../../../environments/environment";
 export class ImageUploadComponent implements OnInit {
 
   @Output() imageUploaded = new EventEmitter()
+  @Output() imageUploadedAndName = new EventEmitter()
 
   uploadingInProgress: boolean = false
   // @Output() uploadingInProgressChange = new EventEmitter<boolean>()
@@ -20,6 +22,8 @@ export class ImageUploadComponent implements OnInit {
   @ViewChild("fileUpload") fileUploadElementRef: ElementRef
   fileUploadElement: HTMLInputElement
 
+  folder;
+  isFileName;
   constructor() { }
 
   ngOnInit() {
@@ -27,6 +31,14 @@ export class ImageUploadComponent implements OnInit {
   }
 
   click() {
+    if (!this.uploadingInProgress) {
+      this.fileUploadElement.click()
+    }
+  }
+
+  clickFolder(folder,isFileName) {
+  this.folder = folder;
+  this.isFileName = isFileName;
     if (!this.uploadingInProgress) {
       this.fileUploadElement.click()
     }
@@ -57,14 +69,22 @@ export class ImageUploadComponent implements OnInit {
       if (xhr.readyState == 4 && xhr.status == 200) {
         let response = JSON.parse(xhr.responseText);
         let url = response.secure_url;
-        this.imageUploaded.emit(url)
+        this.imageUploaded.emit(url);
+        this.imageUploadedAndName.emit({name: file.name , url:response.secure_url});
         this.uploadingInProgress = false
         this.setUploadProgress(0)
+        
       }
     };
 
     fd.append('upload_preset', environment.cloudinary_cert);
     fd.append('file', file);
+    if(this.folder){
+      fd.append('folder', this.folder); 
+    }
+    if(this.isFileName){
+      fd.append('public_id', file.name.split(".")[0]);
+    }
     xhr.send(fd);
   }
 

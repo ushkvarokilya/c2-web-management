@@ -84,6 +84,25 @@ export class AppHttpService {
 		})
 	}
 
+	// getNew(path: string, additionalHeaders?: any) {
+	// 	return new Promise((resolve, reject) => {
+	// 		let xmlHttp = new XMLHttpRequest();
+	// 		xmlHttp.onreadystatechange = () => {
+	// 			if (xmlHttp.readyState == XMLHttpRequest.DONE) {
+	// 				if (xmlHttp.status >= 200 && xmlHttp.status <= 204) {
+	// 					let jsonText = xmlHttp.responseText;
+	// 					if (jsonText && typeof jsonText == 'string' && jsonText.length > 0) resolve(JSON.parse(jsonText))
+	// 					else resolve(jsonText);
+	// 				} else {
+	// 					reject({ status: xmlHttp.status, message: xmlHttp.responseText })
+	// 				}
+	// 			}
+	// 		}
+	// 		xmlHttp.open("GET","http://35.238.181.68/" + path, true);
+	// 		xmlHttp.send();
+	// 	})
+	// }
+
 	private mapResponse(res) {
 		try {
 			return Promise.resolve(res.json())

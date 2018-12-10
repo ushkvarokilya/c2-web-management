@@ -13,6 +13,12 @@ export class MaintenanceService {
 	constructor(private http: AppHttpService, private redux: NgRedux<AppState>) {
 	}
 
+	getComlexKey() {
+		let companyState = this.redux.getState().company;
+		let complexKey = companyState.currentComplex.key
+		return complexKey
+	}
+
 	getManagementMaintananceTickets() {
 		let companyState = this.redux.getState().company;
 		let complexKey = companyState.currentComplex.key

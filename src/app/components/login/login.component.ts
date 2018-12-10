@@ -61,6 +61,7 @@ export class LoginComponent implements OnInit {
     this.userService.login(this.email, this.password)
       .then((user: any) => {
         localStorage.setItem('user_bridge', JSON.stringify({ token: user.token, key: user.key }));
+        localStorage.setItem('user_details', JSON.stringify({ email: this.email }));
         location.replace('/overview')
       }, (err) => {
         this.loading = false;

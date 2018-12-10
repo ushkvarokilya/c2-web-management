@@ -20,6 +20,7 @@ import { PageNotFoundComponent } from '../components/page-not-found/page-not-fou
 import { AmenityComponent } from "../components/amenity/amenity.component";
 import { ResetPasswordComponent } from "../components/reset-password/reset-password.component";
 import { ForgotPasswordComponent } from "../components/forgot-password/forgot-password.component";
+import { MaintenancePlusComponent } from '../components/maintenance-plus/maintenance-plus.component';
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', component: PageNotFoundComponent },
@@ -29,6 +30,7 @@ const routes: Routes = [
   { path: 'overview', component: OverviewComponent, canActivate: [AuthGuard] },
   { path: 'facility', component: FacilityPageComponent, canActivate: [AuthGuard] },
   { path: 'maintenance', component: MaintenancePageComponent, canActivate: [AuthGuard] },
+  { path: 'maintenancePlus', component: MaintenancePlusComponent, canActivate: [AuthGuard] },
   { path: 'vendors', component: VendorsPageComponent, canActivate: [AuthGuard] },
   { path: 'tenants', component: TenantsPageComponent, canActivate: [AuthGuard] },
   { path: 'collection', component: CollectionPageComponent, canActivate: [AuthGuard] },

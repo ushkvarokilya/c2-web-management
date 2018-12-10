@@ -15,7 +15,7 @@ export class DateRangePipe implements PipeTransform {
 	STRINGS = {
 		nodiff: '',
 		year: 'year',
-		years: 'years',
+		years: 'years', 
 		month: 'month',
 		months: 'months',
 		day: 'day',

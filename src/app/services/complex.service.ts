@@ -50,6 +50,13 @@ export class ComplexService {
 			.catch(err => this.http.commonCatchAndReject(err, 'ComplexService', 'getAllApartmentLeasesFromComplex'))
 	}
 
+	// getAllApartmentLeasesFromComplexNew() : any{
+	// 	let compantState = this.redux.getState().company
+	// 	let complexKey = compantState.currentComplex.key
+	// 	return this.http.getNew(`/api/Temp/2101/tenants`)
+	// 		.catch(err => this.http.commonCatchAndReject(err, 'ComplexService', 'getAllApartmentLeasesFromComplex'))
+	// }
+
 	addTenantNote(tenantKey, note: { note: string, managerKey: string, publishDate: string }) {
 		return this.http.putPromisified(`/tenant/${tenantKey}/note`, note)
 			.catch(err => this.http.commonCatchAndReject(err, 'ComplexService', 'addTenantNote'))
@@ -82,7 +89,7 @@ export class ComplexService {
 			.then(() => {
 				this.redux.dispatch(updateCurrentComplexPhoto(photoUrl));
 				return Promise.resolve()
-			}, Promise.reject)
+			}), Promise.reject
 	}
 
 	getFacilityOverview() {

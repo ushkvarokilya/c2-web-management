@@ -92,7 +92,17 @@
       </div>
       <div class="label">Maintenance</div>
     </div>
-    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Vendors')" class="menu-item" [routerLink]="[ 'vendors']"
+    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item" [routerLink]="[ 'maintenancePlus']"
+    [routerLinkActive]="['active-page']">
+    <div class="icon">
+        <!-- <img src="./assets/img/MaintenancePlusWhite.svg" alt="Kiwi standing on oval" style="width: 50px; margin-bottom: -10px;"> -->
+        <svg width="25" height="23" viewBox="0 0 25 23">
+          <use xlink:href="./assets/icons.svg#helemet"></use>
+        </svg>
+      </div>
+    <div class="label">Maintenance+</div>
+  </div>
+    <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Vendors')" class="menu-item" [routerLink]="[ 'vendors']"
       [routerLinkActive]="['active-page']">
       <div class="icon">
         <svg width="25" height="23" viewBox="0 0 25 23">
@@ -100,7 +110,7 @@
         </svg>
       </div>
       <div class="label">Vendors</div>
-    </div>
+    </div> -->
     <div *ngIf="(user$ |async)?.viewPermissions?.includes('Tenants')" class="menu-item" [routerLink]="[ 'tenants']"
       [routerLinkActive]="['active-page']">
       <div class="icon">

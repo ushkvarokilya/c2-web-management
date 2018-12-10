@@ -9,7 +9,7 @@ import { AppRoutingModule } from './routing/app-routing.module';
 
 import { rootReducer } from './store/root.reducer';
 import * as IAppState from './store/appState';
-
+ 
 //pipes
 import { SearchTicketPipe } from './pipes/search-ticket.pipe';
 import { SearchTenantstPipe } from './pipes/search-tenants.pipe';
@@ -83,7 +83,11 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { OpeningHoursComponent } from './components/setup/shared/opening-hours/opening-hours.component';
 import { FilterUsedProfessionsPipe } from './pipes/filter-used-professions.pipe';
+import { MaintenancePlusComponent } from './components/maintenance-plus/maintenance-plus.component';
 
+import { LightboxModule } from 'angular2-lightbox';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {MaterialModule} from './material'
 @NgModule({
   imports: [
     BrowserModule,
@@ -91,7 +95,10 @@ import { FilterUsedProfessionsPipe } from './pipes/filter-used-professions.pipe'
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
-    AppRoutingModule
+    AppRoutingModule,
+    LightboxModule,
+    BrowserAnimationsModule,
+    MaterialModule
   ],
   declarations: [
     AppComponent,
@@ -148,7 +155,8 @@ import { FilterUsedProfessionsPipe } from './pipes/filter-used-professions.pipe'
     ResetPasswordComponent,
     ForgotPasswordComponent,
     OpeningHoursComponent,
-    FilterUsedProfessionsPipe
+    FilterUsedProfessionsPipe,
+    MaintenancePlusComponent
   ],
   providers: [
     AppHttpService,
