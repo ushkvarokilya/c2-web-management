@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, Output, ElementRef, EventEmitter, Input } from '@angular/core';
 import { environment } from "../../../../environments/environment";
-import {} from '@types/googlemaps'
+import {} from 'googlemaps';
+
 
 @Component({
   selector: 'app-google-address',

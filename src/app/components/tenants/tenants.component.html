@@ -9,8 +9,19 @@
             </div>
         </div>
     </div>
-    <tenants-view *ngIf="view == 'LEASES'" [searchQuery]="searchQuery" (addTenants)="view = 'ADDTENANTS'" (setAptNumLabel)="setAptNumLabel($event)" (editableLease)='onEditLease($event)'></tenants-view>
+    
+    <tenants-view 
+    *ngIf="view == 'LEASES'" 
+    [searchQuery]="searchQuery" 
+    (addTenants)="view = 'ADDTENANTS'" 
+    (setAptNumLabel)="setAptNumLabel($event)" 
+    (editableLease)='onEditLease($event)'>
+    </tenants-view>
 
-    <add-tenant [editableLease]="editableLeases" *ngIf="view == 'ADDTENANTS'" (close)="view = 'LEASES'; editableLeases=undefined;"></add-tenant>
+    <add-tenant 
+    [editableLease]="editableLeases" 
+    *ngIf="view == 'ADDTENANTS'" 
+    (close)="view = 'LEASES'; editableLeases=undefined;">
+    </add-tenant>
     
 </div>

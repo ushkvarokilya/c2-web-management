@@ -8,19 +8,22 @@
         {{OpenNum}} Open
       </div>
       <div class="number-label">
+        {{AssignedNum}} Assigned
+      </div>
+      <div class="number-label">
         {{InProgressNum}} In Progress
       </div>
       <div class="number-label">
         {{VendorRequiredNum}} Vendors Required
       </div>
       <div class="number-label">
-        {{AuctionCreatedNum}} Auction Created
+        {{AuctionCreatedNum}} Request Sent
       </div>
       <div class="number-label">
         {{VendorAssignedNum}} Vendor Assigned
       </div>
       <div class="number-label">
-        {{VendorInProgressNum}} Vendor In Progress 
+        {{VendorInProgressNum}} Vendor In Progress
       </div>
       <div class="number-label">
         {{VendorResolvedNum}} Vendor Resolved
@@ -43,7 +46,7 @@
         <div class="dropdown">
           <label for="sortBy">Sort By:</label>
           <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
-            <option value="MaintenanceAddress" >Unit</option>
+            <option value="MaintenanceAddress">Unit</option>
             <option value="ticketNumber">Ticket Number</option>
             <option value="TicketDate$" selected>Most Recent</option>
             <option value="lastUpdateDate$">Last Updated</option>
@@ -55,9 +58,10 @@
           <select id="show" [(ngModel)]="showBy" class="show">
             <option value="All">All</option>
             <option value="Open">Open</option>
+            <option value="Assigned">Assigned</option>
             <option value="In_Progress">In Progress</option>
             <option value="Vendor_Required">Vendor Required</option>
-            <option value="Auction_Created">Auction Created</option>
+            <option value="Auction_Created">Request Sent</option>
             <option value="Vendor_Assigned">Vendor Assigned</option>
             <option value="Vendor_In_Progress">Vendor In Progress</option>
             <option value="Vendor_Resolved">Vendor Resolved</option>
@@ -71,25 +75,26 @@
       </div>
     </div>
     <div class="table-header lease-row">
-        <div class="col-1"> UNIT</div>
-        <div class="col-2"> STATUS</div>
-        <div class="col-3"> ID</div>
-        <div class="col-4"> TITLE</div>
-        <div class="col-5"> CREATED</div>
-        <div class="col-6"> UPDATED</div>
-        <div class="col-7"> ATTACHMENTS</div>
-        <div class="col-8"> ASSIGNED</div>
-        <div class="col-9"> &nbsp;</div>
-        <!-- <div class="col-7"> &nbsp;</div> -->
-      </div>
-      <div *ngIf="mainMessage" class="main-message">
-          <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
-          <ng-container *ngIf="mainMessage !== 'Loading...'">
-            {{mainMessage}}
-          </ng-container>
-        </div>
+      <div class="col-1"> UNIT</div>
+      <div class="col-2"> STATUS</div>
+      <div class="col-3"> ID</div>
+      <div class="col-4"> TITLE</div>
+      <div class="col-5"> CREATED</div>
+      <div class="col-6"> UPDATED</div>
+      <div class="col-7"> ATTACHMENTS</div>
+      <div class="col-8"> ASSIGNED</div>
+      <div class="col-9"> &nbsp;</div>
+      <!-- <div class="col-7"> &nbsp;</div> -->
+    </div>
+    <div *ngIf="mainMessage" class="main-message">
+      <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
+      <ng-container *ngIf="mainMessage !== 'Loading...'">
+        {{mainMessage}}
+      </ng-container>
+    </div>
     <div *ngIf="tickets.length > 0" class="tickets-holder">
-      <div class="ticket" *ngFor="let ticket of (tickets | searchTicket:searchQuery | sortByPipe:sortBy | filterByStatus:showBy )">
+      <div class="ticket"
+        *ngFor="let ticket of (tickets | searchTicket:searchQuery | sortByPipe:sortBy | filterByStatus:showBy )">
         <div class="ticket-check-box">
           <div class="c2-check-box" (click)="ticket.selected = !ticket.selected; countSelectedTickets()">
             <div *ngIf="ticket.selected" class="c2-check-box-checked"></div>
@@ -97,65 +102,74 @@
         </div>
         <div [class]="'ticket-body clickable ' + ticket.status" (click)="ticket.showDetails = !ticket.showDetails">
           <div class="apt-name">
-            <span *ngIf="ticket.problemArea !== 'ComplexArea'">{{ticket.MaintenanceAddress ? ticket.MaintenanceAddress : ''}}</span>
-            <svg *ngIf="ticket.problemArea === 'ComplexArea'" width="27" height="20" viewBox="0 0 27 20">
+            <span
+              *ngIf="ticket.ticketAreaZone !== 'Complex'">{{ticket.ticketOpenerAddress ? ticket.ticketOpenerAddress : ''}}</span>
+            <svg *ngIf="ticket.ticketAreaZone === 'Complex'" width="27" height="20" viewBox="0 0 27 20">
               <use xlink:href="./assets/icons.svg#facility"></use>
             </svg>
           </div>
           <div class="ticket-number-status">
             <div class="ticket-number"></div>
-            <div class="ticket-status">{{statuses[ticket.status]}}</div>
+            <div class="ticket-status">
+              {{statuses[ticket.status] === 'Auction Created' ? 'Request Sent' : statuses[ticket.status]}}</div>
             <div class="info-status">
               <img src="/assets/img/info.png">
               <div class="tooltip">
-                  <span>{{moment(ticket.lastUpdateDate).format('DD MMM YY hh:mm A')}}</span> <br />
-                  <span>{{ticket.lastUpdateFullname}}</span><br />
-                  <span>{{ticket.lastUpdateEmail}}</span><br />
-                  <span>{{ticket.lastUpdatePosition}}</span>
-                </div>
+                <span>{{moment(ticket.lastUpdateDate).format('DD MMM YY hh:mm A')}}</span> <br />
+                <span>{{ticket.lastUpdateFullname}}</span><br />
+                <span>{{ticket.lastUpdateEmail}}</span><br />
+                <span>{{ticket.lastUpdatePosition}}</span>
               </div>
             </div>
-            <div class="ticket-id">
-              {{ticket.ticketNumber}}
+          </div>
+          <div class="ticket-id">
+            {{ticket.ticketNumber}}
           </div>
           <div class="ticket-description">
-              {{ticket.TicketTitle}}<br />
-              {{ticket.TicketSubTitle}}
+            {{ticket.TicketTitle}}<br />
+            {{ticket.TicketSubTitle}}
           </div>
           <div class="ticket-date">
-            {{moment(ticket.createdDate).format('DD MMM YY hh:mm A')}}
+            {{moment(ticket.createdDate).format('DD MMM YY hh:mm A') }}
             <div class="gist-icon info-status-created">
               <img src="/assets/img/info.png">
               <div class="tooltip">
-                  <span>{{ticket.createdFullname}}</span> <br />
-                  <span>{{ticket.createdEmail}}</span> <br />
-                  <span>{{ticket.createdPosition}}</span>
+                <span>{{ticket.createdFullname}}</span> <br />
+                <span>{{ticket.createdEmail}}</span> <br />
+                <div *ngIf="ticket.ticketAreaZone === 'Complex'"><span>Unit {{ticket.ticketOpenerAddress}}</span> <br />
                 </div>
+                <span>{{ticket.createdPosition}}</span>
               </div>
+            </div>
           </div>
           <div class="ticket-date">
             {{moment(ticket.lastUpdateDate).format('DD MMM YY hh:mm A')}}
             <div class="gist-icon info-status-updated">
               <img src="/assets/img/info.png">
               <div class="tooltip">
-                  <span>{{ticket.lastUpdateTitle?.substring(0, 20)}}</span> <br />
-                  <span>{{ticket.lastUpdateTitle?.substring(20, 50)}}</span> <br *ngIf="ticket.lastUpdateTitle?.length > 20" />
-                  <span>{{ticket.lastUpdateFullname}}</span> <br />
-                  <span>{{ticket.lastUpdateEmail}}</span> <br />
-                  <span>{{ticket.lastUpdatePosition}}</span>
-                </div>
+                <span>{{ticket.lastUpdateTitle?.substring(0, 30)}}</span> <br />
+                <span>{{ticket.lastUpdateTitle?.substring(30, 50)}}</span> <br
+                  *ngIf="ticket.lastUpdateTitle?.length > 30" />
+                <span>{{ticket.lastUpdateFullname}}</span> <br />
+                <span>{{ticket.lastUpdateEmail}}</span> <br />
+                <span>{{ticket.lastUpdatePosition}}</span>
               </div>
+            </div>
           </div>
           <div class="ticket-options">
-            <img *ngIf="ticket.moreInfo && ticket.moreInfo.length > 0 && false" src="/assets/img/info.png">
+            <img *ngIf="ticket.additionalInformation && ticket.additionalInformation.length > 0 && false"
+              src="/assets/img/info.png">
             <img *ngIf="ticket.mainImg && ticket.mainImg.length > 0" src="/assets/img/photoIcon.png">
             <img *ngIf="ticket.groupChatKey" src="/assets/img/messagesIconGrey.png">
           </div>
           <div class="ticket-chat">
             <div *ngIf="show == 'Janitor'">
               <div *ngIf="!ticket.estimatedWorkTime || ticket.estimatedWorkTime.length == 0">
-                <a (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Chat</a> with tenant to schedule a service slot</div>
-              <div *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0">{{moment(ticket.estimatedWorkTime).toNow(true)}}</div>
+                <a
+                  (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Chat</a>
+                with tenant to schedule a service slot</div>
+              <div *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0">
+                {{moment(ticket.estimatedWorkTime).toNow(true)}}</div>
             </div>
             <div *ngIf="show !== 'Janitor'">
               <div *ngIf="ticket.status == statuses.Vendor" class="request-sent">
@@ -170,92 +184,152 @@
                 </div>
               </div>
               <div *ngIf="ticket.status != statuses.Open && false">
-                  <div class="ticket-gist">
-                    <div class="gist-icon">
-                      <img src="/assets/img/hours_icon.png">
-                    </div>
-                    <div class="gist-text">
-                      <div *ngIf="ticket.lastUpdateDate" style="text-align: left;">{{moment(ticket.lastUpdateDate).format('DD MMM YY hh:mm A')}}</div>
-                    </div>
+                <div class="ticket-gist">
+                  <div class="gist-icon">
+                    <img src="/assets/img/hours_icon.png">
                   </div>
-                  <div class="ticket-gist">
-                    <div class="gist-icon">
-                      <img src="/assets/img/messagesIconGrey.png">
-                    </div>
-                    <div class="gist-text">
-                      <div *ngIf="ticket.lastUpdateMsg" style="text-align: left;">{{ticket.lastUpdateMsg | slice: 0 : 50}}</div>
+                  <div class="gist-text">
+                    <div *ngIf="ticket.lastUpdateDate" style="text-align: left;">
+                      {{moment(ticket.lastUpdateDate).format('DD MMM YY hh:mm A')}}</div>
+                  </div>
+                </div>
+                <div class="ticket-gist">
+                  <div class="gist-icon">
+                    <img src="/assets/img/messagesIconGrey.png">
+                  </div>
+                  <div class="gist-text">
+                    <div *ngIf="ticket.lastUpdateMsg" style="text-align: left;">{{ticket.lastUpdateMsg | slice: 0 : 50}}
                     </div>
                   </div>
                 </div>
-                <div style="margin-left: -3%;" *ngIf="ticket.vendorAssignedName && ticket.vendorAssignedDate && isVendorAssigned(ticket)">
-                    <div class="ticket-gist">
-                        <div class="gist-text">
-                          <div style="text-align: left; margin-left: 5%;" class="hideText">
-                            <span class="C2-color">Vendor : </span>
-                            {{ticket.vendorAssignedName | slice: 0 : 50}}</div>
-                        </div>
-                      </div>
-                    <div class="ticket-gist">
-                      <div class="gist-text">
-                        <div style="text-align: left;color: #909090; margin-left: 5%;">
-                            <span class="C2-color">Scheduled : </span>
-                          {{moment(ticket.vendorAssignedDate).format('MMM DD, YY hh:mm A')}}</div>
-                      </div>
+              </div>
+              <div style="margin-left: -3%;"
+                *ngIf="ticket.vendorAssignedName && ticket.vendorAssignedDate && isVendorAssigned(ticket)">
+                <div class="ticket-gist">
+                  <div class="gist-text">
+                    <div style="text-align: left; margin-left: 5%;" class="hideText">
+                      <span class="C2-color">Vendor : </span>
+                      {{ticket.vendorAssignedName | slice: 0 : 50}}</div>
+                  </div>
+                </div>
+                <div class="ticket-gist">
+                  <div class="gist-text">
+                    <div style="text-align: left;color: #909090; margin-left: 5%;">
+                      <span class="C2-color">Scheduled : </span>
+                      {{moment(ticket.vendorAssignedDate).format('MMM DD, YY hh:mm A')}}</div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left: -3%;" *ngIf="!isVendorAssigned(ticket) && ticket.internalAssignments.length > 0">
+                <div class="ticket-gist">
+                  <div class="gist-text">
+                    <div style="text-align: left; margin-left: 5%;" class="hideText"
+                      *ngIf="ticket.internalAssignments.length == 1">
+                      <span class="C2-color">Staff : </span>
+                      {{ticket.internalAssignments[0].responseDisplayName | slice: 0 : 50}}</div>
+                    <div style="text-align: left; margin-left: 5%;" class="hideText"
+                      *ngIf="ticket.internalAssignments.length > 1">
+                      <span class="C2-color">Staff : </span>
+                      {{ticket.internalAssignments.length}} staff members</div>
+                  </div>
+                </div>
+                <div class="ticket-gist">
+                  <div class="gist-text">
+                    <div style="text-align: left;color: #909090; margin-left: 5%;">
+                      <span class="C2-color">Scheduled : --</span>
+                      <!-- {{moment(ticket.internalAssignments[0].assignmentDateFormat).format('DD MMM YY hh:mm A')}} -->
                     </div>
                   </div>
-                  <div style="margin-left: -3%;" *ngIf="!isVendorAssigned(ticket) && ticket.internalAssignments.length > 0">
-                      <div class="ticket-gist">
-                          <div class="gist-text">
-                            <div style="text-align: left; margin-left: 5%;" class="hideText" *ngIf="ticket.internalAssignments.length == 1">
-                              <span class="C2-color">Staff : </span>
-                              {{ticket.internalAssignments[0].responseDisplayName | slice: 0 : 50}}</div>
-                            <div style="text-align: left; margin-left: 5%;" class="hideText" *ngIf="ticket.internalAssignments.length > 1">
-                              <span class="C2-color">Staff : </span>
-                              {{ticket.internalAssignments.length}} staff members</div>
-                          </div>
-                        </div>
-                      <div class="ticket-gist">
-                        <div class="gist-text">
-                          <div style="text-align: left;color: #909090; margin-left: 5%;">
-                              <span class="C2-color">Scheduled : </span>
-                            {{moment(ticket.internalAssignments[0].assignmentDateLong).format('MMM DD, YY hh:mm A')}}</div>
-                        </div>
-                      </div>
-                    </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div class="ticket-button">
+          <mat-spinner id="matSpinerOK" [color]="'warn'" [diameter]="30" style="margin: auto; display: none;">
+          </mat-spinner>
+          <mat-spinner id="matSpinerCANCAL" [diameter]="30" style="margin: auto; display: none;"></mat-spinner>
           <div *ngIf="show == 'Janitor'">
-            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === statuses.Open" class="c2-ok-button"
-              (click)="showSetTimeDialog(ticket)">TIME ESTIMATE</button>
-            <div *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0 && ticket.status === statuses.In_Progress" class="work-scheduled">
+            <button
+              *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === statuses.Open"
+              class="c2-ok-button" (click)="showSetTimeDialog(ticket)">TIME ESTIMATE</button>
+            <div
+              *ngIf="ticket.estimatedWorkTime && ticket.estimatedWorkTime.length != 0 && ticket.status === statuses.In_Progress"
+              class="work-scheduled">
               <div>Work Scheduled</div>
             </div>
-            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'" class="c2-cancel-button add-c2-cancel-button" (click)="vendorRequired(ticket)"> VENDOR REQUIRED</button>
-            <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'" class="c2-ok-button add-c2-ok-button" (click)="openFixedDialog(ticket)"> FIXED </button>
+            <button
+              *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'"
+              class="c2-cancel-button add-c2-cancel-button"
+              (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor requird', 'Dismiss');">
+              VENDOR REQUIRED</button>
+            <button
+              *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'"
+              class="c2-ok-button add-c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'openFixedDialog');">
+              FIXED </button>
           </div>
           <div style="text-align: center;" *ngIf="show == 'Location Manager'">
             <div class="buttons">
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'" class="c2-cancel-button add-c2-cancel-button" (click)="vendorRequired(ticket)"> VENDOR REQUIRED</button>
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'" class="c2-ok-button add-c2-ok-button" (click)="clickMarkAsFix(ticket)"> FIXED </button> 
 
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'" class="c2-ok-button" (click)="sendRemainderToStaff(ticket)">SEND REMAINDER</button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
+                class="c2-cancel-button add-c2-cancel-button"
+                (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor requird', 'Dismiss');">
+                VENDOR REQUIRED</button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
+                class="c2-ok-button add-c2-ok-button"
+                (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">
+                FIXED </button>
 
-              <!-- <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Required'" class="c2-ok-button" (click)="showGetVendorDialog(ticket)">GET VENDOR OFFER</button> -->
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Required'" class="c2-ok-button" (click)="showGetVendorDialog(ticket)">CREATE AUCTION</button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'"
+                class="c2-cancel-button add-c2-cancel-button"
+                (click)="loader($event,'cancal'); delay(ticket,'sendReminderToStaff');">SEND REMINDER</button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'"
+                class="c2-ok-button add-c2-ok-button"
+                (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">FIXED</button>
+              <!-- <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'" class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'sendReminderToStaff');">SEND REMINDER</button> -->
 
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created'" class="c2-cancel-button add-c2-cancel-button" (click)="showGetVendorDialog(ticket)"> VIEW AUCTION</button>
-              <span *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created' && ticket.numberOfOffersPerTicket === 0" class="no-offers C2-no-offers-add">No Offers Yet</span>
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Auction_Created') && ticket.numberOfOffersPerTicket > 0" class="c2-ok-button add-c2-ok-button" (click)="showVendorOffersResponses(ticket)"> VIEW OFFERS </button>
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Vendor_Assigned') && ticket.numberOfOffersPerTicket > 0" class="c2-ok-button" (click)="showVendorOffersResponses(ticket)"> REVIEW ASSIGNED </button>
-              <div class="notification-num" *ngIf="ticket.numberOfOffersPerTicket !== 0 &&  ticket.status ===  'Auction_Created' ">{{ticket.numberOfOffersPerTicket}} </div>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Required'"
+                class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'showGetVendorDialog');">REQUEST
+                VENDORS</button>
 
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Resolved'" class="c2-ok-button" (click)="openRatingDialog(ticket)"> CLOSE & RATE </button>  
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created'"
+                class="c2-cancel-button add-c2-cancel-button"
+                (click)="loader($event,'cancal'); delay(ticket,'showGetVendorDialog');"> VIEW AUCTION</button>
+              <span
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created' && ticket.offers.length === 0"
+                class="no-offers C2-no-offers-add">No Offers Yet</span>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Auction_Created') && ticket.offers.length > 0"
+                class="c2-ok-button add-c2-ok-button"
+                (click)="loader($event,'ok'); delay(ticket,'showVendorOffersResponses');"> VIEW OFFERS </button>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Vendor_Assigned') && ticket.offers.length> 0"
+                class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'showVendorOffersResponses');"> REVIEW
+                ASSIGNED </button>
+              <div class="notification-num"
+                *ngIf="ticket.offers.length !== 0 &&  ticket.status ===  'Auction_Created' ">
+                {{ticket.offers.length}} </div>
 
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Resolved'" class="c2-ok-button" (click)="openResolvedDialog(ticket)"> VIEW INFO </button>
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Done'" class="c2-ok-button" (click)="openDoneDialog(ticket)"> VIEW INFO </button>    
-              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.New" class="c2-cancel-button"(click)="sendReminderToJanitor(ticket)">SEND A REMINDER</button>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Resolved'"
+                class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'openRatingDialog');"> CLOSE & RATE
+              </button>
+
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Resolved'"
+                class="c2-ok-button" (click)="openResolvedDialog(ticket);"> VIEW INFO </button>
+              <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Done'"
+                class="c2-ok-button" (click)="openDoneDialog(ticket);"> VIEW INFO </button>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.New"
+                class="c2-cancel-button" (click)="loader($event,'ok'); delay(ticket,'sendReminderToJanitor');">SEND A
+                REMINDER</button>
+
+              <!-- <button  class="c2-ok-button" (click)="loader($event,'ok')">temp text</button> -->
+              <!-- <button  class="c2-cancel-button"  (click)="loader($event,'cancel')">temp text</button> -->
+              <!-- <button (click)="openSnackBar('Auction created successfully', 'Dismiss')" class="c2-ok-button">create auction</button> -->
+
             </div>
 
             <!-- <div *ngIf="ticket.status == statuses.Pending">
@@ -311,20 +385,20 @@
                 </div>
               </div>
             </div>
-              <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance')" class="joined-tenants">
-                  <div class="left-icon">
-                      <img class="open-edit-title-and-subtitle" src="assets/img/pencil.png">
-                      <!--openUserData(tenant);   -->
-                  </div>
-                  <div class="right-content margin-top--7px">
-                    {{ticket.TicketTitle}} ,  {{ticket.TicketSubTitle}}
-                    <div *ngIf="editTitleLabel(ticket.status)" style="color: #00b8a0; display: inline; cursor: pointer;" (click)="LoadCategoriesdialog(ticket);">(edit)</div>
-                    <div *ngIf="!editTitleLabel(ticket.status)" style="color: #909090; display: inline;">(edit)</div>
-                  </div>
-                </div> 
+            <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance')" class="joined-tenants">
+              <div class="left-icon">
+                <img class="open-edit-title-and-subtitle" src="assets/img/pencil.png">
+              </div>
+              <div class="right-content margin-top--7px">
+                {{ticket.TicketTitle}} , {{ticket.TicketSubTitle}}
+                <div *ngIf="editTitleLabel(ticket.status)" style="color: #00b8a0; display: inline; cursor: pointer;"
+                  (click)="LoadCategoriesdialog(ticket);">(edit)</div>
+                <div *ngIf="!editTitleLabel(ticket.status)" style="color: #909090; display: inline;">(edit)</div>
+              </div>
+            </div>
             <div *ngIf="show == 'Location Manager'" class="joined-tenants">
               <div class="left-icon">
-                <img src="/assets/img/mergeTicketsIcon.png"> 
+                <img src="/assets/img/mergeTicketsIcon.png">
               </div>
               <div class="right-content">
                 <div class="joined-tenants-label">Joined Tenants</div>
@@ -332,7 +406,8 @@
                   <div class="joined-tenant" *ngFor="let tenant of (ticket.joinedPeople | slice:0:5)">
                     <img [src]="tenant.profileUrl" [alt]="tenant.firstName + ' ' + tenant.lastName">
                   </div>
-                  <div class="more-tenants" *ngIf="ticket.joinedPeople?.length > 6">+{{ticket.joinedPeople.length - 6}}</div>
+                  <div class="more-tenants" *ngIf="ticket.joinedPeople?.length > 6">+{{ticket.joinedPeople.length - 6}}
+                  </div>
                 </div>
               </div>
             </div>
@@ -342,20 +417,19 @@
               </div>
               <div class="right-content">
                 <div class="added-details-label">Added Details</div>
-                <div *ngIf="translateTrueOrFalse(ticket.approvedEnteringTheApartment)" class="unattended-entrance">Unattended entrance: 
-                    <div style="color: #00b8a0; display: inline;">{{translateTrueOrFalse(ticket.approvedEnteringTheApartment)}}</div>
-                </div>
-                <div *ngIf="translateTrueOrFalse(ticket.petOwner)" class="unattended-entrance">Pets:
-                    <div style="color: #00b8a0; display: inline;"> {{translateTrueOrFalse(ticket.petOwner)}}</div>
+                <div *ngIf="ticket.ticketAreaZone !== 'Complex'">
+                  <div *ngIf="translateTrueOrFalse(ticket.isEnteringAllow)" class="unattended-entrance">Unattended
+                    entrance:
+                    <div style="color: #00b8a0; display: inline;">{{translateTrueOrFalse(ticket.isEnteringAllow)}}</div>
+                  </div>
+                  <div *ngIf="translateTrueOrFalse(ticket.isPetOwner)" class="unattended-entrance">Pets:
+                    <div style="color: #00b8a0; display: inline;"> {{translateTrueOrFalse(ticket.isPetOwner)}}</div>
+                  </div>
                 </div>
                 <br />
-                <!-- <a>{{ ticket.tenantFullName}} : </a>&nbsp;
-                <div class="mainProblemDetail">{{ticket.TicketDecription}}</div> -->
-                <div *ngFor="let info of ticket.moreInfo">
-                  <a *ngIf="info.body != 'TICKET-DONE'">{{info.name}}:</a>&nbsp;
-                  <div *ngIf="info.body != 'TICKET-DONE'" class="mainProblemDetail">{{info.body}}</div>
-                  <!-- <a>{{info.name}}:</a>&nbsp; 
-                  <div class="mainProblemDetail">{{info.body}}</div>  -->
+                <div *ngFor="let info of ticket.additionalInformation">
+                  <a>{{info.msgSenderDisplayName}} {{moment(info.msgDate).format('DD MMM, YY hh:mm A')}} :</a>&nbsp;
+                  <div class="mainProblemDetail">{{info.msgContent}}</div>
                 </div>
               </div>
             </div>
@@ -364,19 +438,20 @@
                 <img src="/assets/img/editIcon.png">
               </div>
               <div class="right-content">
-                <textarea rows="4" (keyup.enter)="addMoreInfo($event, ticket._id)" placeholder="Write more information here"></textarea>
+                <textarea rows="4" (keyup.enter)="addMoreInfo($event, ticket._id)"
+                  placeholder="Write more information here"></textarea>
               </div>
             </div>
-            <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
-              <div class="left-icon">
-                <img src="/assets/img/messagesIconGrey.png">
-              </div>
-              <div class="right-content">
-                <b>No Messages Yet
-                  <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
-                </b>
-              </div>
-            </div>
+            <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
+                <div class="left-icon">
+                  <img src="/assets/img/messagesIconGrey.png">
+                </div>
+                <div class="right-content">
+                  <b>No Messages Yet
+                    <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
+                  </b>
+                </div>
+              </div> -->
           </div>
           <div class="ticket-middle-pane">
             <div class="left-icon">
@@ -385,8 +460,10 @@
             <div class="middle-content">
               <div class="pictures-header">
                 <div class="photos-label">Photos</div>
-                <app-image-upload #imageUpload (imageUploaded)="addImageToTicket(ticket, $event)"></app-image-upload>
-                <div class="form-item-add-input add-photo clickable" (click)="imageUpload.clickFolder('maintenance/tickets/'+ticket._id+'/manager',false)">
+                <app-image-upload #imageUpload (imageUploadedAndName)="addImageToTicket(ticket, $event)">
+                </app-image-upload>
+                <div class="form-item-add-input add-photo clickable"
+                  (click)="imageUpload.clickFolder('maintenance/tickets/'+ticket.ticketId+'/Manager',false,ticket)">
                   <div class="plus">
                     <div class="line"></div>
                     <div class="line"></div>
@@ -395,23 +472,24 @@
                 </div>
               </div>
               <div class="pictures-holder" *ngIf="ticket.currentPhoto">
-                <!-- <div class="main-picture">
-                  <img [src]="ticket.currentPhoto">
-                </div> -->
                 <div class="pictures-list">
                   <div *ngFor="let photo of ticket.mainImg">
-                  <span >{{photo.description}}</span>
-                  <span *ngIf="photo.size > 0 && (ticket.mainImg.length === 1 || photo.id === 1) " class="photoSizeText" style="top: 33%;">+{{photo.size}} <br> more </span>
-                  <span *ngIf="photo.size > 0 && ((photo.id === 3 && ticket.mainImg.length === 2) || (photo.id === 2 && ticket.mainImg.length > 1))" class="photoSizeText" style="top: 55%;">+{{photo.size}} <br> more </span>
-                  <span *ngIf="photo.size > 0 && (photo.id === 3 && ticket.mainImg.length === 3)" class="photoSizeText" style="top: 77%;">+{{photo.size}} <br> more </span>
-                  <div *ngIf="photo.url.slice(-3) == 'pdf'">
+                    <span>{{photo.description}}</span>
+                    <span *ngIf="photo.size > 0 && (ticket.mainImg.length === 1 || photo.id === 1) "
+                      class="photoSizeText" style="top: 160px;">+{{photo.size}} <br> more </span>
+                    <span
+                      *ngIf="photo.size > 0 && ((photo.id === 3 && ticket.mainImg.length === 2) || (photo.id === 2 && ticket.mainImg.length > 1))"
+                      class="photoSizeText" style="top: 260px;">+{{photo.size}} <br> more </span>
+                    <span *ngIf="photo.size > 0 && (photo.id === 3 && ticket.mainImg.length === 3)"
+                      class="photoSizeText" style="top: 77%;">+{{photo.size}} <br> more </span>
+                    <div *ngIf="photo.url.slice(-3) == 'pdf'">
                       <a href="{{photo.url}}" target="_blank">
-                          <img src="/assets/img/file_64.png" style="width: initial;">
-                      </a> 
-                  </div>
-                  <div *ngIf="photo.url.slice(-3) != 'pdf'">
-                      <img [src]="photo.url" class="clickable" (click)="showGallery(ticket,photo.id);open(0)">
-                  </div>
+                        <img src="/assets/img/file_64.png" style="width: initial;">
+                      </a>
+                    </div>
+                    <div *ngIf="photo.url.slice(-3) != 'pdf'">
+                      <img [src]="photo.url" class="clickable" (click)="showGallery(ticket,photo.id); open(0);">
+                    </div>
                   </div>
                 </div>
               </div>
@@ -420,483 +498,674 @@
             </div>
           </div>
           <div class="ticket-right-pane">
-            <!-- <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
-              class="c2-cancel-button" (click)="vendorRequired(ticket)">
-              VENDOR REQUIRED
-            </button> -->
-            <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status === 'Open' || ticket.status === 'In_Progress' || ticket.status === 'Vendor_Assigned' ) && jusers">
-            <div class="staff-members-list c2-list" style="display:flex;">
+            <div
+              *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status === 'Open' || ticket.status === 'In_Progress' || ticket.status === 'Vendor_Assigned' || ticket.status === 'Assigned') && jusers">
+              <div class="staff-members-list c2-list" style="display:flex;">
                 <label for="staffIn" class="C2-dd-label" style="line-height: 37px;">Assigned:</label>
-                <div  id="staffIn" class="selector" style="border-left: none;" (click)="dropDown.style.display = 'block'">
+                <div id="staffIn" class="selector" style="border-left: none;"
+                  (click)="dropDown.style.display = 'block'">
                   <ng-container *ngIf="ticket.selectedJanitor">
-                      {{ticket.selectedJanitor.firstName}} {{ticket.selectedJanitor.lastName}}
+                    {{ticket.selectedJanitor.userFirstName}} {{ticket.selectedJanitor.userLastName}}
                   </ng-container>
                   <ng-container *ngIf="!ticket.selectedJanitor">
-                    {{jusers.length}} staff members
+                    {{ticket.internalAssignments.length}} staff members
                   </ng-container>
                 </div>
                 <div class="drop-down" #dropDown>
-                  <div class="list-item" *ngFor="let user of jusers" (click)="selectJanitor(user,ticket) && dropDown.style.display = 'none'"
+                  <div class="list-item" *ngFor="let user of jusers"
+                    (click)="selectJanitor(user,ticket) && dropDown.style.display = 'none'"
                     [ngClass]="{selected: false}">
-                    {{user.firstName}} {{user.lastName}}
+                    {{user.userFirstName}} {{user.userLastName}}
                   </div>
                 </div>
-              </div> 
-              <button *ngIf="ticket.selectedJanitor" class="c2-cancel-button" (click)="AssignInternal(ticket)" style="margin-top: 10px; width: 140%; margin-left: -60%;">ASSIGN WORKER</button>
+              </div>
+              <button *ngIf="ticket.selectedJanitor" class="c2-cancel-button" (click)="AssignInternal(ticket)"
+                style="margin-top: 10px; width: 140%; margin-left: -60%;">ASSIGN EMPLOYEE</button>
+              <div style="margin-top:5px" *ngIf="ticket.internalAssignments.length > 0">
+                <div *ngFor="let emp of ticket.internalAssignments">
+                  <span>{{emp.responseDisplayName}}</span>
+                  <i class="material-icons clickable" style="position: absolute; right: 35px;"
+                    (click)="removeInternalAssignments(ticket,emp)">clear</i>
+                </div>
+              </div>
             </div>
-            <button *ngIf="false" class="c2-cancel-button" (click)="imgGallery = true" style="margin-top: 10px; width: 140%; margin-left: -60%;">Video</button>
+
+            <div style="margin-top:5px"
+              *ngIf="ticket.internalAssignments.length > 0 && (ticket.status !== 'Open' && ticket.status !== 'In_Progress' && ticket.status !== 'Vendor_Assigned' && ticket.status !== 'Assigned') ">
+              <div *ngFor="let emp of ticket.internalAssignments">
+                <span style=" margin-top: 10px;">{{emp.responseDisplayName}}</span>
+              </div>
+
+              <button *ngIf="false" class="c2-cancel-button" (click)="imgGallery = true"
+                style="margin-top: 10px; width: 140%; margin-left: -60%;">Video</button>
+            </div>
           </div>
+          <!-- <div class="ticket-details" style="padding:0%;" [ngClass]="{'hide-details': !ticket.showDetails}">
+             <mat-tab-group style="width: -webkit-fill-available;">
+                <mat-tab label="Details" style="max-height: max-content;">
+                  <div class="ticket-details">
+                      <div class="ticket-left-pane">
+                          <div *ngIf="ticket.merged" class="merged">
+                            <div class="left-icon">
+                              <img src="/assets/img/mergeTicketsIcon.png">
+                            </div>
+                            <div class="right-content">
+                              <div class="merged-label">Merged</div>
+                              <div class="merged-ticket" *ngFor="let apt of ticket.apartments">
+                                <div>{{apt}}</div>
+                              </div>
+                              <div class="merged-seperate">
+                                <a (click)="seperateTickets(ticket.key)">Seperate</a>
+                              </div>
+                            </div>
+                          </div>
+                            <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance')" class="joined-tenants">
+                                <div class="left-icon">
+                                    <img class="open-edit-title-and-subtitle" src="assets/img/pencil.png">
+                                </div>
+                                <div class="right-content margin-top--7px">
+                                  {{ticket.TicketTitle}} ,  {{ticket.TicketSubTitle}}
+                                  <div *ngIf="editTitleLabel(ticket.status)" style="color: #00b8a0; display: inline; cursor: pointer;" (click)="LoadCategoriesdialog(ticket);">(edit)</div>
+                                  <div *ngIf="!editTitleLabel(ticket.status)" style="color: #909090; display: inline;">(edit)</div>
+                                </div>
+                              </div> 
+                          <div *ngIf="show == 'Location Manager'" class="joined-tenants">
+                            <div class="left-icon">
+                              <img src="/assets/img/mergeTicketsIcon.png"> 
+                            </div>
+                            <div class="right-content">
+                              <div class="joined-tenants-label">Joined Tenants</div>
+                              <div class="joined-tenants-holder">
+                                <div class="joined-tenant" *ngFor="let tenant of (ticket.joinedPeople | slice:0:5)">
+                                  <img [src]="tenant.profileUrl" [alt]="tenant.firstName + ' ' + tenant.lastName">
+                                </div>
+                                <div class="more-tenants" *ngIf="ticket.joinedPeople?.length > 6">+{{ticket.joinedPeople.length - 6}}</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="added-details">
+                            <div class="left-icon">
+                              <img src="/assets/img/info.png">
+                            </div>
+                            <div class="right-content">
+                              <div class="added-details-label">Added Details</div>
+                              <div *ngIf="translateTrueOrFalse(ticket.approvedEnteringTheApartment)" class="unattended-entrance">Unattended entrance: 
+                                  <div style="color: #00b8a0; display: inline;">{{translateTrueOrFalse(ticket.approvedEnteringTheApartment)}}</div>
+                              </div>
+                              <div *ngIf="translateTrueOrFalse(ticket.petOwner)" class="unattended-entrance">Pets:
+                                  <div style="color: #00b8a0; display: inline;"> {{translateTrueOrFalse(ticket.petOwner)}}</div>
+                              </div>
+                              <br />
+                              <div *ngFor="let info of ticket.moreInfo">
+                                <a *ngIf="info.body != 'TICKET-DONE'">{{info.name}}:</a>&nbsp;
+                                <div *ngIf="info.body != 'TICKET-DONE'" class="mainProblemDetail">{{info.body}}</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="more-info-input">
+                            <div class="left-icon">
+                              <img src="/assets/img/editIcon.png">
+                            </div>
+                            <div class="right-content">
+                              <textarea rows="4" (keyup.enter)="addMoreInfo($event, ticket._id)" placeholder="Write more information here"></textarea>
+                            </div>
+                          </div>
+                          <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
+                            <div class="left-icon">
+                              <img src="/assets/img/messagesIconGrey.png">
+                            </div>
+                            <div class="right-content">
+                              <b>No Messages Yet
+                                <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
+                              </b>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="ticket-middle-pane">
+                          <div class="left-icon">
+                            <img src="/assets/img/photoIcon.png">
+                          </div>
+                          <div class="middle-content">
+                            <div class="pictures-header">
+                              <div class="photos-label">Photos</div>
+                              <app-image-upload #imageUpload (imageUploaded)="addImageToTicket(ticket, $event)"></app-image-upload>
+                              <div class="form-item-add-input add-photo clickable" (click)="imageUpload.clickFolder('maintenance/tickets/'+ticket._id+'/manager',false)">
+                                <div class="plus">
+                                  <div class="line"></div>
+                                  <div class="line"></div>
+                                </div>
+                                <div class="add-input-label">Add photo</div>
+                              </div>
+                            </div>
+                            <div class="pictures-holder" *ngIf="ticket.currentPhoto">
+                              <div class="pictures-list">
+                                <div *ngFor="let photo of ticket.mainImg">
+                                <span >{{photo.description}}</span>
+                                <span *ngIf="photo.size > 0 && (ticket.mainImg.length === 1 || photo.id === 1) " class="photoSizeText" style="top: 33%;">+{{photo.size}} <br> more </span>
+                                <span *ngIf="photo.size > 0 && ((photo.id === 3 && ticket.mainImg.length === 2) || (photo.id === 2 && ticket.mainImg.length > 1))" class="photoSizeText" style="top: 55%;">+{{photo.size}} <br> more </span>
+                                <span *ngIf="photo.size > 0 && (photo.id === 3 && ticket.mainImg.length === 3)" class="photoSizeText" style="top: 77%;">+{{photo.size}} <br> more </span>
+                                <div *ngIf="photo.url.slice(-3) == 'pdf'">
+                                    <a href="{{photo.url}}" target="_blank">
+                                        <img src="/assets/img/file_64.png" style="width: initial;">
+                                    </a> 
+                                </div>
+                                <div *ngIf="photo.url.slice(-3) != 'pdf'">
+                                    <img [src]="photo.url" class="clickable" (click)="showGallery(ticket,photo.id);open(0)">
+                                </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="no-pictures" *ngIf="ticket.mainImg.length == 0">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="ticket-right-pane">
+                          <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status === 'Open' || ticket.status === 'In_Progress' || ticket.status === 'Vendor_Assigned' ) && jusers">
+                          <div class="staff-members-list c2-list" style="display:flex;">
+                              <label for="staffIn" class="C2-dd-label" style="line-height: 37px;">Assigned:</label>
+                              <div  id="staffIn" class="selector" style="border-left: none;" (click)="dropDown.style.display = 'block'">
+                                <ng-container *ngIf="ticket.selectedJanitor">
+                                    {{ticket.selectedJanitor.firstName}} {{ticket.selectedJanitor.lastName}}
+                                </ng-container>
+                                <ng-container *ngIf="!ticket.selectedJanitor">
+                                  {{jusers.length}} staff members
+                                </ng-container>
+                              </div>
+                              <div class="drop-down" #dropDown>
+                                <div class="list-item" *ngFor="let user of jusers " (click)="selectJanitor(user,ticket) && dropDown.style.display = 'none'"
+                                  [ngClass]="{selected: false}">
+                                  {{user.firstName}} {{user.lastName}}
+                                </div>
+                              </div>
+                            </div> 
+                            <button *ngIf="ticket.selectedJanitor" class="c2-cancel-button" (click)="AssignInternal(ticket)" style="margin-top: 10px; width: 140%; margin-left: -60%;">ASSIGN WORKER</button>
+                          </div>
+                          <button *ngIf="false" class="c2-cancel-button" (click)="imgGallery = true" style="margin-top: 10px; width: 140%; margin-left: -60%;">Video</button>
+                        </div>
+                  </div>
+                  </mat-tab>
+                <mat-tab label="Chat">
+                  <div style="height:405px;">
+                      <ul>
+                          <li *ngFor="let item of items | async">
+                            <input type="text" #updatetext [value]="item.text" />
+                            <button (click)="updateItem(item.key, updatetext.value)">Update</button>
+                            <button (click)="deleteItem(item.key)">Delete</button>
+                          </li>
+                        </ul>
+                        <input type="text" #newitem />
+                        <button (click)="addItem(newitem.value)">Add</button>
+                        <button (click)="deleteEverything()">Delete All</button>
+                  </div>
+                  </mat-tab>
+              </mat-tab-group> 
+        </div> -->
         </div>
       </div>
     </div>
   </div>
-</div>
-<app-dialog class="set-time-dialog" *ngIf="show == 'Janitor' && clickedTicket" [greenHeader]="true" [visible]="true" [header]="'Set estimate work time for ' + clickedTicket.ticketNumber"
-  (visibleChange)="modalVisibiltyChanged($event)">
-  <div class="set-time-dialog">
-    <div *ngIf="!clickedTicket.approvedEnteringTheApartment" class="set-time-label">Note: This tenants asked to schedule a time frame for visiting</div>
-    <div class="choose-date">
-      <div class="left-icon">
-        <img src="/assets/img/calander_icon.png">
-      </div>
-      <div class="date-options">
-        <div class="today" [ngClass]="{'choosen': clickedTicket.date == 'today'}" (click)="clickedTicket.date = 'today'">
-          <div>Today</div>
-          <div>{{moment().format('MM/DD/YY')}}</div>
+  <app-dialog class="set-time-dialog" *ngIf="show == 'Janitor' && clickedTicket" [greenHeader]="true" [visible]="true"
+    [header]="'Set estimate work time for ' + clickedTicket.ticketNumber"
+    (visibleChange)="modalVisibiltyChanged($event)">
+    <div class="set-time-dialog">
+      <div *ngIf="!clickedTicket.approvedEnteringTheApartment" class="set-time-label">Note: This tenants asked to
+        schedule a time frame for visiting</div>
+      <div class="choose-date">
+        <div class="left-icon">
+          <img src="/assets/img/calander_icon.png">
         </div>
-        <div class="tomorrow" [ngClass]="{'choosen': clickedTicket.date == 'tomorrow'}" (click)="clickedTicket.date = 'tomorrow'">
-          <div>Tomorrow</div>
-          <div>{{moment().add(1, 'days').format('MM/DD/YY')}}</div>
-        </div>
-        <div class="monday" *ngIf="moment().day() == 5" [ngClass]="{'choosen': clickedTicket.date == 'monday'}" (click)="clickedTicket.date = 'monday'">
-          <div>Monday</div>
-          <div>{{moment().add(2, 'days').format('MM/DD/YY')}}</div>
-        </div>
-        <div class="manual" [ngClass]="{'choosen': clickedTicket.date == 'manual'}" (click)="clickedTicket.date = 'manual'">
-          <div>Set</div>
-          <div>Manually</div>
-        </div>
-      </div>
-      <div class="date-picker">
-        <datepicker [(date)]="datepicker" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'" [ngStyle]="{display: clickedTicket.date == 'manual' ? 'block' : 'none'}"></datepicker>
-      </div>
-    </div>
-    <div class="choose-time">
-      <div class="left-icon">
-        <img src="/assets/img/hours_icon.png">
-      </div>
-      <div class="set-time">
-        <div class="select-hours">
-          <select id="selectEstHour">
-            <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
-          </select>
-        </div>
-        <div class="select-minutes">
-          <select name="" id="selectEstMinute">
-            <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div *ngIf="clickedTicket.error" class="form-item-error">
-      {{clickedTicket.error}}
-    </div>
-    <div class="set-button">
-      <button class="c2-ok-button" (click)="setEstTime()">SET</button>
-    </div>
-  </div>
-</app-dialog>
-<app-dialog class="choose-vendor-dialog" *ngIf=" (show == 'Location Manager' || show == 'Regional Manager') && clickedTicket" [size]="'large'" [visible]="true"
-  [header]="'EDIT AUCTION FOR ' + clickedTicket.ticketNumber + ' : ' + clickedTicket.TicketTitle + ' , ' + clickedTicket.TicketSubTitle" (visibleChange)="modalVisibiltyChanged($event)">
-  <div class="choose-vendor">
-    <div class="right-pane">
-      <div class="pane-header">
-        TIME FRAME FOR FIXING
-      </div>
-      <div class="time-type">
-        <div class="full-day clickable" (click)="chooseVendor.timeType = 'ASAP'; clearDateChoices();">
-          <div class="c2-radio" [ngClass]="{'checked': chooseVendor.timeType == 'ASAP'}"></div> As Soon As Possible
-        </div>
-        <div class="time-frame clickable" (click)="chooseVendor.timeType = 'TIMEFRAME'">
-          <div class="c2-radio" [ngClass]="{'checked': chooseVendor.timeType == 'TIMEFRAME'}"></div> Time Frame
-        </div>
-      </div>
-      <div class="pick-date">
-        <div class="single-day" *ngIf="chooseVendor.timeType == 'ASAP'">
-        </div>
-        <div class="time-range" *ngIf="chooseVendor.timeType == 'TIMEFRAME'">
-          <div class="start">
-            <div class="start-label">Starts at</div>
-            <div class="pickers">
-              <datepicker [(date)]="chooseVendor.fromDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
-              <select id="" [(ngModel)]="chooseVendor.fromHour">
-                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
-              </select>
-              <div>:</div>
-              <select class="last-select" id="" [(ngModel)]="chooseVendor.fromMinute">
-                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
-              </select>
-            </div>
+        <div class="date-options">
+          <div class="today" [ngClass]="{'choosen': clickedTicket.date == 'today'}"
+            (click)="clickedTicket.date = 'today'">
+            <div>Today</div>
+            <div>{{moment().format('MM/DD/YY')}}</div>
           </div>
-          <div class="end">
-            <div class="end-label">Ends at</div>
-            <div class="pickers">
-              <datepicker [(date)]="chooseVendor.toDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
-              <select id="" [(ngModel)]="chooseVendor.toHour">
-                <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
-              </select>
-              <div>:</div>
-              <select class="last-select" id="" [(ngModel)]="chooseVendor.toMinute">
-                <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
-              </select>
-            </div>
+          <div class="tomorrow" [ngClass]="{'choosen': clickedTicket.date == 'tomorrow'}"
+            (click)="clickedTicket.date = 'tomorrow'">
+            <div>Tomorrow</div>
+            <div>{{moment().add(1, 'days').format('MM/DD/YY')}}</div>
+          </div>
+          <div class="monday" *ngIf="moment().day() == 5" [ngClass]="{'choosen': clickedTicket.date == 'monday'}"
+            (click)="clickedTicket.date = 'monday'">
+            <div>Monday</div>
+            <div>{{moment().add(2, 'days').format('MM/DD/YY')}}</div>
+          </div>
+          <div class="manual" [ngClass]="{'choosen': clickedTicket.date == 'manual'}"
+            (click)="clickedTicket.date = 'manual'">
+            <div>Set</div>
+            <div>Manually</div>
           </div>
         </div>
-        <div *ngIf="chooseVendorErrors && chooseVendorErrors.timeType == 'TIMEFRAME' && chooseVendorErrors.timeRangeError" class="time-error">
-          {{chooseVendorErrors.timeRangeError}}
+        <div class="date-picker">
+          <datepicker [(date)]="datepicker" [historyDisabled]="true" [width]="'97px'" [height]="'30px'"
+            [format]="'DD MMM YY'" [ngStyle]="{display: clickedTicket.date == 'manual' ? 'block' : 'none'}">
+          </datepicker>
         </div>
       </div>
-      <div class="vendors-to-request">
-        <div class="vendors-to-request-label">CATEGORIES</div>
-        <!-- VENDORS TO REQUEST -->
-        <div class="vendors-box">
-          <div class="vendors-search">
-            <div class="choosen-vendors" *ngFor="let vendor of this.chooseVendor.choosenVendors; let choosenVendorIndex = index">
-              {{vendor.firstName}} {{vendor.lastName}}
-              <span class="clickable" (click)="removeVendor(choosenVendorIndex)">&times;</span>
-            </div>
+      <div class="choose-time">
+        <div class="left-icon">
+          <img src="/assets/img/hours_icon.png">
+        </div>
+        <div class="set-time">
+          <div class="select-hours">
+            <select id="selectEstHour">
+              <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
+            </select>
           </div>
-          <div class="vendors-list">
-            <div class="loading-vendors" *ngIf="loadingVendors">Loading ...</div>
-            <div class="vendor-type" *ngFor="let group of vendors">
-              <div class="type-header">
-                <div class="type-label">{{group.type}}</div>
-                <!-- <div class="all-type">All {{group.type}}s</div> -->
-                <div class="c2-check-box" (click)="checkGroup(group)">
-                  <div *ngIf="group.checked" class="c2-check-box-checked"></div>
-                </div>
+          <div class="select-minutes">
+            <select name="" id="selectEstMinute">
+              <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="clickedTicket.error" class="form-item-error">
+        {{clickedTicket.error}}
+      </div>
+      <div class="set-button">
+        <button class="c2-ok-button" (click)="setEstTime()">SET</button>
+      </div>
+    </div>
+  </app-dialog>
+  <app-dialog class="choose-vendor-dialog"
+    *ngIf=" (show == 'Location Manager' || show == 'Regional Manager') && clickedTicket" [size]="'large'"
+    [visible]="true"
+    [header]="'GET OFFERS FOR ' + clickedTicket.ticketNumber + ' - ' + clickedTicket.TicketTitle + ' , ' + clickedTicket.TicketSubTitle"
+    (visibleChange)="modalVisibiltyChanged($event)">
+    <div class="choose-vendor">
+      <div class="right-pane">
+        <div class="pane-header" style="border-bottom:none;">
+          INCLUDE?
+          <span style="margin-left: 20px;">DETAILS</span>
+        </div>
+        <div style="width: 100%; display: flex; margin-top: 3%;">
+          <div style="width: 20%"></div>
+          <div style="width: 80%">
+            <div *ngFor="let info of clickedTicket.additionalInformation; let i = index;">
+              <mat-checkbox [id]="info._id" style="margin-left: -4rem;" [(ngModel)]="info.isMessagePrivate"
+                [disabled]="info._id === '0'"></mat-checkbox>
+              <a style="pointer-events: none; cursor: default;margin-left: 17%;">{{info.msgSenderDisplayName}}
+                {{moment(info.msgDate).format('DD MMM, YY hh:mm A')}} :</a>&nbsp;
+              <div style=" padding-bottom: 10px; word-break: break-word;">{{info.msgContent}}</div>
+            </div>
+            <div class="more-info-input">
+              <div class="right-content">
+                <textarea rows="4" (keyup.enter)="addMoreInfo($event, clickedTicket._id)"
+                  placeholder="Type here and press ENTER to submit"></textarea>
               </div>
-              <div class="type-vendors">
-                <div class="vendor" *ngFor="let vendor of group.vendors">
-                  <div class="vendor-name">{{vendor.firstName}} {{vendor.lastName}}</div>
-                  <div class="c2-check-box" (click)="checkVendor(vendor, group)">
-                    <div *ngIf="vendor.checked" class="c2-check-box-checked"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex;">
+        </div>
+        <div class="send-to-vendors">
+          <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)"
+            *ngIf="clickedTicket.offers.length === 0 && clickedTicket.status === 'Auction_Created'">SAVE AND
+            CLOSE</button>
+          <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)"
+            *ngIf="clickedTicket.offers.length === 0 && clickedTicket.status === 'Vendor_Required'">SUBMIT
+            AUCTION</button>
+          <button class="c2-ok-button" (click)="clickedTicket = null"
+            *ngIf="clickedTicket.offers.length > 0 ">CLOSE</button>
+          <button class="c2-cancel-button" (click)="clickedTicket = null"
+            *ngIf="clickedTicket.status === 'Vendor_Required'">CLOSE</button>
+          <!--  (click)="sendToVendors()" -->
+          <button class="c2-cancel-button" (click)="cancelAuction(clickedTicket)"
+            *ngIf="clickedTicket.status === 'Auction_Created'">CANCEL AUCTION</button>
+        </div>
+      </div>
+      <div class="left-pane">
+        <div class="pane-header">WHEN IS IT NEEDED?</div>
+        <div class="ticket-details">
+          <div class="time-type">
+            <div class="full-day clickable" (click)="clickedTicket.timeType = 'ASAP'; clearDateChoices();">
+              <div class="c2-radio" [ngClass]="{'checked': clickedTicket.timeType == 'ASAP'}"></div> ASAP
+            </div>
+            <div class="time-frame clickable" (click)="clickedTicket.timeType = 'TIMEFRAME'">
+              <div class="c2-radio" [ngClass]="{'checked': clickedTicket.timeType == 'TIMEFRAME'}"></div> Time Frame
+            </div>
+          </div>
+          <div class="pick-date">
+            <div class="single-day" *ngIf="clickedTicket.timeType == 'ASAP'">
+            </div>
+            <div class="time-range" *ngIf="clickedTicket.timeType == 'TIMEFRAME'">
+              <div class="form-item-add-input add-photo clickable" (click)="addTimeFrame()">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="add-input-label">ADD</div>
+              </div>
+              <div *ngFor="let item of clickedTicket.timeFrame">
+                <div class="start">
+                  <div class="pickers">
+                    <datepicker [(date)]="item.date" [historyDisabled]="true" [width]="'155px'" [height]="'30px'"
+                      [format]="'DD MMM YY'"></datepicker>
+                    <select [(ngModel)]="item.am_pm">
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                    <mat-icon class="clickable" (click)="removeTimeFrame(item)"
+                      style="margin-top: 4px; margin-left: 4px; color: #909090;">delete_outline</mat-icon>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
-      </div>
-      <div style="display: flex;">
-      <!-- <div class="offer-deadline" style="width: 50%;">
-        <div class="offer-deadline-label">OFFER DEADLINE</div>
-        <div class="pickers">
-          <datepicker [(date)]="chooseVendor.offerDeadlineDay" [historyDisabled]="true" [width]="'97px'" [height]="'30px'" [format]="'DD MMM YY'"></datepicker>
-          <select id="" [(ngModel)]="chooseVendor.offerDeadlineHour">
-            <option [value]="hour" *ngFor="let hour of hours">{{hour}}</option>
-          </select>
-          <div>:</div>
-          <select class="last-select" [(ngModel)]="chooseVendor.offerDeadlineMinute" id="">
-            <option [value]="minute" *ngFor="let minute of minutes">{{minute}}</option>
-          </select>
-        </div>
-      </div> -->
-      <div style="width: 50%;">
-        <div class="other-category">{{otherCategory}}</div>
-        <input type="text" name="v" id="1q" class="other-category-input" *ngIf="otherCategory != null">
-      </div>
-      </div>
-      <div class="send-to-vendors">
-        <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)" [ngClass]="{loading: sendingToVendors}" *ngIf="clickedTicket.numberOfOffersPerTicket === 0 && clickedTicket.status === 'Auction_Created'">SAVE AND CLOSE</button>
-        <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)" [ngClass]="{loading: sendingToVendors}" *ngIf="clickedTicket.numberOfOffersPerTicket === 0 && clickedTicket.status === 'Vendor_Required'">SUBMIT AUCTION</button>
-        <button class="c2-ok-button" (click)="clickedTicket = null" [ngClass]="{loading: sendingToVendors}" *ngIf="clickedTicket.numberOfOffersPerTicket > 0 ">CLOSE</button>
-        <button class="c2-cancel-button" (click)="clickedTicket = null" [ngClass]="{loading: sendingToVendors}" *ngIf="clickedTicket.status === 'Vendor_Required'">CLOSE</button>
-        <!--  (click)="sendToVendors()" -->
-        <button class="c2-cancel-button" (click)="cancelAuction(clickedTicket)" [ngClass]="{loading: sendingToVendors}" *ngIf="clickedTicket.status === 'Auction_Created'">CANCEL AUCTION</button>
-      </div>
-    </div>
-    <div class="left-pane">
-      <div class="pane-header">TICKET DETAILS</div>
-      <div class="ticket-details">
-        <div class="details-header">
-          {{clickedTicket.TicketTitle}}, {{clickedTicket.MaintenanceAddress}}
-        </div>
-        <div class="details-body">
-          <!-- <div *ngFor="let info of clickedTicket.moreInfo">
-            <a>{{info.name}}:</a>&nbsp;
-            <span>{{info.body}}</span>
-          </div> -->
-          <div>
-              <a>{{clickedTicket.tenantFullName}}:</a>&nbsp;
-              <span>{{clickedTicket.TicketDecription}}</span>
+        <div class="photos">
+          <div class="photos-header">
+            <div class="photos-label">PHOTOS</div>
+          </div>
+          <p style="margin-bottom: -10px;">Residents</p>
+          <div class="photos-holder">
+            <div *ngFor="let photo of (clickedTicket.files.tenantGallery | slice:0:3) let i = index;">
+              <mat-checkbox [id]="photo._id" [(ngModel)]="photo.isPublic">
+                <img [src]="photo.imageUrl">
+              </mat-checkbox>
+              <span style="margin-right: 10px;"></span>
             </div>
-        </div>
-      </div>
-      <div class="photos">
-        <div class="photos-header">
-          <div class="photos-label">PHOTOS</div>
-        </div>
-        <div class="photos-holder">
-          <img *ngFor="let photo of (imgGalleryArray | slice:0:3)" [src]="photo.url">
-        </div>
-        <div class="photos-holder">
-            <img *ngFor="let photo of (imgGalleryArray | slice:3:6)" [src]="photo.url">
+          </div>
+          <p style="margin-bottom: -10px;">Managment</p>
+          <div class="photos-holder">
+            <div *ngFor="let photo of (clickedTicket.files.managementGallery | slice:0:3) let i = index;">
+              <mat-checkbox [id]="photo._id" [(ngModel)]="photo.isPublic">
+                <img [src]="photo.imageUrl">
+              </mat-checkbox>
+              <span style="margin-right: 10px;"></span>
+            </div>
           </div>
           <div class="photos-holder">
-              <img *ngFor="let photo of (imgGalleryArray | slice:6:9)" [src]="photo.url">
+            <div *ngFor="let photo of (clickedTicket.files.managementGallery | slice:3:6) let i = index;">
+              <mat-checkbox [id]="photo._id" [(ngModel)]="photo.isPublic">
+                <img [src]="photo.imageUrl">
+              </mat-checkbox>
+              <span style="margin-right: 10px;"></span>
             </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</app-dialog>
-<app-dialog class="check-offers-dialog" *ngIf="clickedTicketEditOffers" [greenHeader]="false" [visible]="true" [size]="'huge'"
-  [header]="'VENDORS OFFERS ' + vendorOffersTicket.ticketNumber + ' : ' + vendorOffersTicket.TicketTitle + ' , ' + vendorOffersTicket.TicketSubTitle " (visibleChange)=" clickedTicketEditOffers = false">
-  <!-- (visibleChange)="modalVisibiltyChanged($event)" -->
-  <div class="payments">
-    <div class="table-header lease-row">
-      <div class="col-1 tab-right">VENDOR NAME</div>
-      <div class="col-2 tab-right15">EARLIEST AVAILABILITY</div>
-      <div class="col-3">PRICE</div>
-      <div class="col-4">ATTACHMENTS</div>
-      <div class="col-5">RATING & REVIEWS</div>
-      <div class="col-6"> &nbsp; </div>
+  </app-dialog>
+  <app-dialog class="check-offers-dialog" *ngIf="clickedTicketEditOffers" [greenHeader]="false" [visible]="true"
+    [size]="'huge'"
+    [header]="'VENDORS OFFERS ' + vendorOffersTicket.ticketNumber + ' : ' + vendorOffersTicket.TicketTitle + ' , ' + vendorOffersTicket.TicketSubTitle "
+    (visibleChange)=" clickedTicketEditOffers = false">
+    <!-- (visibleChange)="modalVisibiltyChanged($event)" -->
+    <div class="payments">
+      <div class="table-header lease-row">
+        <div class="col-1 tab-right">VENDOR NAME</div>
+        <div class="col-2 tab-right15">EARLIEST AVAILABILITY</div>
+        <div class="col-3">PRICE</div>
+        <div class="col-4" style="text-align: left;">ATTACHMENTS</div>
+        <div class="col-5">RATING & REVIEWS</div>
+        <div class="col-6"> &nbsp; </div>
+      </div>
     </div>
-  </div>
-  <div class="item" *ngFor="let offer of vendorOffers">
-    <div class="item-header lease-row" (click)="offer.expand = !offer.expand" *ngIf="(vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus === 'Win') || vendorOffersTicket.status !== 'Vendor_Assigned'">
-      <div class="col-1"><span>{{offer.vendorName}}</span></div>
-      <div class="col-2 tab-right"> {{moment(offer.ArrivalDate).format('MMM DD, YYYY hh:mm A')}}</div>
-      <div class="col-3">${{offer.price}}</div>
-      <div class="col-2 tab-right-10"><img *ngIf="vendorOffersTicket.mainImg.length > 0 " src="/assets/img/mergeTicketsIcon.png"></div>
-      <div class="col-5">
-        <!-- {{offer.vendorRating}} -->
-        <div style="display: flex;">
-            <div *ngFor="let gold of getArray(offer.vendorRating); let goldIndex = index">
+    <div class="item" *ngFor="let offer of vendorOffersTicket.offers">
+      <div class="item-header lease-row" (click)="offer.expand = !offer.expand"
+        *ngIf="(vendorOffersTicket.status === 'Vendor_Assigned' && offer.status === 'Accepted') || vendorOffersTicket.status !== 'Vendor_Assigned'">
+        <div class="col-1"><span>{{offer.nativeAccountName}}</span></div>
+        <div class="col-2 tab-right">
+          {{moment(offer.availabilities[0].displayDate).format('MMM DD, YYYY')}} &nbsp;
+          {{offer.availabilities[0].am_pm}}
+        </div>
+        <div class="col-3">${{offer.price}}</div>
+        <div class="col-2 tab-right-10"><img *ngIf="offer.length > 0 " src="/assets/img/mergeTicketsIcon.png"></div>
+        <div class="col-5">
+          <div style="display: flex;">
+            <div *ngFor="let gold of getArray(offer.nativeAccountRate); let goldIndex = index">
               <img src="/assets/img/star_gold.png" style="width: 12px; height: 12px; margin-top: 24px;">
             </div>
-            <div *ngFor="let grey of getArray(5 - offer.vendorRating); let goldIndex = index">
+            <div *ngFor="let grey of getArray(5 - offer.nativeAccountRate); let goldIndex = index">
               <img src="/assets/img/star_grey.png" style="width: 12px; height: 12px; margin-top: 24px;">
             </div>
             <div>
-                &nbsp;({{offer.vendorReviews}})
+              &nbsp;({{offer.nativeAccountReviews}})
             </div>
+          </div>
+        </div>
+        <div class="col-6" (click)="offer.expand = !offer.expand">
+          <button class="c2-ok-button" (click)="assignVendor(offer)"
+            *ngIf="vendorOffersTicket.status !== 'Vendor_Assigned'"> Assign Vendor</button>
+          <span *ngIf="vendorOffersTicket.status === 'Vendor_Assigned' && offer.status === 'Accepted'">ASSIGNED</span>
         </div>
       </div>
-      <div class="col-6" (click)="offer.expand = !offer.expand">
-        <button class="c2-ok-button" (click)="assignVendor(offer)" *ngIf="vendorOffersTicket.status !== 'Vendor_Assigned'"> Assign Vendor</button>
-        <span *ngIf="vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus === 'Win'">ASSIGNED</span>
-      </div>
-  </div>
-    <div class="item-body" [ngClass]="{'hidden-body': !offer.expand}">
-      <div class="left-panel">
+      <div class="item-body" [ngClass]="{'hidden-body': !offer.expand}">
+        <div class="left-panel">
           <div class="added-details">
             <div class="left-icon">
               <img class="icon" src="/assets/img/info.png">
             </div>
             <div class="right-content">
-              <div class="added-details-label">Added Details</div>
-              <a>{{offer.vendorName}} : </a>&nbsp;
-              <div class="mainProblemDetail">{{offer.ResponseComments}}</div>
+              <div class="added-details-label">Additional Items</div>
+              <br>
+              <div *ngFor="let item of offer.additionalItems">
+                <div class="mainProblemDetail">{{item.comment}} : ${{item.price}} &nbsp;</div>
+              </div>
             </div>
           </div>
-          <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
+          <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
             <div class="left-icon">
               <img src="/assets/img/messagesIconGrey.png">
             </div>
             <div class="right-content">
               <b>No Messages Yet
-                <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
+                <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')"
+                  (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open
+                  Chat</a>
               </b>
             </div>
-          </div>
+          </div> -->
         </div>
         <div class="middle-panel">
-            <div class="left-icon">
-                <img src="/assets/img/mergeTicketsIcon.png">
-              </div>
+          <div class="left-icon">
+            <img src="/assets/img/mergeTicketsIcon.png">
+          </div>
           <div class="middle-content">
             <div class="pictures-header">
-              <div class="photos-label">ATTACHMENTS</div>
+              <div class="photos-label" style="font-weight: 400;">ATTACHMENTS</div>
             </div>
-            <div class="pictures-holder" *ngIf="imgGalleryArray.length > 0">
+            <div class="pictures-holder" *ngIf="offer.length > 0 && false">
               <div class="pictures-list">
-                <div *ngFor="let photo of (imgGalleryArray | slice:0:1)">
-                <span *ngIf="imgGalleryArray.length > 1" class="photoSizeTextVendor">+{{imgGalleryArray.length-1}} <br> more </span>
-                <img style="width: 100px; height: 85px;" [src]="photo.url" class="clickable" (click)="showGallery(vendorOffersTicket,4); imgGallery = true;">
+                <div *ngFor="let photo of (offer.vendor_images | slice:0:1)">
+                  <span *ngIf="offer.vendor_images.length > 1"
+                    class="photoSizeTextVendor">+{{offer.vendor_images.length-1}} <br> more </span>
+                  <img style="width: 100px; height: 85px;" [src]="photo.imageurl" class="clickable"
+                    (click)="showVendorGallery(offer); imgGallery = true;">
                 </div>
-                <div *ngFor="let photo of imgGalleryPdf">
-                    <a href="{{photo.url}}" target="_blank">{{photo.name}}</a> 
-              </div>
               </div>
             </div>
-            <div class="no-pictures" *ngIf="imgGalleryArray.length == 0">
+            <div class="no-pictures" *ngIf="offer.length == 0">
             </div>
           </div>
         </div>
         <div class="right-panel">
           <div class="availability">
             <div class="left-icon">
-                <img class="icon" src="/assets/img/event_icon.png">
-              </div>
-              <div class="right-content">
-                <div style="margin-bottom:2%;">AVAILABILITY</div>
-                <div style="margin-bottom:2%;" [ngClass]="vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus != 'Win' ? 'CB-Disabled' : 'CB-Enabled'">
-                    <input type="radio" value="1" name="time" (change)="fillTimeToAssign('1')" [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"  [checked]="vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus === 'Win' ? true : false"> 
-                     {{moment(offer.ArrivalDate).format('MMM DD, YYYY hh:mm A')}}
-                  </div>
-                <!-- <div style="margin-bottom:2%;" [ngClass]="vendorOffersTicket.status === 'Vendor_Assigned' ? 'CB-Disabled' : 'CB-Enabled'">
-                    <input type="radio" value="2" name="time" (change)="fillTimeToAssign('2')" [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"> 
-                    {{moment(offer.ArrivalDate+133000000).format('MMM DD, YYYY hh:mm A')}}
-                  </div>
-                <div style="margin-bottom:2%;" [ngClass]="vendorOffersTicket.status === 'Vendor_Assigned' ? 'CB-Disabled' : 'CB-Enabled'"> 
-                    <input type="radio" value="3" name="time" (change)="fillTimeToAssign('3')" [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"> 
-                    {{moment(offer.ArrivalDate+333000000).format('MMM DD, YYYY hh:mm A')}}
-                  </div> -->
-                <div *ngIf="timeToAssign == 0" style="color:red;"> PLEASE CHOOSE AVAILABILITY</div>
-                <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus === 'Win'" class="c2-cancel-button" (click)="cancelVendorAssignment(vendorOffersTicket,offer)" 
-                style="margin-top: 110px; margin-left: 35px;"> CANCEL OFFER</button>
-              </div>
+              <img class="icon" src="/assets/img/event_icon.png">
             </div>
+            <div class="right-content">
+              <div style="margin-bottom:2%;">AVAILABILITY</div>
+              <div *ngFor="let availability of offer.availabilities" style="margin-bottom:2%;"
+                [ngClass]="vendorOffersTicket.status === 'Vendor_Assigned' && offer.status != 'Win' ? 'CB-Disabled' : 'CB-Enabled'">
+                <input type="radio" value="1" name="time" (change)="fillTimeToAssign(availability)"
+                  [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"
+                  [checked]="availability.isSelectedBycommunity">
+                {{moment(availability.displayDate).format('MMM DD, YYYY')}} &nbsp; {{availability.am_pm}}
+              </div>
+              <div *ngIf="timeToAssign == 0" style="color:red;"> PLEASE CHOOSE AVAILABILITY </div>
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && vendorOffersTicket.status === 'Vendor_Assigned' && offer.OfferStatus === 'Win'"
+                class="c2-cancel-button" (click)="cancelVendorAssignment(vendorOffersTicket,offer)"
+                style="margin-top: 110px; margin-left: 35px;"> CANCEL OFFER</button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-  </div>
 
-  <div class="col-6">
+    <div class="col-6">
       <button class="c2-ok-button" (click)="clickedTicketEditOffers = !clickedTicketEditOffers"> Close</button>
     </div>
-</app-dialog>
-<app-dialog class="rating-vendors-dialog" *ngIf="rateShow" [greenHeader]="false" visible="true" size="medium" 
-[header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
-  (visibleChange)="rateShow = false" [removePdding]="true">
-  <!-- (visibleChange)="modalVisibiltyChanged($event) -->
-  <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
+  </app-dialog>
+  <app-dialog class="rating-vendors-dialog" *ngIf="rateShow" [greenHeader]="false" visible="true" size="medium"
+    [header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
+    (visibleChange)="rateShow = false" [removePdding]="true">
+    <!-- (visibleChange)="modalVisibiltyChanged($event) -->
+    <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
       <mat-tab-group mat-stretch-tabs>
-          <!--  [selectedIndex]="1" -->
-          <mat-tab label="CLOSE" >
-              <div>
-                  <div class="add-note-label" style="margin-top: 20px;">Add note(optional)</div>
-                  <textarea class="note-text-area" #textboxClose></textarea>
-                  <div class="pictures-header" style="margin-top: 10px;">
-                      <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToTicket(rateTicket, $event)" (uploadProgressChange) = "uploadProgress($event)"></app-image-upload>
-                      <div class="form-item-add-input add-photo clickable" (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket._id+'/closingfiles/manager',false)">
-                        <div class="plus">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="add-input-label">Attachments</div>
-                      </div>
-                  </div>
-                  <div *ngFor="let file of rateTicket.closeAttachments">
-                      <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded: 
-                        <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
-                        <mat-form-field *ngIf="file.edit">
-                            <input matInput placeholder="File name" [(ngModel)]="file.rename">
-                          </mat-form-field>
-                      <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit" style="position: absolute; right: 0px;">create</mat-icon>
-
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)" style="position: absolute; margin-top: 10px;">check</mat-icon>
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
-                    </div>
-                  </div>
-                  <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage" *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
-                  <mat-divider style=" margin-top: 10px;"></mat-divider>
-                  <div class="pictures-header" style="margin: 10px 0 2px 0px;">
-                      <div class="form-item-add-input add-photo clickable" (click)="addCost()">
-                        <div class="plus">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="add-input-label">Cost</div>
-                      </div>
-                  </div>
-                  <div *ngIf="rateTicket.costList">
-                      <div *ngFor="let cost of rateTicket.costList" style="display:flex;">
-                          <mat-form-field style="width: 30%; font-size: 13px;">
-                              <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align">
-                              <span matPrefix> 
-                                <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
-                                  <mat-icon  *ngIf="!cost.edit">attach_money</mat-icon>
-                              &nbsp;</span>
-                          </mat-form-field>
-                          <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;" >
-                              <input matInput placeholder="Note for amount" [disabled]="!cost.edit">
-                          </mat-form-field>
-                          <mat-icon class="clickable" *ngIf="cost.edit"  (click)="cost.edit = !cost.edit" style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
-                          <mat-icon class="clickable" *ngIf="cost.edit"  (click)="removeCost(cost)" style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
-                          <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit" style="margin-top: 10px; color: #909090;">create</mat-icon>
-                          <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
-                      </div>
-                  </div>
-                  <button class="c2-ok-button" (click)="searchQuery = null" style="margin-top: 10px;">SAVE FOR LATER</button>
-                  <button class="c2-cancel-button" (click)="searchQuery = null" style="margin-top: 10px;">MARK AS DONE</button>
+        <!--  [selectedIndex]="1" -->
+        <mat-tab label="CLOSE">
+          <div>
+            <div class="add-note-label" style="margin-top: 20px;">Add note(optional)</div>
+            <textarea class="note-text-area" #textboxClose></textarea>
+            <div class="pictures-header" style="margin-top: 10px;">
+              <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToCloseTicket(rateTicket, $event)"
+                (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+              <div class="form-item-add-input add-photo clickable"
+                (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket._id+'/closingfiles/Manager',false)">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="add-input-label">Attachments</div>
               </div>
-          </mat-tab>
-          <mat-tab label="RATE & REVIEW">
-              <p style="text-align: center; margin-bottom: 0px;"><span class="CB-Enabled">ASSIGNED VENDOR: </span>{{rateOffer.companyName}}</p>
-              <div class="vendor-rating" *ngIf="isHoverMode">
-                  <div *ngFor="let gold of getArray(rating); let goldIndex = index" (mouseover)='changeRating(goldIndex)' 
-                  (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
-                    <img src="/assets/img/star_gold.png">
-                  </div>
-                  <div *ngFor="let grey of getArray(5 - rating); let goldIndex = index" (mouseover)='changeRating(goldIndex + rating + 1)'
-                    (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
-                    <img src="/assets/img/star_grey.png">
-                  </div>
-                </div>
-                <div class="vendor-rating" *ngIf="!isHoverMode">
-                  <div *ngFor="let gold of getArray(nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()' (mouseleave)='toggleLeave()'
-                    (click)='clickChangeRating(goldIndex)'>
-                    <img src="/assets/img/star_gold.png">
-                  </div>
-                  <div *ngFor="let grey of getArray(5 - nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()' (mouseleave)='toggleLeave()'
-                   (click)='clickChangeRating(goldIndex)'>
-                    <img src="/assets/img/star_grey.png">
-                  </div>
-                </div>
-                <div class="add-note-label"> ADD REVIEW(OPTIONAL)</div>
-                <textarea class="note-text-area" #textboxRate></textarea>
-                <div class="set-button">
-                  <button class="c2-ok-button" (click)="rateVendor(textboxRate.value)" [ngClass]="{loading: ratingLoading}" style="margin-top: 10px;">SUBMIT</button>
-                  <a href="mailto:support@c2communities.com?subject=Letting you know about {{rateOffer.companyName}} &body=" style="font-size: 12px; margin-left: 30%;" >Contact us about this vendor</a>
-                </div>
-          </mat-tab>
-        </mat-tab-group>
-  </div>
-</app-dialog>
-<app-dialog class="rating-vendors-dialog" *ngIf="fixedShow" [greenHeader]="false" visible="true" size="medium" 
-[header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
-  (visibleChange)="fixedShow = false" [removePdding]="true">
-  <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
-    <div>
-        <div class="add-note-label" style="margin-top: 20px;">Add note(optional)</div>
-        <textarea class="note-text-area" #textbox></textarea>
-      <div class="pictures-header" style="margin-top: 10px;">
-          <app-image-upload #imageUploadClose (imageUploaded)="addImageToTicket(rateTicket, $event)"></app-image-upload>
-          <div class="form-item-add-input add-photo clickable" (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket._id+'/closingfiles/manager',false)">
-            <div class="plus">
-              <div class="line"></div>
-              <div class="line"></div>
             </div>
-            <div class="add-input-label">Attachments</div>
+            <div *ngFor="let file of rateTicket.closeAttachments">
+              <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded:
+                <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
+                <mat-form-field *ngIf="file.edit">
+                  <input matInput placeholder="File name" [(ngModel)]="file.rename">
+                </mat-form-field>
+                <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"
+                  style="position: absolute; right: 0px;">create</mat-icon>
+
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)"
+                  style="position: absolute; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)"
+                  style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)"
+                  style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+              </div>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage"
+              *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
+            <mat-divider style=" margin-top: 10px;"></mat-divider>
+            <div class="pictures-header" style="margin: 10px 0 2px 0px;">
+              <div class="form-item-add-input add-photo clickable" (click)="addCost()">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="add-input-label">Cost</div>
+              </div>
+            </div>
+            <div *ngIf="rateTicket.costList">
+              <div *ngFor="let cost of rateTicket.costList" style="display:flex;">
+                <mat-form-field style="width: 30%; font-size: 13px;">
+                  <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align"
+                    [(ngModel)]="cost.amount">
+                  <span matPrefix>
+                    <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
+                    <mat-icon *ngIf="!cost.edit">attach_money</mat-icon>
+                    &nbsp;
+                  </span>
+                </mat-form-field>
+                <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;">
+                  <input matInput placeholder="Note for amount" [disabled]="!cost.edit" [(ngModel)]="cost.note">
+                </mat-form-field>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="cost.edit = !cost.edit"
+                  style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+                  style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
+                <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit"
+                  style="margin-top: 10px; color: #909090;">create</mat-icon>
+                <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
+              </div>
+            </div>
+            <button class="c2-ok-button"
+              (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status , textboxClose.value)"
+              style="margin-top: 10px;">SAVE FOR LATER</button>
+            <button class="c2-cancel-button" (click)="CloseTicketSaveOrClose(rateTicket,'Resolved',textboxClose.value)"
+              style="margin-top: 10px;">MARK AS DONE</button>
           </div>
+        </mat-tab>
+        <mat-tab label="RATE & REVIEW">
+          <p style="text-align: center; margin-bottom: 0px;"><span class="CB-Enabled">ASSIGNED VENDOR:
+            </span>{{rateOffer.companyName}}</p>
+          <div class="vendor-rating" *ngIf="isHoverMode">
+            <div *ngFor="let gold of getArray(rating); let goldIndex = index" (mouseover)='changeRating(goldIndex)'
+              (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
+              <img src="/assets/img/star_gold.png">
+            </div>
+            <div *ngFor="let grey of getArray(5 - rating); let goldIndex = index"
+              (mouseover)='changeRating(goldIndex + rating + 1)' (click)='clickChangeRating(goldIndex)'
+              (mouseleave)='changeRatingLeave()'>
+              <img src="/assets/img/star_grey.png">
+            </div>
+          </div>
+          <div class="vendor-rating" *ngIf="!isHoverMode">
+            <div *ngFor="let gold of getArray(nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()'
+              (mouseleave)='toggleLeave()' (click)='clickChangeRating(goldIndex)'>
+              <img src="/assets/img/star_gold.png">
+            </div>
+            <div *ngFor="let grey of getArray(5 - nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()'
+              (mouseleave)='toggleLeave()' (click)='clickChangeRating(goldIndex)'>
+              <img src="/assets/img/star_grey.png">
+            </div>
+          </div>
+          <div class="add-note-label"> ADD REVIEW(OPTIONAL)</div>
+          <textarea class="note-text-area" #textboxRate></textarea>
+          <div class="set-button">
+            <button class="c2-ok-button" (click)="rateVendor(textboxRate.value)" [ngClass]="{loading: ratingLoading}"
+              style="margin-top: 10px;">SUBMIT</button>
+            <a href="mailto:support@c2communities.com?subject=Letting you know about {{rateOffer.companyName}} &body="
+              style="font-size: 12px; margin-left: 30%;">Contact us about this vendor</a>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </app-dialog>
+  <app-dialog class="rating-vendors-dialog" *ngIf="fixedShow" [greenHeader]="false" visible="true" size="medium"
+    [header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
+    (visibleChange)="fixedShow = false" [removePdding]="true">
+    <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
+      <div class="add-note-label" style="margin-top: 20px;">Add note(optional)</div>
+      <textarea class="note-text-area" #textbox></textarea>
+      <div class="pictures-header" style="margin-top: 10px;">
+        <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToCloseTicket(rateTicket, $event)"
+          (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+        <div class="form-item-add-input add-photo clickable"
+          (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket._id+'/closingfiles/Manager',false)">
+          <div class="plus">
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="add-input-label">Attachments</div>
+        </div>
       </div>
       <div *ngFor="let file of rateTicket.closeAttachments">
-          <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded: 
-            <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
-            <mat-form-field *ngIf="file.edit">
-                <input matInput placeholder="File name" [(ngModel)]="file.rename">
-              </mat-form-field>
-          <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit" style="position: absolute; right: 0px;">create</mat-icon>
+        <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded:
+          <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
+          <mat-form-field *ngIf="file.edit">
+            <input matInput placeholder="File name" [(ngModel)]="file.rename">
+          </mat-form-field>
+          <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"
+            style="position: absolute; right: 0px;">create</mat-icon>
 
-          <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)" style="position: absolute; margin-top: 10px;">check</mat-icon>
-          <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
-          <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+          <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)"
+            style="position: absolute; margin-top: 10px;">check</mat-icon>
+          <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)"
+            style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+          <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)"
+            style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
         </div>
-      <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage" *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
-      <mat-divider style=" margin-top: 10px;"></mat-divider>
-      <div class="pictures-header" style="margin: 10px 0 2px 0px;">
+        <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage" *ngIf="uploadProgresspercentage !== 0">
+        </mat-progress-bar>
+        <mat-divider style=" margin-top: 10px;"></mat-divider>
+        <div class="pictures-header" style="margin: 10px 0 2px 0px;">
           <div class="form-item-add-input add-photo clickable" (click)="addCost()">
             <div class="plus">
               <div class="line"></div>
@@ -904,161 +1173,287 @@
             </div>
             <div class="add-input-label">Cost</div>
           </div>
-      </div>
-      <div *ngIf="rateTicket.costList">
+        </div>
+        <div *ngIf="rateTicket.costList">
           <div *ngFor="let cost of rateTicket.costList" style="display:flex;">
-              <mat-form-field style="width: 30%; font-size: 13px;">
-                  <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align">
-                  <span matPrefix> 
-                    <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
-                      <mat-icon  *ngIf="!cost.edit">attach_money</mat-icon>
-                  &nbsp;</span>
-              </mat-form-field>
-              <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;" >
-                  <input matInput placeholder="Note for amount" [disabled]="!cost.edit">
-              </mat-form-field>
-              <mat-icon class="clickable" *ngIf="cost.edit"  (click)="cost.edit = !cost.edit" style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
-              <mat-icon class="clickable" *ngIf="cost.edit"  (click)="removeCost(cost)" style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
-              <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit" style="margin-top: 10px;">create</mat-icon>
-              <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
+            <mat-form-field style="width: 30%; font-size: 13px;">
+              <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align">
+              <span matPrefix>
+                <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
+                <mat-icon *ngIf="!cost.edit">attach_money</mat-icon>
+                &nbsp;
+              </span>
+            </mat-form-field>
+            <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;">
+              <input matInput placeholder="Note for amount" [disabled]="!cost.edit">
+            </mat-form-field>
+            <mat-icon class="clickable" *ngIf="cost.edit" (click)="cost.edit = !cost.edit"
+              style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
+            <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+              style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
+            <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit" style="margin-top: 10px;">
+              create</mat-icon>
+            <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
           </div>
+        </div>
+        <button class="c2-ok-button"
+          (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status , textboxClose.value)"
+          style="margin-top: 10px;">SAVE FOR LATER</button>
+        <button class="c2-cancel-button" (click)="CloseTicketSaveOrClose(rateTicket,'Resolved',textboxClose.value)"
+          style="margin-top: 10px;">MARK AS DONE</button>
       </div>
-      <button class="c2-ok-button" (click)="searchQuery = null" style="margin-top: 10px;">SUBMIT</button>
-      <button class="c2-cancel-button" (click)="fixedShow = false" style="margin-top: 10px;">CLOSE</button>
-   </div>
-  </div>
-</app-dialog>
-<app-dialog class="rating-vendors-dialog" *ngIf="ResolvedDoneShow" [greenHeader]="false" visible="true" size="medium" 
-[header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
-  (visibleChange)="ResolvedDoneShow = false" [removePdding]="true">
-  <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
+    </div>
+  </app-dialog>
+  <app-dialog class="rating-vendors-dialog" *ngIf="ResolvedDoneShow" [greenHeader]="false" visible="true" size="medium"
+    [header]="'Ticket ' + rateTicket.ticketNumber + ' : ' + rateTicket.TicketTitle + ' , ' + rateTicket.TicketSubTitle "
+    (visibleChange)="ResolvedDoneShow = false" [removePdding]="true">
+    <div style="padding: 0 20px 20px 20px; margin-top: -5px;">
       <mat-tab-group mat-stretch-tabs>
-          <!--  [selectedIndex]="1" -->
-          <mat-tab label="CLOSE">
-              <div>
-                  <div class="add-note-label" style="margin-top:20px;">Add note(optional)</div>
-                  <textarea class="note-text-area" #textboxClose></textarea>
-                  <div class="pictures-header" style="margin-top: 10px;">
-                      <app-image-upload #imageUploadClose (imageUploaded)="addImageToTicket(rateTicket, $event)"></app-image-upload>
-                      <div class="form-item-add-input add-photo clickable" (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket._id+'/closingfiles/manager',false)">
-                        <div class="plus">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="add-input-label">Attachments</div>
-                      </div>
-                  </div>
-                  <div *ngFor="let file of rateTicket.closeAttachments">
-                      <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded: 
-                        <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
-                        <mat-form-field *ngIf="file.edit">
-                            <input matInput placeholder="File name" [(ngModel)]="file.rename">
-                          </mat-form-field>
-                      <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit" style="position: absolute; right: 0px;">create</mat-icon>
-
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)" style="position: absolute; margin-top: 10px;">check</mat-icon>
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
-                      <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)" style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
-                    </div>
-                  </div>
-                  <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage" *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
-                  <mat-divider style=" margin-top: 10px;"></mat-divider>
-                  <div class="pictures-header" style="margin: 10px 0 2px 0px;">
-                      <div class="form-item-add-input add-photo clickable" (click)="addCost()">
-                        <div class="plus">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="add-input-label">Cost</div>
-                      </div>
-                  </div>
-                  <div *ngIf="rateTicket.costList">
-                      <div *ngFor="let cost of rateTicket.costList" style="display:flex;">
-                          <mat-form-field style="width: 30%; font-size: 13px;">
-                              <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align">
-                              <span matPrefix> 
-                                <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
-                                  <mat-icon  *ngIf="!cost.edit">attach_money</mat-icon>
-                              &nbsp;</span>
-                          </mat-form-field>
-                          <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;" >
-                              <input matInput placeholder="Note for amount" [disabled]="!cost.edit">
-                          </mat-form-field>
-                          <mat-icon class="clickable" *ngIf="cost.edit"  (click)="cost.edit = !cost.edit" style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
-                          <mat-icon class="clickable" *ngIf="cost.edit"  (click)="removeCost(cost)" style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
-                          <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit" style="margin-top: 10px;">create</mat-icon>
-                          <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
-                      </div>
-                  </div>
-                  <button class="c2-ok-button" (click)="searchQuery = null" style="margin-top: 10px;">SAVE FOR LATER</button>
-                  <button class="c2-cancel-button" (click)="searchQuery = null" style="margin-top: 10px;">MARK AS DONE</button>
+        <!--  [selectedIndex]="1" -->
+        <mat-tab label="CLOSE">
+          <div>
+            <div class="add-note-label" style="margin-top:20px;">Add note(optional)</div>
+            <textarea class="note-text-area" #textboxClose [(ngModel)]="rateTicket.closeNote"></textarea>
+            <div class="pictures-header" style="margin-top: 10px;">
+              <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToCloseTicket(rateTicket, $event)"
+                (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+              <div class="form-item-add-input add-photo clickable"
+                (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket.ticketId+'/closingfiles/Manager',false,rateTicket)">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="add-input-label">Attachments</div>
               </div>
-          </mat-tab>
-          <mat-tab label="VIEW RATING & REVIEW" *ngIf="nonHoverRating !== 0">
-              <div class="vendor-rating" *ngIf="isHoverMode">
-                  <div *ngFor="let gold of getArray(rating); let goldIndex = index" (mouseover)='changeRating(goldIndex)' 
-                  (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
-                    <img src="/assets/img/star_gold.png">
-                  </div>
-                  <div *ngFor="let grey of getArray(5 - rating); let goldIndex = index" (mouseover)='changeRating(goldIndex + rating + 1)'
-                    (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
-                    <img src="/assets/img/star_grey.png">
-                  </div>
+            </div>
+            <div *ngFor="let file of rateTicket.closeAttachments">
+              <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.name}}, uploaded:
+                <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
+                <mat-form-field *ngIf="file.edit">
+                  <input matInput placeholder="File name" [(ngModel)]="file.rename">
+                </mat-form-field>
+                <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"
+                  style="position: absolute; right: 0px;">create</mat-icon>
+
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)"
+                  style="position: absolute; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)"
+                  style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)"
+                  style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+              </div>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage"
+              *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
+            <mat-divider style=" margin-top: 10px;"></mat-divider>
+            <div class="pictures-header" style="margin: 10px 0 2px 0px;">
+              <div class="form-item-add-input add-photo clickable" (click)="addCost()">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
                 </div>
-                <div class="vendor-rating" *ngIf="!isHoverMode">
-                  <div *ngFor="let gold of getArray(nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()' (mouseleave)='toggleLeave()'
-                    (click)='clickChangeRating(goldIndex)'>
-                    <img src="/assets/img/star_gold.png">
-                  </div>
-                  <div *ngFor="let grey of getArray(5 - nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()' (mouseleave)='toggleLeave()'
-                   (click)='clickChangeRating(goldIndex)'>
-                    <img src="/assets/img/star_grey.png">
-                  </div>
-                </div>
-                <div class="add-note-label">ADD REVIEW (OPTIONAL)</div>
-                <textarea class="note-text-area" #textboxRate disabled></textarea>
-                <div class="set-button">
-                  <button class="c2-ok-button" (click)="rateVendor(textboxRate.value)" [ngClass]="{loading: ratingLoading}" style="margin-top: 10px;" disabled>SUBMIT</button>
-                </div>
-          </mat-tab>
-          <mat-tab label="VIEW RATING & REVIEW" *ngIf="nonHoverRating === 0">
-              <p style="text-align: center;margin: 95px;">not rated yet</p>
-              <button class="c2-ok-button" (click)="searchQuery = null" style="margin-top: 10px;">Remaind tenant</button>
-          </mat-tab>
-        </mat-tab-group>
-  </div>
-</app-dialog>
-<app-dialog *ngIf="showEditInfo" [visible]="true" size="medium" [header]="'Edit maintenance ticket category'" (visibleChange)="showEditInfo = false">
-<div>
-  <div class="form-item">
+                <div class="add-input-label">Cost</div>
+              </div>
+            </div>
+            <div *ngIf="rateTicket.costList">
+              <div *ngFor="let cost of rateTicket.costList" style="display:flex;">
+                <mat-form-field style="width: 30%; font-size: 13px;">
+                  <input matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align"
+                    [(ngModel)]="cost.amount">
+                  <span matPrefix>
+                    <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
+                    <mat-icon *ngIf="!cost.edit">attach_money</mat-icon>
+                    &nbsp;
+                  </span>
+                </mat-form-field>
+                <mat-form-field style="width: 65%; margin-left: 20px; font-size: 13px;">
+                  <input matInput placeholder="Note for amount" [disabled]="!cost.edit" [(ngModel)]="cost.note">
+                </mat-form-field>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="cost.edit = !cost.edit"
+                  style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+                  style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
+                <mat-icon class="clickable" *ngIf="!cost.edit" (click)="cost.edit = !cost.edit"
+                  style="margin-top: 10px;">create</mat-icon>
+                <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
+              </div>
+            </div>
+            <button class="c2-ok-button"
+              (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status , textboxClose.value); delay(1,1); openSnackBar('Service request update successfully', 'Dismiss');"
+              style="margin-top: 10px;">SAVE AND CLOSE</button>
+            <button class="c2-cancel-button" (click)="ResolvedDoneShow = !ResolvedDoneShow"
+              style="margin-top: 10px;">CANCEL</button>
+          </div>
+        </mat-tab>
+        <mat-tab label="VIEW RATING & REVIEW" *ngIf="nonHoverRating !== 0">
+          <div class="vendor-rating" *ngIf="isHoverMode">
+            <div *ngFor="let gold of getArray(rating); let goldIndex = index" (mouseover)='changeRating(goldIndex)'
+              (click)='clickChangeRating(goldIndex)' (mouseleave)='changeRatingLeave()'>
+              <img src="/assets/img/star_gold.png">
+            </div>
+            <div *ngFor="let grey of getArray(5 - rating); let goldIndex = index"
+              (mouseover)='changeRating(goldIndex + rating + 1)' (click)='clickChangeRating(goldIndex)'
+              (mouseleave)='changeRatingLeave()'>
+              <img src="/assets/img/star_grey.png">
+            </div>
+          </div>
+          <div class="vendor-rating" *ngIf="!isHoverMode">
+            <div *ngFor="let gold of getArray(nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()'
+              (mouseleave)='toggleLeave()' (click)='clickChangeRating(goldIndex)'>
+              <img src="/assets/img/star_gold.png">
+            </div>
+            <div *ngFor="let grey of getArray(5 - nonHoverRating); let goldIndex = index" (mouseover)='toggleHover()'
+              (mouseleave)='toggleLeave()' (click)='clickChangeRating(goldIndex)'>
+              <img src="/assets/img/star_grey.png">
+            </div>
+          </div>
+          <div class="add-note-label">ADD REVIEW (OPTIONAL)</div>
+          <textarea class="note-text-area" #textboxRate disabled></textarea>
+          <div class="set-button">
+            <button class="c2-ok-button" (click)="rateVendor(textboxRate.value)" [ngClass]="{loading: ratingLoading}"
+              style="margin-top: 10px;" disabled>SUBMIT</button>
+          </div>
+        </mat-tab>
+        <mat-tab label="VIEW RATING & REVIEW" *ngIf="nonHoverRating === 0">
+          <p style="text-align: center;margin: 95px;">not rated yet</p>
+          <button class="c2-ok-button" (click)="searchQuery = null" style="margin-top: 10px;">Remind tenant</button>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </app-dialog>
+  <app-dialog *ngIf="showEditInfo" [visible]="true" size="medium" [header]="'Edit maintenance ticket category'"
+    (visibleChange)="showEditInfo = false">
+    <div>
+      <div class="form-item">
         <div class="dropdown-title-and-sub">
           <label for="mainCategory" class="C2-dd-label">Category:</label>
           <select id="mainCategory" class="width-50p" name="selectmake" [(ngModel)]="mainCategory">
-              <option *ngFor="let category of categories" [ngValue]="category">{{category.proname}}</option>
+            <option *ngFor="let category of categories" [ngValue]="category">{{category.categoryName}}</option>
           </select>
           <div>&nbsp; </div>
-           <label for="subCategory" class="C2-dd-label">Type:</label>
-           <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory">
-              <option *ngFor="let sub of mainCategory?.subs" [ngValue]="sub.name">{{sub.name}}</option>
-          </select> 
+          <label for="subCategory" class="C2-dd-label">Type:</label>
+          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory">
+            <option *ngFor="let sub of mainCategory?.categorySubs" [ngValue]="sub.categorySubName">
+              {{sub.categorySubName}}</option>
+          </select>
         </div>
+      </div>
+      <div>
+        <button class="c2-ok-button"
+          (click)="updateTitleAndSubtitle(ticketCategory,mainCategory.categoryName,subCategory)">SAVE AND CLOSE</button>
+      </div>
+    </div>
+  </app-dialog>
+  <app-dialog *ngIf="openTicket" [visible]="true" size="medium" [header]="'New Service Request'"
+    (visibleChange)="openTicket = !openTicket">
+    <div class="openTicketClass">
+      <div *ngIf="openTicketNext">
+        <p style="text-align: left;font-weight: 700;">Where is the problem?</p>
+        <mat-button-toggle-group #group="matButtonToggleGroup" [(ngModel)]="areaZone">
+          <mat-button-toggle value="Apartment">Apartment</mat-button-toggle>
+          <mat-button-toggle value="Complex">Common Area</mat-button-toggle>
+        </mat-button-toggle-group>
+        <div *ngIf="group.value === 'Apartment'" style="margin-top: 10px; margin-bottom: -20px;">
+          <mat-form-field class="example-full-width">
+            <input matInput placeholder="Unit number" [(ngModel)]="unitNumber">
+          </mat-form-field>
+        </div>
+        <!-- <mat-divider style="margin-top: 10px;"></mat-divider> -->
+
+        <p style="text-align: left;font-weight: 700;">Choose category</p>
+        <mat-grid-list cols="3" rowHeight="3:2">
+          <div *ngFor="let category of categories; let i = index;">
+            <mat-grid-tile>
+              <label>
+                <input type="radio" name="categoryItems" [value]="category" [checked]="mainCategory == category"
+                  [id]="category._id" (change)="ticketMainCategory(category)">
+                <img [src]="category.icon" [alt]="category.categoryName">
+              </label>
+              <br>
+              <div style="position: absolute;bottom: 0px;">{{category.categoryName}}</div>
+            </mat-grid-tile>
+          </div>
+        </mat-grid-list>
+        <!-- <mat-divider style="margin-top: 10px;"></mat-divider> -->
+
+        <p style="text-align: left;font-weight: 700;">Choose sub-caragory</p>
+        <div style="display:flex;">
+          <label for="subCategory" class="C2-dd-label">Type:</label>
+          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory" style="width: 70%;">
+            <option *ngFor="let sub of mainCategory?.categorySubs" [ngValue]="sub.categorySubName">
+              {{sub.categorySubName}}</option>
+          </select>
+        </div>
+        <button mat-fab class="fab-toggler" style="margin: -54px 10px 0 0px;" (click)="openNewTicketNext()">
+          <i class="material-icons">keyboard_arrow_right</i>
+        </button>
+      </div>
+      <div *ngIf="!openTicketNext" style="text-align: left;">
+
+        <mat-form-field class="example-full-width" style="display: inline;">
+          <textarea matInput placeholder="Description" matTextareaAutosize="true" matAutosizeMinRows="2"
+            [(ngModel)]="newTicket.ticketDescription"></textarea>
+        </mat-form-field>
+
+        <div class="pictures-header" style="margin-top: 10px;">
+          <app-image-upload #imageUploadNew (imageUploadedAndName)="addImageToNewTicket(newTicket, $event)"
+            (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+          <div class="form-item-add-input add-photo clickable"
+            (click)="imageUploadNew.clickFolder('maintenance/tickets/'+ newTicket.ticketId +'/Manager/',false,newTicket)">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div class="add-input-label">Attachments</div>
+          </div>
+        </div>
+
+        <div *ngFor="let file of newTicket.files.managementGallery">
+          <div style="font-size: 13px; margin-left: 21px; color: #909090">{{file.uploaderName}}, uploaded:
+            <a [href]="file.imageUrl" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileExt}}</a>
+            <mat-form-field *ngIf="file.edit">
+              <input matInput placeholder="File name" [(ngModel)]="file.rename">
+            </mat-form-field>
+            <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"
+              style="position: absolute; right: 18px;">create</mat-icon>
+
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="renameImageNewTicket(file)"
+              style="position: absolute; margin-top: 10px;">check</mat-icon>
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameImageNewTicket(file)"
+              style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="removeImageNewTicket(file)"
+              style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+          </div>
+        </div>
+        <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage" *ngIf="uploadProgresspercentage !== 0">
+        </mat-progress-bar>
+
+        <section class="example-section">
+          <p style="text-align: left;font-weight: 700;"> Can enter if not home ?</p>
+          <mat-checkbox class="example-margin" [(ngModel)]="newTicket.isPetOwner">Pets in unit</mat-checkbox><br>
+          <mat-checkbox class="example-margin" [(ngModel)]="newTicket.isEnteringAllow">Yes, knock first</mat-checkbox>
+        </section>
+
+        <div style="text-align: right; margin-top: 30px;">
+          <button class="c2-ok-button" (click)="openNewTicket()">SUBMIT</button>
+        </div>
+
+        <button mat-fab class="fab-toggler" style="margin: -56px 423px 0px;" (click)="openNewTicketNext()">
+          <i class="material-icons">keyboard_arrow_left</i>
+        </button>
+      </div>
+    </div>
+  </app-dialog>
+
+  <!-- FAB Speed-Dial -->
+  <div class="fab-container">
+    <button mat-fab class="fab-toggler" (click)="onToggleFab()">
+      <i class="material-icons" [@fabToggler]="{value: fabTogglerState}">add</i>
+    </button>
+    <div [@speedDialStagger]="buttons.length">
+      <button *ngFor="let btn of buttons" mat-mini-fab class="fab-secondary" color="secondary"
+        (click)="btn.action(); btn.icon === 'build' ?  openTicket = !openTicket : openTicket = !openTicket;  ">
+        <i class="material-icons">{{btn.icon}}</i>
+      </button>
+    </div>
   </div>
-   <div>
-    <button class="c2-ok-button" (click)="updateTitleAndSubtitle(ticketCategory,mainCategory.proname,subCategory)">SAVE AND CLOSE</button>
-  </div>
-</div>
-</app-dialog>
-<div *ngIf="imgGallery" style="position: fixed; top: 20%; right: 35%;" >
-    <!-- <div class="video">
-        <video controls (click)="movieplayer.play()" #videoPlayer  style="max-width: 500px; max-height: 500px;">
-            <source src="https://res.cloudinary.com/maatayem/video/upload/v1543511853/maintenance/tickets/lll2mkwn5e9g1bmqq25spswv/manager/si1but89r0mopctkqdkx.mp4" type="video/mp4" />
-            Browser not supported
-        </video>
-    </div> -->
-    <!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/9bZkp7q19f0" frameborder="0" allowfullscreen></iframe> -->
-    <iframe width="560" height="315" src="https://res.cloudinary.com/maatayem/video/upload/v1543511853/maintenance/tickets/lll2mkwn5e9g1bmqq25spswv/manager/si1but89r0mopctkqdkx.mp4" frameborder="0" allowfullscreen></iframe>
-    <!-- <iframe width="560" height="315" src="https://res.cloudinary.com/maatayem/image/upload/v1543179166/maintenance/tickets/eqi20tcqlb03i4untdfdid5n/manager/ek3mterlqere3bjhyb8x.pdf" frameborder="0" allowfullscreen></iframe> -->
-    <!-- <iframe width="560" height="315" src="https://res.cloudinary.com/maatayem/image/upload/v1543523572/maintenance/tickets/t5b4jkjopjnrxnxfue8eoimn/manager/pf76qbjhste5bvpprlfk.gif" frameborder="0" allowfullscreen></iframe> -->
-    <!-- <iframe width="560" height="315" src="https://res.cloudinary.com/maatayem/image/upload/v1542709018/maintenance/tickets/9qg8kwtm07b8hkp6qe6k0rfn/manager/emw5m2xvdqhkhhnyhf1k.jpg" frameborder="0" allowfullscreen></iframe> -->
-    <img src="/assets/img/x-icon.png" (click)="imgGallery = false;" style="cursor: pointer;">
-</div>

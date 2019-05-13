@@ -203,7 +203,7 @@
         }
       }
       .lease-tenants {
-        overflow-y: auto;
+        overflow-y: hidden;
         transition-property: all;
         transition-duration: .6s;
         .tenant {
@@ -471,4 +471,7 @@ $height: 60px;
       opacity: 1;
     }
   }
+}
+/deep/ .mat-simple-snackbar-action {
+  color: #00b8a0;
 }

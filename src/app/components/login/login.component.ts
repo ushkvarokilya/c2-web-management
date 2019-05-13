@@ -5,6 +5,9 @@ import { NgRedux } from '@angular-redux/store';
 import { AppState } from '../../store/appState';
 import { Router } from '@angular/router/src/router';
 
+import { environment } from "../../../environments/environment";
+import { Http, Response, Headers } from '@angular/http';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -30,10 +33,12 @@ export class LoginComponent implements OnInit {
 
   isRegistrationSucsessful = false;
 
+  environment = environment
 
   constructor(
     private userService: UserService,
-    private redux: NgRedux<AppState>
+    private redux: NgRedux<AppState>,
+    private http: Http
   ) {
   }
 
@@ -58,18 +63,35 @@ export class LoginComponent implements OnInit {
     }
     this.inputValidStatus.password = true;
     this.loading = true;
-    this.userService.login(this.email, this.password)
-      .then((user: any) => {
+
+    // this.userService.login(this.email, this.password)
+    //   .then((user: any) => {
+    //     localStorage.setItem('user_bridge', JSON.stringify({ token: user.token, key: user.key }));
+    //     location.replace('/overview')
+    //   }, (err) => {
+    //     this.loading = false;
+    //     this.error = 'Invalid email or password';
+    //     if (!this.error) {
+    //       this.isRegistrationSucsessful = true;
+    //     }
+    //   })
+
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json; charset=utf-8');
+    var json = JSON.stringify({ email:this.email, password:this.password });
+    this.http.post(this.environment.accounting_api_endpoint + 'Users/login/manager', json, { headers: headers })
+    .subscribe((res: Response) => {
+      const user = res.json();
+      if(user.key !== undefined){
         localStorage.setItem('user_bridge', JSON.stringify({ token: user.token, key: user.key }));
-        localStorage.setItem('user_details', JSON.stringify({ email: this.email }));
-        location.replace('/overview')
-      }, (err) => {
+        this.isRegistrationSucsessful = true;
+        location.replace('/overview');
+      }else{
         this.loading = false;
-        this.error = 'Invalid email or password';
-        if (!this.error) {
-          this.isRegistrationSucsessful = true;
-        }
-      })
+        this.error = user.message;
+      }
+    });
+
   }
 
 }

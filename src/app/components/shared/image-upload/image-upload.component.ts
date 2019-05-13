@@ -20,8 +20,9 @@ export class ImageUploadComponent implements OnInit {
   @Output() uploadProgressChange = new EventEmitter<number>()
 
   @ViewChild("fileUpload") fileUploadElementRef: ElementRef
-  fileUploadElement: HTMLInputElement
+  fileUploadElement: HTMLInputElement;
 
+  ticket
   folder;
   isFileName;
   constructor() { }
@@ -36,9 +37,10 @@ export class ImageUploadComponent implements OnInit {
     }
   }
 
-  clickFolder(folder,isFileName) {
-  this.folder = folder;
-  this.isFileName = isFileName;
+  clickFolder(folder, isFileName, ticket) {
+    this.ticket = ticket;
+    this.folder = folder;
+    this.isFileName = isFileName;
     if (!this.uploadingInProgress) {
       this.fileUploadElement.click()
     }
@@ -70,21 +72,23 @@ export class ImageUploadComponent implements OnInit {
         let response = JSON.parse(xhr.responseText);
         let url = response.secure_url;
         this.imageUploaded.emit(url);
-        this.imageUploadedAndName.emit({name: file.name , url:response.secure_url});
+        this.imageUploadedAndName.emit({ name: file.name, url: response.secure_url });
         this.uploadingInProgress = false
         this.setUploadProgress(0)
-        
+
       }
     };
 
     fd.append('upload_preset', environment.cloudinary_cert);
     fd.append('file', file);
-    if(this.folder){
-      fd.append('folder', this.folder); 
+    if (this.folder) {
+      fd.append('folder', this.folder);
     }
-    if(this.isFileName){
+    if (this.isFileName) {
       fd.append('public_id', file.name.split(".")[0]);
     }
+    fd.append('tags', 'Management_' + this.ticket.ticketId);
+
     xhr.send(fd);
   }
 

@@ -1,13 +1,13 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
 import { NgRedux, select } from '@angular-redux/store';
-import { Subject, Observable, Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { User } from '../../../store/user/user.interface';
 import { AppState } from '../../../store/appState';
 import { CompanyService } from '../../../services/company.service';
 import { ComplexService } from "../../../services/complex.service";
 import { SetUpUser, UsersAndRoles } from "../users-and-roles/users-and-roles.component";
-
+import {Observable} from  "rxjs/Rx";
 import * as moment from 'moment'
 
 import { environment } from "../../../../environments/environment";

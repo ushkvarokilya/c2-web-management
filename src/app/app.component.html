@@ -74,16 +74,16 @@
       </div>
       <div class="label">Overview</div>
     </div>
-    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="menu-item" [routerLink]="['facility']"
+    <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="menu-item" [routerLink]="['facility']"
       [routerLinkActive]="['active-page']" [ngClass]="{'active-page': isInAmenityPage()}">
       <div class="icon">
         <svg width="27" height="20" viewBox="0 0 27 20">
           <use xlink:href="./assets/icons.svg#facility"></use>
         </svg>
       </div>
-      <div class="label">Facility</div>
-    </div>
-    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item" [routerLink]="['maintenance']"
+      <div class="label">Community</div>
+    </div> -->
+    <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item" [routerLink]="['maintenance']"
       [routerLinkActive]="['active-page']">
       <div class="icon">
         <svg width="23" height="25" viewBox="0 0 23 25">
@@ -91,7 +91,7 @@
         </svg>
       </div>
       <div class="label">Maintenance</div>
-    </div>
+    </div> -->
     <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item" [routerLink]="[ 'maintenancePlus']"
     [routerLinkActive]="['active-page']">
     <div class="icon">
@@ -118,7 +118,7 @@
           <use xlink:href="./assets/icons.svg#tenants"></use>
         </svg>
       </div>
-      <div class="label">Tenants</div>
+      <div class="label">Residents</div>
     </div>
     <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Collections')" class="menu-item" [routerLink]="[ 'collection']"
       [routerLinkActive]="['active-page']">

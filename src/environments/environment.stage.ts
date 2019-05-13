@@ -7,5 +7,13 @@ export const environment = {
   cloudinary_api_key: "311865418119719",
   google_api_key: "AIzaSyApxgg6Otq0GHeBHGjfgiynVyAilRvs4ig",
   stripe_client_id: "ca_BwOh3DndHVaDZKyEtbqxAof6ewLyApDp",
-  vendor_api_endpoint : "https://dev-maintenance.c2communities.com/"
+  vendor_api_endpoint : "https://dev-maintenance.c2communities.com/",
+  firebase: {
+    apiKey: 'AIzaSyAXqdv3S06g-cz1MEgKTf-kIpu-Albp3zM',
+    authDomain: 'vendors-ad641.firebaseapp.com',
+    databaseURL: 'https://vendors-ad641.firebaseio.com',
+    projectId: 'vendors-ad641',
+    storageBucket: 'vendors-ad641.appspot.com',
+    messagingSenderId: '229391124345'
+  }
 };

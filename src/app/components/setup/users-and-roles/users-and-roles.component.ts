@@ -78,7 +78,6 @@ export class UsersAndRolesComponent implements OnInit, UsersAndRoles {
 		})
 
 		this.getUsersData()
-
 	}
 
 	private getUsersData() {
@@ -92,6 +91,7 @@ export class UsersAndRolesComponent implements OnInit, UsersAndRoles {
 				dataFromServerFetched = true
 				this.companyService.getCompanyUsers(user.companyKey)
 					.then((data: any) => {
+						console.log(data);
 						if (data.users) {
 							this.mapServerData(data.users);
 							this.exposeUsers.emit({

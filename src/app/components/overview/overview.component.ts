@@ -9,6 +9,10 @@ import { Observable } from "rxjs/Observable";
 import { User } from "../../store/user/user.interface";
 import { Announcement } from '../../store/announcements/announcements.interface';
 
+import { environment } from "../../../environments/environment";
+import { Http, Response, Headers } from '@angular/http';
+import { ActivatedRoute, Router } from '@angular/router';
+
 @Component({
 	selector: 'overview',
 	templateUrl: './overview.component.html',
@@ -21,9 +25,13 @@ export class OverviewComponent implements OnInit {
 	user$: Observable<User>;
 	activeAnnouncemets$: Observable<Announcement[]>;
 
+	tempAnnouncemets;
 	toDoList;
 	apartmentCount;
 	tenantCount;
+	facilityCounters;
+	LastSync;
+	paymentsFromServer;
 
 	tickets;
 	inProgressCount = 0;
@@ -55,40 +63,113 @@ export class OverviewComponent implements OnInit {
 	occupiedApartment = 0;
 	vacantApartment = 0;
 
+	environment = environment;
+	complex;
+	maintenesCounters: any;
+
 	constructor(
+		private activatedRoute: ActivatedRoute,
 		private complexService: ComplexService,
-		private redux: NgRedux<AppState>
+		private redux: NgRedux<AppState>,
+		private http: Http
 	) {
+		// let lastWeek = moment().add(2, 'weeks').startOf('week');
+		// let lastWeekLabel = lastWeek.format('DD MMM') + ' - ' + lastWeek.endOf('week').format('DD MMM');
+		// this.toDoList = [{
+		// 	label: "Today",
+		// 	events: []
+		// }, {
+		// 	label: 'This Week',
+		// 	events: []
+		// }, {
+		// 	label: 'Next Week',
+		// 	events: []
+		// }, {
+		// 	label: lastWeekLabel,
+		// 	events: []
+		// }];
+
 		let lastWeek = moment().add(2, 'weeks').startOf('week');
 		let lastWeekLabel = lastWeek.format('DD MMM') + ' - ' + lastWeek.endOf('week').format('DD MMM');
+		let hour = 1 * 60 * 60 * 1000;
 		this.toDoList = [{
 			label: "Today",
-			events: []
+			events: [{
+				eventType: 'Tenants',
+				name: 'Move in Unit 101',
+				time: moment().utcOffset(0).set({ hour: 10, minute: 30, second: 0, millisecond: 0 }).format('hh:mm A')
+			}, {
+				eventType: 'Tenants',
+				name: 'Move in Unit 204',
+				time: moment().utcOffset(0).set({ hour: 12, minute: 30, second: 0, millisecond: 0 }).format('hh:mm A')
+			}, {
+				eventType: 'Maintenance',
+				name: 'Fire dept. inspection',
+				time: moment().utcOffset(0).set({ hour: 16, minute: 30, second: 0, millisecond: 0 }).format('hh:mm A')
+			}]
 		}, {
 			label: 'This Week',
-			events: []
+			events: [{
+				eventType: 'General',
+				name: 'Happy hour event',
+				time: moment().add(1, 'day').format('DD MMM')
+			}, {
+				eventType: 'Bookkeeping',
+				name: 'Send accounting report',
+				time: moment().add(1, 'day').format('DD MMM')
+			}]
 		}, {
 			label: 'Next Week',
-			events: []
+			events: [{
+				eventType: 'General',
+				name: 'Cleaning',
+				
+				time: moment().startOf('week').add(1, 'week').add(2, 'day').format('DD MMM')
+			}]
 		}, {
 			label: lastWeekLabel,
 			events: []
 		}];
+
+		this.tempAnnouncemets = [
+			{ message: 'Welcome to our community platform, powered by C2' },
+			{ message: 'Electricity will be off tomorrow starting 12:00PM' }
+		];
 	}
 
 	ngOnInit() {
-
 		this.user$ = this.redux.select(state => state.user)
 		this.company$ = this.redux.select(state => state.company)
 		this.activeAnnouncemets$ = this.redux.select((state: AppState) => state.announcements.active)
 
 		let subscription = this.company$.subscribe((company: Company) => {
 			if (company.currentComplex !== null && company.complexes.length > 0) {
-				this.getLastSync(company.currentComplex.key)
-				this.loadData()
+				this.complex = company.currentComplex;
+				//this.getLastSync(company.currentComplex.key)
+				this.loadData();
 				if (subscription) subscription.unsubscribe()
 			}
 		})
+
+		this.activatedRoute.queryParams.subscribe((params: any) => {
+			if (params.state && params.code) {
+				this.UpdateCommunityPaymentId(params.state, params.code)
+					.then(result => {
+						const res = result.json();
+						if (res.status) this.LastSync.accountIds.StripeConnect = params.code;
+						location.replace(location.href.split('?')[0])
+					})
+					.catch(err => console.log(err));
+			}
+		})
+	}
+
+	private UpdateCommunityPaymentId(communityId, code) {
+		var headers = new Headers();
+		headers.append('Content-Type', 'application/json; charset=utf-8');
+		headers.append('Authorization', 'Bearer ' + this.redux.getState().user.token);
+		const json = { code: code };
+		return this.http.post(this.environment.accounting_api_endpoint + 'Temp/' + communityId + '/stripe', json, { headers: headers }).toPromise();
 	}
 
 	private loadData() {
@@ -99,38 +180,90 @@ export class OverviewComponent implements OnInit {
 		// 		console.log('time to general overview', (Date.now() - time) / 1000)
 		// 	})
 
-		this.complexService.getEventsOverview()
-			.then((data: any) => {
-				if (data.items) {
-					data.items.forEach(event => {
-						event.time = moment(+event.startDate).format('DD MMM YY');
-						let eventDay = moment(+event.startDate);
-						if (eventDay.isSame(moment(), 'day')) {
-							this.toDoList[0].events.push(event);
-							event.time = moment(+event.startDate).format('hh:mm A');
-						}
-						else if (eventDay.isSame(moment(), 'week')) this.toDoList[1].events.push(event);
-						else if (eventDay.isSame(moment().add(1, 'week'), 'week')) this.toDoList[2].events.push(event);
-						else if (eventDay.isSame(moment().add(2, 'week'), 'week')) this.toDoList[3].events.push(event);
-					})
-					this.toDoList.forEach(day => {
-						day.events.sort((eventA, eventB) => {
-							if (eventA.startDate > eventB.startDate) return 1
-							if (eventA.startDate < eventB.startDate) return -1
-							return 0;
-						})
-					})
-				}
-			})
+		var headers = new Headers();
+		headers.append('Content-Type', 'application/json; charset=utf-8');
+		headers.append('Authorization', 'Bearer ' + this.redux.getState().user.token);
+		this.http.get(this.environment.accounting_api_endpoint + 'Temp/' + this.complex.code + '/LastSync', { headers: headers })
+			.toPromise().then(res => {
+				this.LastSync = res.json();
 
-		this.complexService.getTenantCount()
-			.then((data: any) => {
-				this.apartmentCount = data.apartmentCount;
-				this.tenantCount = data.tenantCount;
-			})
-			.catch(_ => {
+				//console.log(this.LastSync);
 
-			})
+				let last = new Date(this.LastSync.lastSyncTenants);
+				last.setHours(last.getHours() + last.getTimezoneOffset() / 60);
+				let next = new Date(last);
+				next.setHours(next.getHours() + 12);
+				var options = { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+
+				this.LastSync.lastSyncT = last.toLocaleDateString("en-US", options);
+				this.LastSync.lastSyncTN = next.toLocaleDateString("en-US", options);
+
+				let lastTR = new Date(this.LastSync.lastSyncTransactions);
+				lastTR.setHours(lastTR.getHours() + lastTR.getTimezoneOffset() / 60);
+				let nextTR = new Date(lastTR);
+				nextTR.setHours(nextTR.getHours() + 3);
+
+				this.LastSync.lastSyncTR = lastTR.toLocaleDateString("en-US", options);
+				this.LastSync.lastSyncTRN = nextTR.toLocaleDateString("en-US", options);
+			}).catch();
+
+		var headers = new Headers();
+		headers.append('Content-Type', 'application/json; charset=utf-8');
+		headers.append('Authorization', 'Bearer ' + this.redux.getState().user.token);
+		this.http.get(this.environment.accounting_api_endpoint + 'Temp/' + this.complex.code + '/OverviewFacility', { headers: headers })
+			.toPromise().then(res => {
+				this.facilityCounters = res.json();
+				this.facilityCounters.unitsP = 100;
+				this.facilityCounters.occupiedUnitsP = (this.facilityCounters.occupiedUnits / this.facilityCounters.units * this.facilityCounters.unitsP).toFixed(2);
+				this.facilityCounters.availableUnitsP = (this.facilityCounters.availableUnits / this.facilityCounters.units * this.facilityCounters.unitsP).toFixed(2);
+			}).catch();
+
+		this.http.get(this.environment.vendor_api_endpoint + 'manager/GetTicketsCounts/' + this.complex.key, { headers: headers })
+			.toPromise().then(res => {
+				this.maintenesCounters = res.json();
+				//console.log(this.maintenesCounters);
+			}).catch();
+
+		var headers = new Headers();
+		headers.append('Content-Type', 'application/json; charset=utf-8');
+		headers.append('Authorization', 'Bearer ' + this.redux.getState().user.token);
+		this.http.get(this.environment.accounting_api_endpoint + 'Temp/' + this.complex.code + '/analytics', { headers: headers })
+			.toPromise().then(res => {
+				this.paymentsFromServer = res.json();
+			}).catch(err => console.log(err));
+
+		// this.complexService.getEventsOverview()
+		// 	.then((data: any) => {
+		// 		if (data.items) {
+		// 			data.items.forEach(event => {
+		// 				event.time = moment(+event.startDate).format('DD MMM YY');
+		// 				let eventDay = moment(+event.startDate);
+		// 				if (eventDay.isSame(moment(), 'day')) {
+		// 					this.toDoList[0].events.push(event);
+		// 					event.time = moment(+event.startDate).format('hh:mm A');
+		// 				}
+		// 				else if (eventDay.isSame(moment(), 'week')) this.toDoList[1].events.push(event);
+		// 				else if (eventDay.isSame(moment().add(1, 'week'), 'week')) this.toDoList[2].events.push(event);
+		// 				else if (eventDay.isSame(moment().add(2, 'week'), 'week')) this.toDoList[3].events.push(event);
+		// 			})
+		// 			this.toDoList.forEach(day => {
+		// 				day.events.sort((eventA, eventB) => {
+		// 					if (eventA.startDate > eventB.startDate) return 1
+		// 					if (eventA.startDate < eventB.startDate) return -1
+		// 					return 0;
+		// 				})
+		// 			})
+		// 		}
+		// 	});
+
+		// this.complexService.getTenantCount()
+		// 	.then((data: any) => {
+		// 		this.apartmentCount = data.apartmentCount;
+		// 		this.tenantCount = data.tenantCount;
+		// 	})
+		// 	.catch(_ => {
+
+		// 	})
 
 		// this.complexService.getPaymentsOverview()
 		// 	.then((data: any) => {
@@ -138,32 +271,30 @@ export class OverviewComponent implements OnInit {
 		// 		this.payments = data
 		// 	})
 
-		this.complexService.getTicketsOverview()
-			.then((data: any) => {
-				this.tickets = data.items;
-				if (this.tickets) this.countTicketTypes();
-			})
+		// this.complexService.getTicketsOverview()
+		// 	.then((data: any) => {
+		// 		this.tickets = data.items;
+		// 		if (this.tickets) this.countTicketTypes();
+		// 	})
 
-		this.complexService.getAllApartmentLeasesFromComplex()
-			.then((data) => {
-				this.occupiedApartment = data.occupied;
-				this.vacantApartment = data.total - data.occupied;
-			})
+		// this.complexService.getAllApartmentLeasesFromComplex()
+		// 	.then((data) => {
+		// 		this.occupiedApartment = data.occupied;
+		// 		this.vacantApartment = data.total - data.occupied;
+		// 	})
 
 	}
 
 	private countTicketTypes() {
 		let i = 0
-			this.tickets.forEach(t => {
-				
-				if (t.status == "In_Progress") this.inProgressCount++;
-				else if (t.status == this.statuses.New) this.newCount++;
-				else if (t.status == this.statuses.Vendor) this.vendorsCount++;
+		this.tickets.forEach(t => {
 
-				t.dateCreated = moment(+t.dateCreated).format('DD MMM YY hh:mm A')
-			})
-	
-	
+			if (t.status == "In_Progress") this.inProgressCount++;
+			else if (t.status == this.statuses.New) this.newCount++;
+			else if (t.status == this.statuses.Vendor) this.vendorsCount++;
+
+			t.dateCreated = moment(+t.dateCreated).format('DD MMM YY hh:mm A')
+		})
 	}
 
 	getLastSync(complexKey) {
@@ -204,4 +335,7 @@ export class OverviewComponent implements OnInit {
 		}
 	}
 
+	goToStripeConnect() {
+		location.replace(`https://connect.stripe.com/oauth/authorize?redirect_uri=${location.href}&client_id=${this.environment.stripe_client_id}&state=${this.complex.key}&response_type=code&scope=read_write`)
+	}
 }

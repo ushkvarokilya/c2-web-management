@@ -3,9 +3,11 @@
 		<div class="panel to-do">
 			<div class="panel-header">
 				<div class="panel-label">TO DO LIST</div>
-				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility') && (user$ |async)?.viewPermissions?.includes('Calendar')"
-				 class="panel-link">
-					<a [routerLink]="['../', 'facility']">See Calendar</a>
+				<div
+					*ngIf="(user$ |async)?.viewPermissions?.includes('Facility') && (user$ |async)?.viewPermissions?.includes('Calendar')"
+					class="panel-link">
+					<a >See Calendar</a>
+					<!-- [routerLink]="['../', 'facility']" -->
 				</div>
 			</div>
 			<div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="days">
@@ -49,55 +51,81 @@
 	<div class="col">
 		<div class="panel maintenance">
 			<div class="panel-header">
-				<div class="panel-label">MAINTENANCE</div>
+				<div class="panel-label">MAINTENANCE+</div>
 				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="panel-link">
-					<a [routerLink]="['../', 'maintenance']">View All Tickets</a>
+					<!-- <a [routerLink]="['../', 'maintenancePlus']">View All Tickets</a> -->
+					Community ( {{maintenesCounters?.public_tickets || 0}} ) , Apartments (
+					{{maintenesCounters?.apartment_tickets || 0}} )
 				</div>
 			</div>
 			<div class="counters">
-				<div class="counter new">
-					<div class="num">{{newCount}}</div>
+				<div class="counter Open">
+					<div class="num">{{maintenesCounters?.tickets_Open || 0}}</div>
 					<div class="coutner-label">
-						New Tickets
+						Open Tickets
 					</div>
 				</div>
-				<div class="counter inProgress">
-					<div class="num">{{inProgressCount}}</div>
+				<div class="counter Assigned">
+					<div class="num">{{maintenesCounters?.tickets_Assigned || 0}}</div>
+					<div class="coutner-label">
+						Assigned
+					</div>
+				</div>
+				<div class="counter In_Progress">
+					<div class="num">{{maintenesCounters?.tickets_In_Progress || 0}}</div>
 					<div class="coutner-label">
 						In Progress
 					</div>
 				</div>
-				<div class="counter vendor-required">
-					<div class="num">{{vendorsCount}}</div>
+			</div>
+			<div class="counters">
+				<div class="counter Vendor_Required">
+					<div class="num">{{maintenesCounters?.tickets_Vendors_Required || 0}}</div>
 					<div class="coutner-label">
-						Vendros Required
+						Vendors Required
+					</div>
+				</div>
+				<div class="counter Auction_Created">
+					<div class="num">{{maintenesCounters?.tickets_Auction_Created || 0}}</div>
+					<div class="coutner-label">
+						Request Sent
+					</div>
+				</div>
+				<div class="counter Vendor_Assigned">
+					<div class="num">{{maintenesCounters?.tickets_Vendor_Assigned || 0}}</div>
+					<div class="coutner-label">
+						Vendor Assigned
 					</div>
 				</div>
 			</div>
-			<div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="tickets">
-				<div [class]="'ticket ' + ticket.status" *ngFor="let ticket of tickets">
-					<div class="apt">
-						<span *ngIf="ticket.problemArea !== 'complexArea'">{{ticket.moreInfo[0].apartmentName ? ticket.moreInfo[0].apartmentName : (ticket.moreInfo[1].apartmentName ? ticket.moreInfo[1].apartmentName : '')}}</span>
-						<svg class="img-vertical-center" *ngIf="ticket.problemArea === 'complexArea'" width="27" height="20" viewBox="0 0 27 20">
-							<use xlink:href="./assets/icons.svg#facility"></use>
-						</svg>
+			<div class="counters">
+				<div class="counter Vendor_In_Progress">
+					<div class="num">{{maintenesCounters?.tickets_Vendor_In_Progress || 0}}</div>
+					<div class="coutner-label">
+						Vendor In Progress
 					</div>
-					<div class="num-type">
-						<div class="ticket-num">{{ticket.ticketNumber}}</div>
-						<div class="ticket-type">{{statuses[ticket.status]}}</div>
+				</div>
+				<div class="counter Vendor_Resolved">
+					<div class="num">{{maintenesCounters?.tickets_Vendor_Resolved || 0}}</div>
+					<div class="coutner-label">
+						Vendor Resolved
 					</div>
-					<div class="label">{{ticket.problemDescription}}</div>
-					<div class="date">
-						<div>{{ticket.dateCreated}}</div>
+				</div>
+				<div class="counter Resolved">
+					<div class="num">{{maintenesCounters?.tickets_Resolved || 0}}</div>
+					<div class="coutner-label">
+						Resolved
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="panel announcements">
+
+		<!-- <div class="panel announcements">
 			<div class="panel-header">
 				<div class="panel-label">ANNOUNCEMENTS</div>
 				<div class="panel-link">
-					<a *ngIf="(user$ |async)?.viewPermissions?.includes('Announcements')" [routerLink]="['../', 'announcements']">View all & Edit</a>
+					<a *ngIf="(user$ |async)?.viewPermissions?.includes('Announcements')"
+						[routerLink]="['../', 'announcements']">View all & Edit</a>
 				</div>
 			</div>
 			<div class="no-announcemets" *ngIf="(activeAnnouncemets$ | async).length == 0">
@@ -110,7 +138,8 @@
 							{{announcement.message}}
 						</div>
 						<div class="ann-date">
-							<span *ngIf="announcement.scheduled.from">{{getScheduleDate(announcement.scheduled.from)}} - {{getScheduleDate(announcement.scheduled.to)}}</span>
+							<span *ngIf="announcement.scheduled.from">{{getScheduleDate(announcement.scheduled.from)}} -
+								{{getScheduleDate(announcement.scheduled.to)}}</span>
 						</div>
 					</div>
 				</div>
@@ -127,10 +156,48 @@
 					</div>
 				</div>
 				<div class="bullets">
-					<div class="bullet" *ngFor="let a of (activeAnnouncemets$ | async); let annIndex = index" [ngClass]="{'active': carouselStep == annIndex}"></div>
+					<div class="bullet" *ngFor="let a of (activeAnnouncemets$ | async); let annIndex = index"
+						[ngClass]="{'active': carouselStep == annIndex}"></div>
+				</div>
+			</div>
+		</div> -->
+		<div class="panel announcements">
+			<div class="panel-header">
+				<div class="panel-label">ANNOUNCEMENTS</div>
+				<div class="panel-link"></div>
+			</div>
+			<div class="no-announcemets" *ngIf="tempAnnouncemets.length == 0">
+				<p>No Active Announcements</p>
+			</div>
+			<div class="carousel-wraper" *ngIf="tempAnnouncemets.length > 0">
+				<div id="carousel" class="carousel" style="left: 0;">
+					<div class="announcemet" *ngFor="let announcement of tempAnnouncemets">
+						<div class="label">
+							{{announcement.message}}
+						</div>
+						<div class="ann-date">
+						</div>
+					</div>
+				</div>
+				<div class="controllers">
+					<div class="right-arrow" (click)="moveCarouselRight()">
+						<svg width="10" height="18" viewBox="0 0 10 18" stroke="#989898">
+							<use xlink:href="./assets/icons.svg#arrow"></use>
+						</svg>
+					</div>
+					<div class="left-arrow" (click)="moveCarouselLeft()">
+						<svg width="10" height="18" viewBox="0 0 10 18" stroke="#989898">
+							<use xlink:href="./assets/icons.svg#arrow"></use>
+						</svg>
+					</div>
+				</div>
+				<div class="bullets">
+					<div class="bullet" *ngFor="let a of tempAnnouncemets; let annIndex = index"
+						[ngClass]="{'active': carouselStep == annIndex}"></div>
 				</div>
 			</div>
 		</div>
+
 	</div>
 	<div class="col">
 		<!-- <div class="panel collection" *ngIf="payments && (user$ |async)?.viewPermissions?.includes('Collections')">
@@ -159,31 +226,90 @@
 				<b>{{payments.overdueSum | currency:'USD':'symbol':'1.0-2'}}</b> &nbsp; <span>{{payments.overdueCount}} overdue payments</span>
 			</div>
 		</div> -->
+		<div class="panel">
+			<div class="panel-header">
+				<div class="panel-label">SYSTEM STATUS</div>
+			</div>
+			<div class="row" style="display:flex; padding: 10px 0px 10px 20px;">
+				<div style="font-size:12px;flex: 50%;">
+					<div style="color:#00b8a0"><b>Last Synced</b></div>
+					<p style="margin: auto; color:#909090"><b>Residents:</b> {{LastSync?.lastSyncT}}</p>
+					<p style="margin: auto; color:#909090"><b>Transactions:</b> {{LastSync?.lastSyncTR}}</p>
+				</div>
+				<div style="font-size:12px;flex: 50%;">
+					<div style="color:#00b8a0"><b>Next Sync cycle</b></div>
+					<p style="margin: auto; color:#909090"><b>Residents:</b> {{LastSync?.lastSyncTN}}</p>
+					<p style="margin: auto; color:#909090"><b>Transactions:</b> {{LastSync?.lastSyncTRN}}</p>
+				</div>
+			</div>
+		</div>
+
 		<div class="panel facility">
 			<div class="panel-header">
-				<div class="panel-label facility-panel">FACILITY</div>
-				<div class="last-sync">Last Sync: <span> {{lastSync}} </span> </div>
+				<div class="panel-label facility-panel">STATISTICS</div>
+				<!-- <div class="last-sync">Last Sync: <span> {{lastSync}} </span> </div> -->
 			</div>
 			<div class="row">
 				<div class="col">
-					<div class="num">{{tenantCount || 0}}</div>
-					<div class="label">Tenants</div>
+					<div class="num">{{facilityCounters?.units || 0}}</div>
+					<div class="label"><b>Total</b><br> Units</div>
+					<div style="color:#909090"> {{facilityCounters?.units ? 100 : 0}}%</div>
 				</div>
 				<div class="col">
-					<div class="num">{{occupiedApartment || 0}}</div>
-					<div class="label"><b>Occupied</b> Units</div>
+					<div class="num">{{facilityCounters?.occupiedUnits || 0}}</div>
+					<div class="label"><b>Occupied</b><br> Units</div>
+					<div style="color:#909090"> {{facilityCounters?.occupiedUnitsP || 0}}%</div>
 				</div>
 				<div class="col">
-					<div class="num">{{vacantApartment || 0}}</div>
-					<div class="label"><b>Vacant</b> Units</div>
+					<div class="num">{{facilityCounters?.availableUnits || 0}}</div>
+					<div class="label"><b>Available</b><br> Units</div>
+					<div style="color:#909090"> {{facilityCounters?.availableUnitsP || 0}}%</div>
+				</div>
+				<div class="col">
+					<div class="num">{{facilityCounters?.residents || 0}}</div>
+					<div class="label"><b>Total</b><br> Residents</div>
 				</div>
 			</div>
-			<div class="button">
-				<button *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="c2-ok-button" [routerLink]="['../setup', 'company']"
-				 [queryParams]="{ stage: 'facilities' }">EDIT FACILITY</button>
-				<!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="menu-item" [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'facilities' }">Edit Facilities</div> -->
+			<!-- <div class="button">
+				<button *ngIf="(user$ |async)?.actionPermissions?.includes('Facility')" class="c2-ok-button"
+					[routerLink]="['../setup', 'company']" [queryParams]="{ stage: 'facilities' }">EDIT
+					FACILITY</button> -->
+			<!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Facility')" class="menu-item" [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'facilities' }">Edit Facilities</div> -->
+			<!-- </div> -->
+		</div>
+
+		<div class="panel collection" *ngIf="paymentsFromServer && (user$ |async)?.viewPermissions?.includes('Collections')"
+			style="height: 33%;">
+			<div class="panel-header">
+				<div class="panel-label">COLLECTION</div>
+				<div *ngIf="(user$ |async)?.viewPermissions?.includes('Collections')" class="panel-link">
+					<!-- <a [routerLink]="['../', 'collection']">View All Payments</a> -->
+				</div>
+			</div>
+			<div class="cards">
+				<div class="card paid">
+					<div class="num">{{paymentsFromServer.openCharges | currency:'USD':'symbol':'1.0-2'}}</div>
+					<div class="label">Open charges</div>
+				</div>
+				<div class="card havent-paid">
+					<div class="num">{{paymentsFromServer.successfulPayments | currency:'USD':'symbol':'1.0-2'}}</div>
+					<div class="label">Payments this month</div>
+				</div>
 			</div>
 		</div>
+
+		<!--  -->
+		<div class="panel" *ngIf="LastSync?.accountIds.StripeConnect === '' ">
+			<div class="panel-header">
+				<div class="panel-label">CONNECT TO STRIPE</div>
+			</div>
+			<div class="row" style="text-align: center; padding: 10px 0px 10px 20px;">
+				<span class="stripe-connect-button" (click)="goToStripeConnect()">
+					<span>Connect with Stripe</span>
+				</span>
+			</div>
+		</div>
+
 	</div>
 	<div class="footer">
 		&copy; All rights reserved C² 2017

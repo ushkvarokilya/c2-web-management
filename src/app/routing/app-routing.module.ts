@@ -31,6 +31,7 @@ const routes: Routes = [
   { path: 'facility', component: FacilityPageComponent, canActivate: [AuthGuard] },
   { path: 'maintenance', component: MaintenancePageComponent, canActivate: [AuthGuard] },
   { path: 'maintenancePlus', component: MaintenancePlusComponent, canActivate: [AuthGuard] },
+  { path: 'maintenancePlus/:key', component: MaintenancePlusComponent, canActivate: [AuthGuard] },
   { path: 'vendors', component: VendorsPageComponent, canActivate: [AuthGuard] },
   { path: 'tenants', component: TenantsPageComponent, canActivate: [AuthGuard] },
   { path: 'collection', component: CollectionPageComponent, canActivate: [AuthGuard] },

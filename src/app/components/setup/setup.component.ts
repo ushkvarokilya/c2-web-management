@@ -54,7 +54,6 @@ export class SetupCompanyPageComponent implements OnInit {
 	}
 
 	ngOnInit() {
-
 		this.activatedRoute.queryParams.subscribe((params: any) => {
 			if (params.stage) this.stage = params.stage
 			else this.stage = this.COMPANYDETAILS

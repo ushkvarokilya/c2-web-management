@@ -113,14 +113,14 @@ export class AppComponent implements OnInit {
 
   initState() {
     this.companyService.getDetails();
-    this.complexService.loadCurrentComplexTenants()
-      .then(() => { }, err => { });
-    this.announcementService.loadAnnouncementsOfCurrentComplex();
-    this.messagesService.initMessages(true);
-    this.notifactionsService.initNotifications();
-    if (environment.production) {
-      setInterval(() => this.messagesService.initMessages(true), 5000)
-    }
+    // this.complexService.loadCurrentComplexTenants()
+    //   .then(() => { }, err => { });
+    // this.announcementService.loadAnnouncementsOfCurrentComplex();
+    // this.messagesService.initMessages(true);
+    // this.notifactionsService.initNotifications();
+    // if (environment.production) {
+    //   setInterval(() => this.messagesService.initMessages(true), 5000)
+    // }
   }
 
   toggleMenu(type) {
@@ -149,6 +149,4 @@ export class AppComponent implements OnInit {
   isInAmenityPage() {
     return /\/amenity\/.*/.test(this.router.url)
   }
-
-
 }

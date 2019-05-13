@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { NgRedux, select } from '@angular-redux/store';
-import { Http, Headers } from '@angular/http';
+import { Http, Response, Headers } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
 import { AppHttpService } from './shared/http';
@@ -11,12 +11,13 @@ import * as CompanyActions from '../store/company/company.ac';
 
 import { environment } from "../../environments/environment";
 
+
 @Injectable()
 export class UserService {
-
+	environment = environment;
 	private headers: Headers;
 
-	constructor(private http: AppHttpService, private redux: NgRedux<AppState>) {
+	constructor(private http: AppHttpService, private redux: NgRedux<AppState>, private httpTEST: Http) {
 		this.headers = new Headers({ 'Content-Type': 'application/json' });
 	}
 
@@ -40,19 +41,51 @@ export class UserService {
 		this.redux.dispatch(UserActions.setToken(token))
 	}
 
+	// private getManagerProfile(user) {
+	// 	return this.http.get(`/manager/${user.key}`, { 'Authorization': 'Bearer ' + user.token })
+	// 		.then((data: any) => {
+	// 			localStorage.setItem('user_details', JSON.stringify({ email: data.email, firstName: data.firstName, lastName: data.lastName, position:data.position }));
+	// 			this.redux.dispatch(UserActions.loggedin(user.token, data.companyKey, user.key, data.position, data.firstName, data.lastName, data.email, data.photoUrl, data.viewPermissions, data.actionPermissions, data.isJanitor, data.isLocationManager, data.isRegionalManager));
+	// 			this.redux.dispatch(CompanyActions.setComplexes(data.complexes));
+	// 			if (data.complexes) {
+	// 				let complexIndex = this.redux.getState().company.complexes.findIndex(c => c.key == this.redux.getState().user.currentComplexKey);
+	// 				if (complexIndex === -1) complexIndex = 0;
+	// 				this.redux.dispatch(CompanyActions.setCurrentComplex(complexIndex));
+	// 			}
+	// 			return Promise.resolve(data.complexes);
+	// 		})
+	// 		.catch(err => this.http.commonCatchAndReject(err, 'UserService', 'getManagerProfile'))
+	// }
+
 	private getManagerProfile(user) {
-		return this.http.get(`/manager/${user.key}`, { 'Authorization': 'Bearer ' + user.token })
-			.then((data: any) => {
-				this.redux.dispatch(UserActions.loggedin(user.token, data.companyKey, user.key, data.position, data.firstName, data.lastName, data.email, data.photoUrl, data.viewPermissions, data.actionPermissions, data.isJanitor, data.isLocationManager, data.isRegionalManager));
-				this.redux.dispatch(CompanyActions.setComplexes(data.complexes));
-				if (data.complexes) {
-					let complexIndex = this.redux.getState().company.complexes.findIndex(c => c.key == this.redux.getState().user.currentComplexKey);
-					if (complexIndex === -1) complexIndex = 0;
-					this.redux.dispatch(CompanyActions.setCurrentComplex(complexIndex));
+		return new Promise((resolve, reject) => {
+			let xmlHttp = new XMLHttpRequest();
+			xmlHttp.onreadystatechange = () => {
+				if (xmlHttp.readyState == XMLHttpRequest.DONE) {
+					if (xmlHttp.status >= 200 && xmlHttp.status <= 204) {
+						let jsonText = xmlHttp.responseText;
+						if (jsonText && typeof jsonText == 'string' && jsonText.length > 0) resolve(JSON.parse(jsonText))
+						else resolve(jsonText);
+					} else {
+						reject({ status: xmlHttp.status, message: xmlHttp.responseText })
+					}
 				}
-				return Promise.resolve(data.complexes);
-			})
-			.catch(err => this.http.commonCatchAndReject(err, 'UserService', 'getManagerProfile'))
+			}
+			xmlHttp.open("GET", this.environment.accounting_api_endpoint + 'UserData/' + user.key + '/manager', true);
+			xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			xmlHttp.setRequestHeader('Authorization', 'Bearer ' + user.token);
+			xmlHttp.send();
+		}).then((data: any) => {
+			localStorage.setItem('user_details', JSON.stringify({ email: data.email, firstName: data.firstName, lastName: data.lastName, position: data.position, companyKey: data.companyId}));
+			this.redux.dispatch(UserActions.loggedin(user.token, data.companyId, user.key, data.position, data.firstName, data.lastName, data.email, data.photoUrl, data.viewPermissions, data.actionPermissions, data.isJanitor, data.isLocationManager, data.isRegionalManager));
+			this.redux.dispatch(CompanyActions.setComplexes(data.properties));
+			if (data.properties) {
+				let complexIndex = this.redux.getState().company.complexes.findIndex(c => c.key == this.redux.getState().user.currentComplexKey);
+				if (complexIndex === -1) complexIndex = 0;
+				this.redux.dispatch(CompanyActions.setCurrentComplex(complexIndex));
+			}
+			return Promise.resolve(data.properties);
+		}).catch(err => this.http.commonCatchAndReject(err, 'UserService', 'getManagerProfile'));
 	}
 
 	login(email, password) {

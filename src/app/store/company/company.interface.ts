@@ -11,7 +11,8 @@ export interface Complex{
 	address: string
 	imageUrl: string
 	tenants?: Tenant[]
-	notificationCount: number
+	notificationCount: number,
+	code: string
 }	
 
 export interface Tenant{

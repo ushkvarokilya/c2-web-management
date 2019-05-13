@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2, ɵConsole } from '@angular/core';
 import { NgRedux, select } from '@angular-redux/store';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -18,21 +18,30 @@ import { DatePipe } from '@angular/common';
 import { tick } from '@angular/core/testing';
 import { Http, Response, Headers } from '@angular/http';
 import { ignoreElements } from 'rxjs/operator/ignoreElements';
-import { filter, takeWhile, concatAll } from 'rxjs/operators';
+import { filter, takeWhile, concatAll, map } from 'rxjs/operators';
 
 import { Lightbox } from 'angular2-lightbox';
+import { AngularFireDatabase, AngularFireList, AngularFireAction } from '@angular/fire/database';
+import { MatSnackBar } from '@angular/material';
+import { speedDialFabAnimations } from './speed-dial-fab.animations';
+//import moment = require('moment');
+
 @Component({
   selector: 'app-maintenance-plus',
   templateUrl: './maintenance-plus.component.html',
   styleUrls: ['./maintenance-plus.component.scss'],
+  animations: speedDialFabAnimations,
   host: {
-		'(document:click)': 'onDocumentClick($event)',
-	}
+    '(document:click)': 'onDocumentClick($event)',
+  }
 })
 export class MaintenancePlusComponent implements OnInit {
 
   @select() user$: Observable<User>
   @select() company$: Observable<Company>
+
+  itemsRef: AngularFireList<any>;
+  items: Observable<any[]>;
 
   expandPayment = false
   searchQuery
@@ -67,6 +76,7 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   OpenNum = 0
+  AssignedNum = 0
   InProgressNum = 0
   ResolvedNum = 0
   DoneNum = 0
@@ -110,6 +120,8 @@ export class MaintenancePlusComponent implements OnInit {
   key
 
   vendorServer = environment.vendor_api_endpoint;
+  accountingServer = environment.accounting_api_endpoint;
+  redirectUrlVendors = environment.redirect_url_vendors;
 
   showEditInfo = false;
 
@@ -136,10 +148,22 @@ export class MaintenancePlusComponent implements OnInit {
 
   facilities;
   users;
-  jusers;
+  jusers = [];
 
   uploadProgresspercentage = 0;
   private _albums = [];
+
+  complex;
+  currentComplexKey = localStorage.getItem('currentComplexKey');
+  vendorsToken = localStorage.getItem('vendorsToken');
+  companyKey;
+
+  openTicket = false;
+  openTicketNext = true;
+  newTicket;
+  areaZone;
+  unitNumber = null;
+
   constructor(private redux: NgRedux<AppState>,
     private activatedRoute: ActivatedRoute,
     private router: Router,
@@ -149,7 +173,10 @@ export class MaintenancePlusComponent implements OnInit {
     private messagesService: MessagingService,
     private vendorService: VendorService,
     private http: Http,
-    private _lightbox: Lightbox
+    private _lightbox: Lightbox,
+    public db: AngularFireDatabase,
+    public snackBar: MatSnackBar,
+    private renderer: Renderer2
   ) {
 
     this.hours = []
@@ -157,6 +184,13 @@ export class MaintenancePlusComponent implements OnInit {
     this.minutes = []
     for (let i = 0; i <= 59; i++) this.minutes.push(i)
 
+    this.itemsRef = db.list('messages');
+    // Use snapshotChanges().map() to store the key
+    this.items = this.itemsRef.snapshotChanges().pipe(
+      map(changes =>
+        changes.map(c => ({ key: c.payload.key, ...c.payload.val() }))
+      )
+    );
   }
 
   ngOnInit() {
@@ -165,114 +199,162 @@ export class MaintenancePlusComponent implements OnInit {
     }
 
     this.user$.subscribe(user => {
+      //console.log(user);
       this.email = user.email;
       this.position = user.position;
       this.displayName = user.firstName + ' ' + user.lastName;
       this.key = user.key;
+      this.companyKey = user.companyKey;
+
       if (user.isJanitor) {
         this.show = "Janitor"
       } else {
         this.show = "Location Manager"
       }
     })
- 
-    let dataFromServerFetched = false;
-    let keys = [];
-    this.user$
-    .pipe(
-      filter(user => user.token !== null),
-      takeWhile(_ => !dataFromServerFetched)
-    )
-    .subscribe(user => {
-      dataFromServerFetched = true
-      this.companyService.getComplexesDetailed(user.companyKey)
-        .then((data: any) => {this.facilities = data.facilities;
-          let facility = data.facilities.find(f => f.key === localStorage.getItem('currentComplexKey'));
-          keys = facility.janitorKeys;
-          })
-          setTimeout(()=>{ 
-            this.companyService.getCompanyUsers(user.companyKey)
-            .then((data: any) => {
-              this.users = data.users;
-              this.jusers =  data.users.filter(u =>keys.includes(u.key));
-            })
-          }, 2000)
 
+    //let dataFromServerFetched = false;
+    //let keys = [];
+    // this.user$
+    //   .pipe(
+    //     filter(user => user.token !== null),
+    //     takeWhile(_ => !dataFromServerFetched)
+    //   )
+    //   .subscribe(user => {
+    //     dataFromServerFetched = true
+    //     let comKey = 'ag9lfmMyLWRldi1zZXJ2ZXJyFAsSB0NvbXBhbnkYgICAgL_-1gkM';
+    //     //user.companyKey
+    //     this.companyService.getComplexesDetailed(comKey)
+    //       .then((data: any) => {
+    //         //console.log(data);
+    //         this.facilities = data.facilities;
+    //         let facility = data.facilities.find(f => f.key === localStorage.getItem('currentComplexKey'));
+    //         keys = facility.janitorKeys;
+    //       })
+    //     setTimeout(() => {
+    //       this.companyService.getCompanyUsers(comKey)
+    //         .then((data: any) => {
+    //           this.users = data.users;
+    //           this.jusers = data.users;
+    //           //console.log(this.users);
+    //           //console.log(this.jusers);
+    //         })
+    //     }, 2000)
+    //   })
+
+    this.company$.subscribe((company: Company) => {
+      if (company.currentComplex !== null && !this.dataLoaded) {
+        this.complexKey = company.currentComplex.key
+        this.complex = company.currentComplex;
+        //console.log(company);
+        //this.loadTickets()
+
+        this.connectToVendors();
+        this.LoadEmployees();
+        this.GetTicketsFromVendors();
+        this.dataLoaded = true
+      }
     })
 
-    // this.company$.subscribe((company: Company) => {
-    //   if (company.currentComplex !== null && !this.dataLoaded) {
-    //     this.complexKey = company.currentComplex.key
-    //     //this.loadTickets()
-    //     this.dataLoaded = true
-    //   }
-    // })
-   
     this.activatedRoute.params.subscribe((params: any) => {
-      if (params.searchQuery) this.searchQuery = params.searchQuery
+      if (params.searchQuery) this.searchQuery = params.searchQuery;
+      if (params['key']) this.searchQuery = params['key'];
+    })
+
+    this.activatedRoute.queryParams.subscribe((params: any) => {
+      //console.log(params);
     })
 
     this.initChooseVendor()
-
-    //this.connectToVendors();
-    this.GetTicketsFromVendors();
   }
 
   ngAfterContentInit() {
     this.LoadCategories();
   }
 
-  selectJanitor(user,ticket){
+  selectJanitor(user, ticket) {
     ticket.selectedJanitor = user;
-    return true;  
+    return true;
+  }
+
+  addItem(newName: string) {
+    this.itemsRef.push({ text: newName });
+  }
+  updateItem(key: string, newText: string) {
+    this.itemsRef.update(key, { text: newText });
+  }
+  deleteItem(key: string) {
+    this.itemsRef.remove(key);
+  }
+  deleteEverything() {
+    this.itemsRef.remove();
   }
 
   LoadCategories() {
+    let vendorsToken = localStorage.getItem('vendorsToken');
     var headers = new Headers();
     headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.get(this.vendorServer + 'api/Categories', { headers: headers }).subscribe(
+    headers.append('Authorization', 'Bearer ' + vendorsToken);
+    this.http.get(this.vendorServer + 'manager/GetCategories/', { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        this.categories = t.categorieslist;
+        //console.log(t);
+        this.categories = t.categories;
+      });
+  }
+
+  LoadEmployees() {
+    var headers = new Headers();
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.get(this.vendorServer + 'manager/getEmployees/' + this.companyKey, { headers: headers })
+      .subscribe((res: Response) => {
+        const data = res.json();
+        //console.log('manager/getEmployees/All', data);
+        data.employees.forEach(emp => {
+          emp.communities.forEach(x => {
+            if (x.communityId == this.complex.key) {
+              this.jusers.push(emp);
+            }
+          })
+        });
+        //console.log('manager/getEmployees/In', this.jusers);
       });
   }
 
   LoadCategoriesdialog(ticket) {
     this.showEditInfo = true;
     this.ticketCategory = ticket;
-    this.mainCategory = this.categories.find(t => t.proname === ticket.TicketTitle);
+    this.mainCategory = this.categories.find(t => t.categoryName === ticket.TicketTitle);
     this.subCategory = ticket.TicketSubTitle;
   }
 
   updateTitleAndSubtitle(ticket, category, sub) {
-    ticket.TicketTitle = category;
-    ticket.TicketSubTitle = sub;
-    ticket.lastUpdateFullname = this.displayName;
-    ticket.lastUpdateEmail = this.email;
-    ticket.lastUpdatePosition = this.position;
+    let currentComplexKey = localStorage.getItem('currentComplexKey');
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        FacilityId: ticket.FacilityId,
-        TicketStatus: ticket.status,
-        AppId: ticket.AppId,
-        TicketOpenerId: ticket.TicketOpenerId,
-        updEmail: this.email,
-        updDisplayName: this.displayName,
-        updPosition: this.position,
-        mainCategory: category,
-        subCategory: sub
+        userId: this.key,
+        logFullName: this.displayName,
+        logEmail: this.email,
+        logPosition: this.position,
+        ticketTitle: category,
+        ticketSubTitle: sub,
+        ticketProfessionalField: category
+
       });
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.post(this.vendorServer + 'api/Categories', json, { headers: headers }).subscribe(
+    //console.log(currentComplexKey, json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/updateTicketCategory/' + currentComplexKey + '/' + ticket._id, json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t);
+        this.openSnackBar(t.message, 'Dismiss');
       });
     this.showEditInfo = false;
+
+    ticket.TicketTitle = category;
+    ticket.TicketSubTitle = sub;
     ticket.lastUpdateDate = this.moment().valueOf();
     ticket.lastUpdateTitle = "Title and subtitle was updated";
     ticket.lastUpdateFullname = this.displayName;
@@ -284,105 +366,155 @@ export class MaintenancePlusComponent implements OnInit {
     this.mainMessage = "Loading..."
     var headers = new Headers();
     headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.get(this.vendorServer + 'api/ManagerTickets/' + localStorage.getItem('currentComplexKey'), { headers: headers }).subscribe(
-      (res: Response) => {
-        const t = res.json();
-        if (t && t.tickets && t.tickets.length > 0) {
-          this.tickets = t.tickets.map(ticket => {
-            ticket.estimatedWorkTime = +ticket.estimatedWorkTime
-            ticket.closedTime = +ticket.closedTime
-            ticket.dateCreated = +ticket.dateCreated
-            ticket.mainImg = [];
-            if (ticket.files) {
-              if (ticket.files.tenantGallery.length > 0) {
-                ticket.currentPhoto = ticket.files.tenantGallery[0].imageurl;
-                ticket.mainImg.push({ id: 1, description: ticket.files.tenantGallery[0].uploaderType + " : " + ticket.files.tenantGallery[0].uploaderName, url: ticket.currentPhoto, size: ticket.files.tenantGallery.length - 1 });
-              }
-              if (ticket.files.managementGallery.length > 0) {
-                ticket.currentPhoto = ticket.files.managementGallery[0].imageurl;
-                ticket.mainImg.push({ id: 2, description: ticket.files.managementGallery[0].uploaderType + " : " + ticket.files.managementGallery[0].uploaderName, url: ticket.currentPhoto, size: ticket.files.managementGallery.length - 1 });
-              }
-              if (ticket.files.vendorGallery.length > 0) {
-                ticket.currentPhoto = ticket.files.vendorGallery[0].imageurl;
-                ticket.mainImg.push({ id: 3, description: ticket.files.vendorGallery[0].uploaderType + " : " + ticket.files.vendorGallery[0].uploaderName, url: ticket.currentPhoto, size: ticket.files.vendorGallery.length - 1 });
-              }
-            }
-            
-            ticket.ticketNumber = ticket.TicketId.substring(2);
-            ticket.showDetails = false;
-            ticket.selected = false;
-
-            if (ticket.TicketStatus !== null) {
-              ticket.status = ticket.TicketStatus.replace(' ', '_').replace(' ', '_');
-            }
-            if (ticket.TicketStatus === 'Tenant Done') {
-              ticket.status = 'Done';
-            }
-            if (ticket.statusHistory && ticket.statusHistory.length > 0) {
-              ticket.lastUpdateDate = ticket.statusHistory[0].LogDate;
-              ticket.lastUpdateTitle = ticket.statusHistory[0].LogTitle;
-              ticket.lastUpdateFullname = ticket.statusHistory[0].LogFullname;
-              ticket.lastUpdateEmail = ticket.statusHistory[0].LogEmail;
-              ticket.lastUpdatePosition = ticket.statusHistory[0].LogPosition;
-
-              ticket.createdDate = ticket.statusHistory[ticket.statusHistory.length -1].LogDate;
-              ticket.createdFullname = ticket.statusHistory[ticket.statusHistory.length -1].LogFullname;
-              ticket.createdEmail = ticket.statusHistory[ticket.statusHistory.length-1].LogEmail;
-              ticket.createdPosition = ticket.statusHistory[ticket.statusHistory.length-1].LogPosition;
-            }
-            if(ticket.createdDate == null){
-              ticket.createdDate = ticket.TicketDate;
-              ticket.createdFullname = ticket.tenantFullName;
-              ticket.createdEmail = ticket.TicketType;
-              ticket.createdPosition = "Tenant";
-            }
-            ticket.problemArea = ticket.problemArea.replace(' ', '');
-            if (ticket.offers_list.length > 0) {
-              ticket.offers_list.forEach(element => {
-                if (element.OfferStatus === 'Win' || element.OfferStatus === 'Done' ||  element.OfferStatus === "In Progress") {
-                  ticket.vendorAssignedName = element.companyName;
-                  ticket.vendorAssignedDate = element.ArrivalDate;
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.get(this.vendorServer + 'manager/GetTickets/' + localStorage.getItem('currentComplexKey'), { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t);
+          if (t && t.tickets && t.tickets.length > 0) {
+            this.tickets = t.tickets.map(ticket => {
+              ticket.TicketDate = ticket.ticketCreatedDate;
+              ticket.estimatedWorkTime = +ticket.estimatedWorkTime
+              ticket.closedTime = +ticket.closedTime
+              ticket.dateCreated = +ticket.dateCreated
+              ticket.mainImg = [];
+              if (ticket.files) {
+                if (ticket.files.tenantGallery.length > 0) {
+                  ticket.currentPhoto = ticket.files.tenantGallery[0].imageUrl;
+                  ticket.mainImg.push({ id: 1, description: "Resident : " + ticket.files.tenantGallery[0].uploaderName, url: ticket.currentPhoto, size: ticket.files.tenantGallery.length - 1 });
                 }
-              });
-            }
+                if (ticket.files.managementGallery.length > 0) {
+                  ticket.currentPhoto = ticket.files.managementGallery[0].imageUrl;
+                  ticket.mainImg.push({ id: 2, description: "Manager : " + ticket.files.managementGallery[0].uploaderName, url: ticket.currentPhoto, size: ticket.files.managementGallery.length - 1 });
+                }
+              }
 
-            ticket.moreInfo = [{name: ticket.tenantFullName,body: ticket.TicketDecription}];
-            ticket.closeAttachments = [];
-            ticket.closeInfo = [];
-            ticket.selectedJanitor = null;
-            ticket.TicketSubTitle = ticket.TicketSubTitle.substring(0, 50)
-            this.dataLoaded = true
-            return ticket;
-          });
-          this.tickets.sort((a, b) => {
-            if (a.status === "New" && b.status !== "New") return -1
-            if (a.status !== "New" && b.status === "New") return 1
-            else return 0
-          })
-          delete this.mainMessage;
-          this.countTicketsStatus();
-        } else {
-          this.mainMessage = "No Tickets"
-        }
-      });
+              ticket.ticketNumber = ticket.ticketId ? ticket.ticketId.substring(4) : 'Number';
+              ticket.showDetails = false;
+              ticket.selected = false;
+
+              if (ticket.ticketStatus !== null && ticket.ticketStatus !== undefined) {
+                ticket.status = ticket.ticketStatus.replace(' ', '_').replace(' ', '_');
+              }
+              if (ticket.ticketStatus === 'Tenant Done') {
+                ticket.status = 'Done';
+              }
+              if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+                const len = ticket.statusHistory.length - 1;
+                ticket.lastUpdateDate = new Date(ticket.statusHistory[len].logDate);
+                ticket.lastUpdateTitle = ticket.statusHistory[len].logTitle;
+                ticket.lastUpdateFullname = ticket.statusHistory[len].logFullName;
+                ticket.lastUpdateEmail = ticket.statusHistory[len].logEmail;
+                ticket.lastUpdatePosition = ticket.statusHistory[len].logPosition;
+              }
+              ticket.createdDate = new Date(ticket.ticketCreatedDate);
+              ticket.createdFullname = ticket.ticketOpenerFullname;
+              ticket.createdEmail = ticket.openerEmail;
+              ticket.createdPosition = "Resident";
+
+              ticket.problemArea = ticket.ticketAreaZone.replace(' ', '');
+
+              if (ticket.offers && ticket.offers.length > 0) {
+                ticket.offers.forEach(element => {
+                  if (element.status === 'Win' || element.status === 'Done' || element.status === "In Progress") {
+                    ticket.vendorAssignedName = element.companyName;
+                    ticket.vendorAssignedDate = element.ArrivalDate;
+                  }
+                });
+              }
+
+              if (ticket.internalAssignments.length > 0) {
+                ticket.internalAssignments[0].assignmentDateFormat = new Date(ticket.internalAssignments[0].assignmentDate);
+              }
+
+              if (ticket.ticketDescription !== '') {
+                ticket.additionalInformation.unshift({
+                  _id: "0",
+                  msgDate: ticket.createdDate.getTime(),
+                  msgContent: ticket.ticketDescription,
+                  msgSenderEmail: ticket.ticketOpenerEmail,
+                  msgSenderDisplayName: ticket.ticketOpenerFullname + ' (' + ticket.createdPosition + ') ',
+                  isMessagePrivate: false
+                });
+              }
+
+              ticket.closeAttachments = [];
+              ticket.costList = [];
+              ticket.closeNote = ticket.closeTicket.note ? ticket.closeTicket.note : '';
+              if (ticket.closeTicket.attachments.length > 0)
+                ticket.closeTicket.attachments.forEach(x => {
+                  let arr = x.attachmentSource.split('.');
+                  ticket.closeAttachments.push({
+                    url: x.attachmentSource,
+                    name: x.name || '',
+                    fileName: x.attachmentNote,
+                    fileEnd: arr[arr.length - 1],
+                    rename: x.attachmentNote,
+                    edit: false
+                  });
+                });
+              if (ticket.closeTicket.costs.length > 0)
+                ticket.closeTicket.costs.forEach(x => {
+                  ticket.costList.push({ amount: +x.costValue, note: x.costDescription, edit: false });
+                });
+              ticket.selectedJanitor = null;
+              ticket.TicketTitle = ticket.ticketTitle ? ticket.ticketTitle.substring(0, 50) : '';
+              ticket.TicketSubTitle = ticket.ticketSubTitle ? ticket.ticketSubTitle.substring(0, 50) : '';
+
+              if (ticket.requestTimeFrame) {
+                ticket.timeFrame = ticket.requestTimeFrame.map(item => {
+                  item.date = Moment(new Date(item.date), 'DD MMM YY');
+                  item.date = this.moment(item.date).format('DD MMM YY');
+                  return item;
+                });
+              }
+              ticket.timeFrame = ticket.timeFrame || [];
+              ticket.timeType = ticket.requestASAP ? 'ASAP' : 'TIMEFRAME';
+
+              this.dataLoaded = true
+              return ticket;
+            });
+            this.tickets.sort((a, b) => {
+              if (a.status === "New" && b.status !== "New") return -1
+              if (a.status !== "New" && b.status === "New") return 1
+              else return 0
+            })
+            delete this.mainMessage;
+            this.countTicketsStatus();
+          } else {
+            this.mainMessage = "No Tickets"
+          }
+        });
   }
+
   connectToVendors() {
-
-    // this.http.get('http://35.238.181.68/api/Temp/2101/tenants').subscribe(
-    //   (res: Response) =>{ const t = res.json();
-    //  console.log(t)} );
-
-    let user_details = JSON.parse(localStorage.getItem('user_details'))
+    let user_details = JSON.parse(localStorage.getItem('user_details'));
+    let complex = localStorage.getItem('currentComplexKey');
     var headers = new Headers();
-    var json = JSON.stringify({ AppCustomerName: '', AppCustomerEmail: user_details.email, AppCustomerAuth: localStorage.getItem('currentComplexKey') });
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.post(this.vendorServer + 'api/AppCustomers', json, { headers: headers }).subscribe(
-      (res: Response) => {
-        const t = res.json();
-        console.log(t)
-      });
+    var json = JSON.stringify({
+      communityId: complex,
+      companyId: user_details.companyKey,
+      communityAddress: this.complex.address,
+      communityName: this.complex.name,
+      communityCity: '',
+      communityCountry: ''
+    });
+    headers.append('Content-Type', 'application/json');
+    this.http.post(this.vendorServer + 'clients/register', json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const result = res.json();
+          if (result.token) {
+            localStorage.setItem('vendorsToken', result.token);
+            this.vendorsToken = result.token;
+          } else {
+            //console.log(result);
+            this.openSnackBar(result.message, 'Dismiss');
+            localStorage.setItem('vendorsToken', result.AppClienMessage.token);
+            this.vendorsToken = result.AppClienMessage.token;
+          }
+        });
   }
 
   moment(date = Date.now()) {
@@ -390,45 +522,53 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   addImageToTicket(ticket, imageUrl) {
-    console.log(imageUrl);
-    console.log(imageUrl.name);
-    console.log(imageUrl.url);
+    let currentComplexKey = localStorage.getItem('currentComplexKey');
     let item = ticket.mainImg.filter(item => item.id === 2)
     let itemSize = item == null ? 0 : item.size;
     ticket.mainImg = ticket.mainImg.filter(item => item.id !== 2)
-    ticket.mainImg.push({ id: 2, description: "Manager : " + this.displayName, url: imageUrl.url , size: itemSize  + 1 });
+    ticket.mainImg.push({ id: 2, description: "Manager : " + this.displayName, url: imageUrl.url, size: itemSize + 1 });
     ticket.currentPhoto = imageUrl.url;
+    let fileUrl = imageUrl.url.split('.');
 
-    ticket.closeAttachments.push({id: ticket.closeAttachments.length + 1, url: imageUrl.url , name: "Manager : " + this.displayName , fileName: imageUrl.name.split(".")[0], fileEnd:imageUrl.name.split(".")[1], rename: imageUrl.name.split(".")[0], edit:false });
 
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        imageurl: imageUrl.url,
-        ticketid: ticket.TicketId,
-        uploaderType: "Manager",
+        requestId: ticket._id,
+        imageUrl: imageUrl.url,
+        requestEmail: this.email,
+        requestDisplayName: this.displayName,
+        requestPosition: this.position,
         uploaderName: this.displayName,
-        uploaderFullName: this.displayName,
-        imageDescription: "",
-        uploaderEmail: this.email,
-        uploaderPosition: this.position
+        // uploadDate: new Date().getTime(),
+        fileExt: fileUrl[fileUrl.length - 1],
+        fileName: this.displayName
       });
-      console.log(json)
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.post(this.vendorServer + 'api/FilesManager/UploadFile', json, { headers: headers }).subscribe(
+    //console.log(json)
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/UploadImageToTicket/' + ticket._id + '/' + currentComplexKey, json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t)
       });
-      ticket.lastUpdateDate = this.moment().valueOf();
-      ticket.lastUpdateTitle = "Image was added";
-      ticket.lastUpdateFullname = this.displayName;
-      ticket.lastUpdateEmail = this.email;
-      ticket.lastUpdatePosition = this.position;
+    ticket.lastUpdateDate = this.moment().valueOf();
+    ticket.lastUpdateTitle = "Image was added";
+    ticket.lastUpdateFullname = this.displayName;
+    ticket.lastUpdateEmail = this.email;
+    ticket.lastUpdatePosition = this.position;
     // this.maintenanceService.updateMaintenanceTicket(ticket.key, { photoUrl: imageUrl })
     //   .then(() => { })
+  }
+
+  addImageToCloseTicket(ticket, imageUrl) {
+    ticket.closeAttachments.push({ url: imageUrl.url, name: "Manager : " + this.displayName, fileName: imageUrl.name.split(".")[0], fileEnd: imageUrl.name.split(".")[1], rename: imageUrl.name.split(".")[0], edit: false });
+
+    ticket.lastUpdateDate = this.moment().valueOf();
+    ticket.lastUpdateTitle = "Image was added";
+    ticket.lastUpdateFullname = this.displayName;
+    ticket.lastUpdateEmail = this.email;
+    ticket.lastUpdatePosition = this.position;
   }
 
   loadTickets() {
@@ -485,52 +625,59 @@ export class MaintenancePlusComponent implements OnInit {
     let text = target.value.trim();
     target.value = "";
 
-    let doneTicketInfo = ticket.moreInfo.filter(info => info.body == 'TICKET-DONE');
+    ticket.additionalInformation.push({
+      msgContent: text,
+      msgSenderDisplayName: this.displayName + ' (' + this.position + ') ',
+      msgSenderEmail: this.email,
+      isMessagePrivate: false,
+      msgDate: new Date().getTime()
+    });
 
-    ticket.moreInfo.push({ body: text, name: this.redux.getState().user.firstName +" "+this.redux.getState().user.lastName })
-    let newMoreInfo = ticket.moreInfo[ticket.moreInfo.length - 1]
-    this.maintenanceService.updateMaintenanceTicket(ticket.key, { moreInfo: newMoreInfo })
-      .then(() => {
-        if (doneTicketInfo.length > 0) {
-          ticket.moreInfo.push({ body: "TICKET-DONE", name: doneTicketInfo[0].name })
-          this.maintenanceService.updateMaintenanceTicket(ticket.key, { moreInfo: doneTicketInfo[0] })
-            .then(() => { })
-        }
-      })
-
-  }
-
-  vendorRequired(ticket) {
-    // this.maintenanceService.updateMaintenanceTicket(ticket.key, { status: "Vendor" })
-    //   .then(_ => { })
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        FacilityId: ticket.FacilityId,
-        TicketStatus: this.statuses.Vendor_Required,
-        AppId: ticket.AppId,
-        TicketOpenerId: ticket.TicketOpenerId,
-        updEmail: this.email,
-        updDisplayName: this.displayName,
-        updPosition: this.position
+        msgContent: text,
+        msgSenderDisplayName: this.displayName + ' (' + this.position + ') ',
+        msgSenderEmail: this.email,
+        isMessagePrivate: false
       }
     );
-    console.log(json)
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    //api/ManagerTickets
-    this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/UpdateTicketStatus', json, { headers: headers }).subscribe(
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/PostAdditionalInformation/' + ticket._id + '/' + ticket.communityId, json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t)
       });
-      ticket.status = "Vendor_Required";
-      ticket.lastUpdateDate = this.moment().valueOf();
-      ticket.lastUpdateTitle = "Ticket status was updated";
-      ticket.lastUpdateFullname = this.displayName;
-      ticket.lastUpdateEmail = this.email;
-      ticket.lastUpdatePosition = this.position;
+  }
+
+  vendorRequired(ticket) {
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        userId: this.key,
+        logFullName: this.displayName,
+        logEmail: this.email,
+        logPosition: this.position,
+        ticketStatus: this.statuses.Vendor_Required
+      }
+    );
+    //console.log(json)
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/UpdateTicketStatus/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t)
+        });
+    ticket.status = "Vendor_Required";
+    ticket.lastUpdateDate = this.moment().valueOf();
+    ticket.lastUpdateTitle = "Ticket status was updated";
+    ticket.lastUpdateFullname = this.displayName;
+    ticket.lastUpdateEmail = this.email;
+    ticket.lastUpdatePosition = this.position;
   }
 
   private initChooseVendor() {
@@ -562,7 +709,6 @@ export class MaintenancePlusComponent implements OnInit {
         this.chooseVendor.timeRangeError = "Notice: The time frame you entered is larger than 3 days";
       }
     }
-
   }
 
   modalVisibiltyChanged(event) {
@@ -575,6 +721,7 @@ export class MaintenancePlusComponent implements OnInit {
 
   countTicketsStatus() {
     this.OpenNum = 0
+    this.AssignedNum = 0
     this.InProgressNum = 0
     this.ResolvedNum = 0
     this.DoneNum = 0
@@ -587,6 +734,9 @@ export class MaintenancePlusComponent implements OnInit {
       switch (ticket.status) {
         case "Open":
           this.OpenNum++;
+          break;
+        case "Assigned":
+          this.AssignedNum++;
           break;
         case "In_Progress":
           this.InProgressNum++;
@@ -635,73 +785,58 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   showGetVendorDialog(ticket) {
+    //console.log(ticket);
     this.clickedTicket = ticket;
     this.vendors = [];
     this['loadingVendors'] = true;
-    this.LoadCategories();
-    this.showGallery(ticket, 0);
-    // this.vendorService.getVendors()
-    //   .then((data: any) => {
-    //     this['loadingVendors'] = false;
-    //     if (data.vendors) {
-    //       data.vendors.forEach((vendor: any) => {
-    //         let profession = this.vendors.find(val => vendor.professions && vendor.professions.includes(val.type))
-    //         if (profession) profession.vendors.push(vendor)
-    //         else {
-    //           vendor.professions.forEach(prof => {
-    //             this.vendors.push({
-    //               type: prof,
-    //               vendors: [vendor]
-    //             })
-    //           })
-    //         }
-    //       });
-    //     }
-    //   }, _ => this['loadingVendors'] = false);
+    //this.showGallery(ticket, 0);
+
     let i = 0;
     let checkedSubCategory = null;
     let checkedCategory = null;
     let flag = false;
-    this.categories.forEach(element => {
-      let vendor = [];
-      element.subs.forEach(vendors => {
-         vendor.push({ key: ++i, firstName: vendors.name, checked: false});
-         if(vendors.name === ticket.TicketSubTitle){
-          flag = true;
-          checkedSubCategory = { key: i, firstName: vendors.name, checked: false};
-        }
-      });
-      this.vendors.push({ type: element.proname, vendors: vendor, checked: false});
-      if(flag) checkedCategory = { type: element.proname, vendors: vendor, checked: false};
-    });
+    // this.categories.forEach(element => {
+    //   let vendor = [];
+    //   element.subs.forEach(vendors => {
+    //     vendor.push({ key: ++i, firstName: vendors.name, checked: false });
+    //     if (vendors.name === ticket.TicketSubTitle) {
+    //       flag = true;
+    //       checkedSubCategory = { key: i, firstName: vendors.name, checked: false };
+    //     }
+    //   });
+    //   this.vendors.push({ type: element.proname, vendors: vendor, checked: false });
+    //   if (flag) checkedCategory = { type: element.proname, vendors: vendor, checked: false };
+    // });
     //(vendor, group)
-    this.checkVendor(checkedSubCategory,checkedCategory);
+    //this.checkVendor(checkedSubCategory, checkedCategory);
     this['loadingVendors'] = false;
   }
-
+  //vova
   sendVendorAuction(ticket) {
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        FacilityId: ticket.FacilityId,
-        TicketStatus: this.statuses.Auction_Created,
-        AppId: ticket.AppId,
-        TicketOpenerId: ticket.TicketOpenerId,
-        updEmail: this.email,
-        updDisplayName: this.displayName,
-        updPosition: this.position
+        userId: this.key,
+        logFullName: this.displayName,
+        logEmail: this.email,
+        logPosition: this.position,
+        ticketStatus: this.statuses.Auction_Created,
+        additionalInformation: ticket.additionalInformation.filter(x => x._id != '0'),
+        requestTimeFrame: ticket.timeFrame,
+        requestASAP: ticket.timeType === 'ASAP',
+        files: ticket.files
       }
     );
-    console.log(json)
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    //api/ManagerTickets
-    this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/UpdateTicketStatus', json, { headers: headers }).subscribe(
-      (res: Response) => {
-        const t = res.json();
-        console.log(t)
-      });
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/CreateRequest/' + ticket._id + '/' + this.complex.key, json, { headers: headers })
+      .toPromise().then(
+        (res: Response) => {
+          const result = res.json();
+          //console.log(result)
+          this.openSnackBar(result.message, 'Dismiss');
+        });
     this.clickedTicket = null;
     ticket.status = 'Auction_Created';
     ticket.lastUpdateDate = this.moment().valueOf();
@@ -724,13 +859,13 @@ export class MaintenancePlusComponent implements OnInit {
         updPosition: this.position
       }
     );
-    console.log(json)
+    //console.log(json)
     headers.append('Content-Type', 'application/X-www-form=urlencoded');
     headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
     this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/CancelAuctionRequest', json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t)
       });
     this.clickedTicket = null;
     ticket.status = 'In_Progress';
@@ -740,8 +875,8 @@ export class MaintenancePlusComponent implements OnInit {
     ticket.lastUpdateEmail = this.email;
     ticket.lastUpdatePosition = this.position;
   }
-  
-  cancelVendorAssignment(ticket,offer) {
+
+  cancelVendorAssignment(ticket, offer) {
     var headers = new Headers();
     var json = JSON.stringify(
       {
@@ -751,7 +886,7 @@ export class MaintenancePlusComponent implements OnInit {
         TicketOpenerId: ticket.TicketOpenerId,
         OfferId: offer.offerId,
         AppCustomerAuth: ticket.FacilityId,
-        TicketAuth:ticket._id,
+        TicketAuth: ticket._id,
         TicketId: ticket.TicketId,
         ResponseId: offer.ResponseId,
         updEmail: this.email,
@@ -760,13 +895,13 @@ export class MaintenancePlusComponent implements OnInit {
       }
     );
 
-    console.log(json)
+    //console.log(json)
     headers.append('Content-Type', 'application/X-www-form=urlencoded');
     headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
     this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/CancelVendorAssignment', json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t)
       });
     this.clickedTicket = null;
     ticket.status = 'Auction_Created';
@@ -879,9 +1014,9 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   checkVendor(vendor, group) {
-    if(vendor.firstName === 'Other' && vendor.checked == false){
-      this.otherCategory = group.type +" , " + vendor.firstName + " -";
-    }else{
+    if (vendor.firstName === 'Other' && vendor.checked == false) {
+      this.otherCategory = group.type + " , " + vendor.firstName + " -";
+    } else {
       this.otherCategory = null;
     }
     vendor.checked = !vendor.checked;
@@ -973,80 +1108,65 @@ export class MaintenancePlusComponent implements OnInit {
     this.clickedTicketEditOffers = true;
     this.vendorOffers = [];
     this.vendorOffersTicket = ticket;
-    this.showGallery(ticket,0);
     this.timeToAssign = null;
-    ticket.offers_list.forEach(element => {
-      var item = {
-        offerId: element._id,
-        vendorName: element.companyName,
-        vendorAddress: element.companyAddress,
-        price: element.FixedPrice,
-        note: element.ResponseComments,
-        vendorRating: element.companyRank,
-        vendorReviews: element.numberOfRanks,
-        TicketAuth: element.TicketToken,
-        TicketId: ticket.TicketId,
-        ResponseId: element.ResponseId,
-        ResponseComments: element.ResponseComments,
-        expand: element.OfferStatus === 'Win' ? true : false,
-        ArrivalDate: element.ArrivalDate,
-        OfferStatus: element.OfferStatus
-      };
-      this.vendorOffers.push(item);
+    this.vendorOffersTicket.offers = this.vendorOffersTicket.offers.map(offer => {
+      offer.price = 0;
+      offer.additionalItems.forEach(element => {
+        offer.price += element.price;
+      });
+      offer.availabilities.forEach(element => {
+        element.displayDate = new Date(element.date);
+      });
+
+      offer.availabilities.sort((a, b) => {
+        if (b.displayDate - a.displayDate == 0) {
+          if (a.am_pm == "AM" && b.am_pm == "PM") return -1;
+          else return 0;
+        }
+        return a.displayDate - b.displayDate;
+      });
+      return offer;
     });
-    this.vendorOffersTicket
-    // this.maintenanceService.getVendorOfferResponse(ticketKey)
-    //   .then((data: any) => {
-    //     this.vendorOffers = data.items
-    //   }, _ => { })
   }
 
   assignVendor(offer) {
-    // let ticket = this.tickets.find(t => t.key === ticketKey)
-    // this.maintenanceService.assignVendor(offerKey)
-    //   .then(() => {
-    //     this.clickedTicketEditOffers = false
-    //     ticket.status = "In_Progress"
-    //   }, _ => {
-    //     this.clickedTicketEditOffers = false
-    //     ticket.status = "In_Progress"
-    //   })
-    if(this.timeToAssign == null || this.timeToAssign == undefined || this.timeToAssign == 0){
+    if (this.timeToAssign == null || this.timeToAssign == undefined || this.timeToAssign == 0) {
       this.timeToAssign = 0;
       offer.expand = true;
-    }else{
+    } else {
+      offer.availabilities.forEach(element => {
+        if (element._id === this.timeToAssign._id) element = this.timeToAssign;
+      });
       var headers = new Headers();
       var json = JSON.stringify(
         {
-          OfferId: offer.offerId,
-          AppCustomerAuth: this.vendorOffersTicket.FacilityId,
-          TicketAuth: offer.TicketAuth,
-          TicketId: offer.TicketId,
-          ResponseId: offer.ResponseId,
-          updEmail: this.email,
-          updDisplayName: this.displayName,
-          updPosition: this.position,
-          status: this.statuses.Vendor_Assigned
+          offerId: offer.key,
+          userId: this.key,
+          logFullName: this.displayName,
+          logEmail: this.email,
+          logPosition: this.position,
+          status: this.statuses.Vendor_Assigned,
+          availabilities: offer.availabilities
         }
       );
-      console.log(json);
-      headers.append('Content-Type', 'application/X-www-form=urlencoded');
-      headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-      //api/ManagerTickets
-      this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/UpdateTicketExternalAssign', json, { headers: headers }).subscribe(
+      //console.log(json);
+      headers.append('Content-Type', 'application/json');
+      headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+      this.http.post(this.vendorServer + 'manager/SelectOffer/' + this.vendorOffersTicket._id + '/' + this.vendorOffersTicket.communityId, json, { headers: headers }).subscribe(
         (res: Response) => {
           const t = res.json();
-          console.log(t)
+          this.openSnackBar(t.message, 'Dismiss');
+          //console.log(t)
         });
       this.clickedTicketEditOffers = false;
-      offer.OfferStatus = 'Win';
+      offer.status = 'Accepted';
       this.vendorOffersTicket.status = "Vendor_Assigned";
       this.vendorOffersTicket.lastUpdateDate = this.moment().valueOf();
       this.vendorOffersTicket.lastUpdateTitle = "Vendor assigned";
       this.vendorOffersTicket.lastUpdateFullname = this.displayName;
       this.vendorOffersTicket.lastUpdateEmail = this.email;
       this.vendorOffersTicket.lastUpdatePosition = this.position;
-      this.vendorOffersTicket.vendorAssignedName = offer.vendorName;
+      this.vendorOffersTicket.vendorAssignedName = offer.nativeAccountName;
       this.vendorOffersTicket.vendorAssignedDate = this.moment().valueOf();
     }
   }
@@ -1090,38 +1210,25 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   clickMarkAsFix(ticket) {
-    // this.maintenanceService.sendFixProblemResolve(ticket.key, { lastStatusChanged: this.moment(), status: "Done" })
-    //   .then(() => {
-    //     ticket.status = this.statuses.Done;
-    //     ticket.lastStatusChanged = this.moment().valueOf();
-
-    //     ticket.moreInfo.push({ body: "TICKET-DONE", name: this.redux.getState().user.position })
-    //     let newMoreInfo = ticket.moreInfo[ticket.moreInfo.length - 1]
-    //     this.maintenanceService.updateMaintenanceTicket(ticket.key, { moreInfo: newMoreInfo })
-    //       .then(() => { })
-    //   })
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        FacilityId: ticket.FacilityId,
-        TicketStatus: this.statuses.Resolved,
-        AppId: ticket.AppId,
-        TicketOpenerId: ticket.TicketOpenerId,
-        updEmail: this.email,
-        updDisplayName: this.displayName,
-        updPosition: this.position
+        userId: this.key,
+        logFullName: this.displayName,
+        logEmail: this.email,
+        logPosition: this.position,
+        ticketStatus: this.statuses.Resolved
       }
     );
-    console.log(json)
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    //api/ManagerTickets
-    this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/UpdateTicketStatus', json, { headers: headers }).subscribe(
-      (res: Response) => {
-        const t = res.json();
-        console.log(t)
-      });
+    //console.log(json)
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/UpdateTicketStatus/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t)
+        });
     ticket.status = this.statuses.Resolved;
     ticket.lastUpdateDate = this.moment().valueOf();
     ticket.lastUpdateTitle = "Ticket status was updated";
@@ -1147,57 +1254,57 @@ export class MaintenancePlusComponent implements OnInit {
     let nameFile;
     if (ticket.files) {
       if (id == 1) {
-        this.imgGallerycurrentPhoto = ticket.files.tenantGallery[0].imageurl;
+        this.imgGallerycurrentPhoto = ticket.files.tenantGallery[0].imageUrl;
       }
       if (id == 2) {
-        this.imgGallerycurrentPhoto = ticket.files.managementGallery[0].imageurl;
+        this.imgGallerycurrentPhoto = ticket.files.managementGallery[0].imageUrl;
       }
       if (id == 3) {
-        this.imgGallerycurrentPhoto = ticket.files.vendorGallery[0].imageurl;
-      }
-      if (id == 4) {
-        if(ticket.files.tenantGallery.length.length > 0){this.imgGallerycurrentPhoto = ticket.files.tenantGallery[0].imageurl;}
-        if(ticket.files.managementGallery.length > 0){this.imgGallerycurrentPhoto = ticket.files.managementGallery[0].imageurl;}
-        if(ticket.files.vendorGallery.length > 0){this.imgGallerycurrentPhoto = ticket.files.vendorGallery[0].imageurl;}
+        if (ticket.files.tenantGallery.length.length > 0) { this.imgGallerycurrentPhoto = ticket.files.tenantGallery[0].imageUrl; }
+        if (ticket.files.managementGallery.length > 0) { this.imgGallerycurrentPhoto = ticket.files.managementGallery[0].imageUrl; }
       }
       if (ticket.files.tenantGallery.length > 0) {
         ticket.files.tenantGallery.forEach(element => {
-          if(element.imageurl.slice(-3) === 'pdf'){
-            this.imgGalleryPdf.push({ name: 'PDF ' + ++i, url: element.imageurl });
-          }else if(element.imageurl.slice(-3) === 'mp4'){
-            this.imgGalleryVideo.push({ name: 'Tenant : ' + element.uploaderName , url: element.imageurl });
-          }else{
-            this.imgGalleryArray.push({ name: 'Tenant : ' + element.uploaderName, url: element.imageurl });
-            this._albums.push({src: element.imageurl ,caption: 'Tenant : ' + element.uploaderName ,thumb: element.imageurl});
-          } 
+          if (element.imageUrl.split('.')[element.imageUrl.split('.').length - 1] === 'pdf') {
+            this.imgGalleryPdf.push({ name: 'PDF ' + ++i, url: element.imageUrl });
+          } else if (element.imageUrl.split('.')[element.imageUrl.split('.').length - 1] === 'mp4') {
+            this.imgGalleryVideo.push({ name: 'Tenant : ' + element.uploaderName, url: element.imageUrl });
+          } else {
+            this.imgGalleryArray.push({ name: 'Tenant : ' + element.uploaderName, url: element.imageUrl });
+            this._albums.push({ src: element.imageUrl, caption: 'Tenant : ' + element.uploaderName, thumb: element.imageUrl });
+          }
         });
       }
       if (ticket.files.managementGallery.length > 0) {
         ticket.files.managementGallery.forEach(element => {
-          if(element.imageurl.slice(-3) === 'pdf'){
-            this.imgGalleryPdf.push({ name: 'PDF ' + ++i, url: element.imageurl });
-          }else if(element.imageurl.slice(-3) === 'mp4'){
-            this.imgGalleryVideo.push({ name: 'Manager : ' + element.uploaderName , url: element.imageurl });
-          }else{
-            this.imgGalleryArray.push({ name: 'Manager : ' + element.uploaderName, url: element.imageurl });
-            this._albums.push({src: element.imageurl ,caption: 'Manager : ' + element.uploaderName ,thumb: element.imageurl});
-          }
-        });
-      }
-      if (ticket.files.vendorGallery.length > 0) {
-        ticket.files.vendorGallery.forEach(element => {
-          if(element.imageurl.slice(-3) === 'pdf'){
-            this.imgGalleryPdf.push({ name: 'PDF ' + ++i, url: element.imageurl });
-          }else if(element.imageurl.slice(-3) === 'mp4'){
-              this.imgGalleryVideo.push({ name: 'vendor : ' + element.uploaderName , url: element.imageurl });
-          }else{
-            this.imgGalleryArray.push({ name: 'vendor : ' + element.uploaderName, url: element.imageurl });
-            this._albums.push({src: element.imageurl ,caption: 'vendor : ' + element.uploaderName ,thumb: element.imageurl});
+          if (element.imageUrl.split('.')[element.imageUrl.split('.').length - 1] === 'pdf') {
+            this.imgGalleryPdf.push({ name: 'PDF ' + ++i, url: element.imageUrl });
+          } else if (element.imageUrl.split('.')[element.imageUrl.split('.').length - 1] === 'mp4') {
+            this.imgGalleryVideo.push({ name: 'Manager : ' + element.uploaderName, url: element.imageUrl });
+          } else {
+            this.imgGalleryArray.push({ name: 'Manager : ' + element.uploaderName, url: element.imageUrl });
+            this._albums.push({ src: element.imageUrl, caption: 'Manager : ' + element.uploaderName, thumb: element.imageurl });
           }
         });
       }
     }
   }
+
+  showVendorGallery(offer) {
+    this._albums = [];
+    let i = 0;
+    let nameFile;
+    if (offer.vendor_images.length > 0) {
+      offer.vendor_images.forEach(element => {
+        var endFile = element.imageurl.split('.')[element.imageurl.split('.').length - 1];
+        if (endFile === 'pdf' || endFile === 'mp4' || endFile === 'svg') {
+        } else {
+          this._albums.push({ src: element.imageurl, caption: 'Manager : ' + element.uploaderName, thumb: element.imageurl });
+        }
+      });
+    }
+  }
+
   editTitleLabel(status) {
     if (status === 'Open' || status === 'Vendor_Required' || status === 'In_Progress') {
       return true;
@@ -1205,60 +1312,55 @@ export class MaintenancePlusComponent implements OnInit {
     return false;
   }
 
-  fillTimeToAssign(num){
+  fillTimeToAssign(num) {
     this.timeToAssign = num;
   }
 
-  openRatingDialog(ticket){
+  openRatingDialog(ticket) {
     this.rateShow = true;
     this.nonHoverRating = 1;
-    this.rateTicket = ticket ;
+    this.rateTicket = ticket;
     this.rateOffer = ticket.offers_list.find(t => t.OfferStatus === 'Done');
-    this.rateTicket.costList = [];
   }
 
-  openResolvedDialog(ticket){
+  openResolvedDialog(ticket) {
     this.ResolvedDoneShow = true;
     this.nonHoverRating = 0;
-    this.rateTicket = ticket ;
-    this.rateTicket.costList = [];
+    this.rateTicket = ticket;
   }
 
-  openDoneDialog(ticket){
+  openDoneDialog(ticket) {
     this.ResolvedDoneShow = true;
     this.nonHoverRating = 1;
-    this.rateTicket = ticket ;
-    this.rateTicket.costList = [];
+    this.rateTicket = ticket;
   }
 
-  openFixedDialog(ticket){
+  openFixedDialog(ticket) {
     this.fixedShow = true;
-    this.rateTicket = ticket ;
-    this.rateTicket.costList = [];
+    this.rateTicket = ticket;
   }
 
-
-  addCost(){
-    this.rateTicket.costList.push({id:this.rateTicket.costList.length + 1, amount:'', note:'', edit:true})
+  addCost() {
+    this.rateTicket.costList.push({ amount: '', note: '', edit: true })
   }
 
-  removeCost(costItem){
+  removeCost(costItem) {
     this.rateTicket.costList = this.rateTicket.costList.filter(item => item !== costItem)
   }
 
-  removeAttachments(attachmentItem){
+  removeAttachments(attachmentItem) {
     this.rateTicket.closeAttachments = this.rateTicket.closeAttachments.filter(item => item !== attachmentItem)
     //TODO: add delete from server after 6 sec add snake bar for undo add delete from cloudinary
   }
 
-  renameAttachments(attachmentItem){
+  renameAttachments(attachmentItem) {
     attachmentItem.fileName = attachmentItem.rename;
     attachmentItem.edit = !attachmentItem.edit
     //TODO: rename attachment name in server
   }
 
-  undoRenameAttachments(attachmentItem){
-    attachmentItem.rename =attachmentItem.fileName;
+  undoRenameAttachments(attachmentItem) {
+    attachmentItem.rename = attachmentItem.fileName;
     attachmentItem.edit = !attachmentItem.edit
     //TODO: rename attachment name in server
   }
@@ -1277,22 +1379,22 @@ export class MaintenancePlusComponent implements OnInit {
       {
         facilityId: this.rateTicket.FacilityId,
         generalRank: this.nonHoverRating.toString(),
-        reviewFreeText : textbox,
-        ticketLongId:  this.rateTicket._id,
-        vendorCompanyId:  this.rateOffer.companyId,
+        reviewFreeText: textbox,
+        ticketLongId: this.rateTicket._id,
+        vendorCompanyId: this.rateOffer.companyId,
         updDisplayName: this.displayName,
         updEmail: this.email,
         updPosition: this.position,
         reviewType: 'Manager'
       }
     );
-    console.log(json)
+    //console.log(json)
     headers.append('Content-Type', 'application/X-www-form=urlencoded');
     headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
     this.http.post(this.vendorServer + 'api/Reviews/SendNewReview', json, { headers: headers }).subscribe(
       (res: Response) => {
         const t = res.json();
-        console.log(t)
+        //console.log(t)
       });
 
     // this.rateTicket.status = "Resolved";
@@ -1306,54 +1408,68 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   onDocumentClick(event) {
-		Array.prototype.forEach.call(document.getElementsByClassName('drop-down'), (element: HTMLDivElement, index) => {
-			let clickedOnDropdown = element.contains(event.target)
-			let clickedOnSelector = element.parentElement.getElementsByClassName("selector")[0].contains(event.target)
-			if (!clickedOnDropdown && !clickedOnSelector && element.style.display !== "none") {
-				element.style.display = "none"
-			}
+    Array.prototype.forEach.call(document.getElementsByClassName('drop-down'), (element: HTMLDivElement, index) => {
+      let clickedOnDropdown = element.contains(event.target)
+      let clickedOnSelector = element.parentElement.getElementsByClassName("selector")[0].contains(event.target)
+      if (!clickedOnDropdown && !clickedOnSelector && element.style.display !== "none") {
+        element.style.display = "none"
+      }
     })
   }
-  
-  AssignInternal(ticket){
-    //TicketOpenerId: ticket.TicketOpenerId,
+
+  AssignInternal(ticket) {
     var headers = new Headers();
     var json = JSON.stringify(
       {
-        _id: ticket._id,
-        FacilityId: ticket.FacilityId,
-        TicketStatus: this.statuses.Assigned,
-        AppId: ticket.AppId,
-        TicketOpenerId: ticket._id,
+        requestId: this.key,
+        responseId: ticket.selectedJanitor.userKey,
+        ticketStatus: this.statuses.Assigned,
         requestEmail: this.email,
         requestDisplayName: this.displayName,
         requestPosition: this.position,
-        requestComments: "",
-        availlability: "",
-        responseEmail: ticket.selectedJanitor.email,
-        responseDisplayName: ticket.selectedJanitor.firstName + " " + ticket.selectedJanitor.lastName,
-        responsePosition: ticket.selectedJanitor.position
+        requestComments: '',
+        availlability: '',
+        responseEmail: ticket.selectedJanitor.userContact.email_address,
+        responseDisplayName: ticket.selectedJanitor.userFirstName + ' ' + ticket.selectedJanitor.userLastName,
+        responsePosition: ticket.selectedJanitor.position,
+        assignStatus: 'add',
+        redirectUrl: this.redirectUrlVendors + ticket.ticketNumber
       }
-    );  
-    console.log(json)
-    headers.append('Content-Type', 'application/X-www-form=urlencoded');
-    headers.append('Authorization', 'Basic NU85Zm54eW8xVWlVQjU2aHpNbDZRcVpWb3laTm9qOWo6ODc5MTIxNTczNzk4');
-    this.http.post(this.vendorServer + 'api/ManagerTicketUpdates/UpdateTicketInternalAssign', json, { headers: headers }).subscribe(
-      (res: Response) => {
+    );
+    //console.log(json);
+    //console.log(ticket.selectedJanitor);
+    //console.log(ticket._id, this.currentComplexKey);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/TicketInternalAssignment/' + ticket._id + '/' + this.currentComplexKey, json, { headers: headers })
+      .subscribe((res: Response) => {
         const t = res.json();
-        console.log(t)
-      });
-    //ticket.status = 'In_Progress';
-    ticket.status = 'Assigned';
-    ticket.lastUpdateDate = this.moment().valueOf();
-    ticket.lastUpdateTitle = "Ticket status was updated to Assigned";
-    ticket.lastUpdateFullname = this.displayName;
-    ticket.lastUpdateEmail = this.email;
-    ticket.lastUpdatePosition = this.position;
+        if (t.message === 'Ticket was successfully updated') {
+          ticket.status = 'Assigned';
+          ticket.lastUpdateDate = this.moment().valueOf();
+          ticket.lastUpdateTitle = "Ticket status was updated to Assigned";
+          ticket.lastUpdateFullname = this.displayName;
+          ticket.lastUpdateEmail = this.email;
+          ticket.lastUpdatePosition = this.position;
+          ticket.internalAssignments.push({
+            "responseEmail": ticket.selectedJanitor.userContact.email_address,
+            "responseDisplayName": ticket.selectedJanitor.userFirstName + " " + ticket.selectedJanitor.userLastName,
+            "responsePosition": ticket.selectedJanitor.position,
+            "assignmentDateFormat": new Date()
+          });
+        }
+        this.openSnackBar(t.message, 'Dismiss');
+        //console.log(t)
+      },
+        error => {
+          const result = JSON.parse(error._body);
+          //console.log(result);
+          this.openSnackBar(result.message, 'Dismiss');
+        });
   }
 
-  isVendorAssigned(ticket){
-    if(ticket.status === 'Vendor_Assigned' || ticket.status === 'Vendor_Resolved' || ticket.status === 'Vendor_In_Progress'){
+  isVendorAssigned(ticket) {
+    if (ticket.status === 'Vendor_Assigned' || ticket.status === 'Vendor_Resolved' || ticket.status === 'Vendor_In_Progress') {
       return true;
     }
     return false;
@@ -1364,12 +1480,326 @@ export class MaintenancePlusComponent implements OnInit {
     //this._lightbox.open(this._albums, index);
     this._lightbox.open(this._albums, index, { wrapAround: true, showImageNumberLabel: true });
   }
-  
-  sendRemainderToStaff(ticket){
 
+  sendReminderToStaff(ticket) {
+    let currentComplexKey = localStorage.getItem('currentComplexKey');
+    let vendorsToken = localStorage.getItem('vendorsToken');
+    let arr = ticket.internalAssignments.map(e => { return e.responseEmail });
+
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        userId: this.key,
+        toEmail: arr.toString(),
+        requestDisplayName: this.displayName,
+        requestEmail: this.email,
+        requestPosition: this.position,
+        redirectUrl: this.redirectUrlVendors + ticket.ticketNumber
+      }
+    );
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + vendorsToken);
+    this.http.post(this.vendorServer + 'manager/SendReminder/' + ticket._id + '/' + currentComplexKey, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const result = res.json();
+          //console.log(result)
+          this.openSnackBar(result.message, 'Dismiss');
+        });
+    //console.log("sendRemainderToStaff");
   }
 
-  uploadProgress(e){
+  uploadProgress(e) {
     this.uploadProgresspercentage = e;
   }
+
+  removeInternalAssignments(ticket, user) {
+    let currentComplexKey = localStorage.getItem('currentComplexKey');
+    let vendorsToken = localStorage.getItem('vendorsToken');
+    ticket.internalAssignments = ticket.internalAssignments.filter(item => item !== user);
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        userId: user._id,
+        ticketStatus: ticket.internalAssignments.length > 0 ? this.statuses.Assigned : this.statuses.Open,
+        requestDisplayName: this.displayName,
+        requestEmail: this.email,
+        requestPosition: this.position,
+      }
+    );
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + vendorsToken);
+    this.http.post(this.vendorServer + 'manager/TicketInternalUnassignment/' + ticket._id + '/' + currentComplexKey + '/' + user._id, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t)
+        });
+    ticket.status = ticket.internalAssignments.length > 0 ? this.statuses.Assigned : this.statuses.Open;
+    ticket.lastUpdateDate = this.moment().valueOf();
+    ticket.lastUpdateTitle = "Worker was removed from ticket";
+    ticket.lastUpdateFullname = this.displayName;
+    ticket.lastUpdateEmail = this.email;
+    ticket.lastUpdatePosition = this.position;
+  }
+
+  CloseTicketSaveOrClose(ticket, status, note) {
+    var costs = [];
+    var attachments = [];
+    ticket.costList.forEach(element => {
+      costs.push({
+        name: this.position + ' : ' + this.displayName,
+        costValue: element.amount.toString(),
+        costDescription: element.note
+      })
+    });
+    ticket.closeAttachments.forEach(element => {
+      attachments.push({
+        name: this.position + ' : ' + this.displayName,
+        attachmentSource: element.url,
+        attachmentNote: element.fileName
+      })
+    });
+
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        ticketStatus: status,
+        closeTicketData: {
+          note: note,
+          closerEmail: this.email,
+          closerPosition: this.position,
+          closerName: this.displayName,
+          attachments: attachments,
+          costs: costs
+        }
+      }
+    );
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t);
+          this.ResolvedDoneShow = !this.ResolvedDoneShow;
+        });
+  }
+
+  openSnackBar(message: string, action: string) {
+    let snackBarRef = this.snackBar.open(message, action, {
+      duration: 200000,
+    });
+    snackBarRef.onAction().subscribe(() => {
+      //console.log('The snack-bar action was triggered!');
+    });
+    snackBarRef.afterDismissed().subscribe(() => {
+      //console.log('The snack-bar was dismissed');
+    });
+  }
+
+  loader(event: Event, type: string) {
+    //console.log(event);
+    let spinner;
+    if (type === 'ok') {
+      spinner = document.getElementById('matSpinerOK');
+      //console.log('ok')
+    } else if (type === 'cancal') {
+      spinner = document.getElementById('matSpinerCANCAL');
+      //console.log('cancal')
+    } else {
+      spinner = document.getElementById('matSpinerCANCAL');
+      //console.log('else')
+    }
+    //let oldElement = event.srcElement.firstChild;
+    let oldElement = (<HTMLInputElement>event.target).firstChild;
+    setTimeout(() => {
+      (<HTMLInputElement>event.target).removeChild((<HTMLInputElement>event.target).firstChild);
+      this.renderer.removeStyle(spinner, 'display');
+      this.renderer.appendChild(event.target, spinner);
+    }, 100)
+    setTimeout(() => {
+      (<HTMLInputElement>event.target).removeChild((<HTMLInputElement>event.target).firstChild);
+      this.renderer.setStyle(spinner, 'display', 'none');
+      this.renderer.appendChild(event.target, oldElement);
+    }, 1000)
+  }
+
+  delay(item, functionName) {
+    setTimeout(() => {
+      switch (functionName) {
+        case 'clickMarkAsFix':
+          this.clickMarkAsFix(item);
+          break;
+        case 'vendorRequired':
+          this.vendorRequired(item);
+          break;
+        case 'sendReminderToStaff':
+          this.sendReminderToStaff(item);
+          break;
+        case 'showGetVendorDialog':
+          this.showGetVendorDialog(item);
+          break;
+        case 'showVendorOffersResponses':
+          this.showVendorOffersResponses(item);
+          break;
+        case 'openRatingDialog':
+          this.openRatingDialog(item);
+          break;
+        case 'openResolvedDialog':
+          this.openResolvedDialog(item);
+          break;
+        case 'openDoneDialog':
+          this.openDoneDialog(item);
+          break;
+        case 'sendReminderToJanitor':
+          this.sendReminderToJanitor(item);
+          break;
+        case 'openFixedDialog':
+          this.openFixedDialog(item);
+          break;
+        default:
+        // code block
+
+      }
+    }, 1111)
+  }
+  //FAB Speed-Dial
+  fabButtons = [
+    {
+      icon: 'build',
+      action: this.onBuild
+    },
+    // {
+    //   icon: 'view_headline'
+    // },
+    // {
+    //   icon: 'room'
+    // },
+    // {
+    //   icon: 'lightbulb_outline'
+    // },
+    // {
+    //   icon: 'lock'
+    // }
+  ];
+  buttons = [];
+  fabTogglerState = 'inactive';
+
+  showItems() {
+    this.fabTogglerState = 'active';
+    this.buttons = this.fabButtons;
+  }
+
+  hideItems() {
+    this.fabTogglerState = 'inactive';
+    this.buttons = [];
+  }
+
+  onToggleFab() {
+    this.buttons.length ? this.hideItems() : this.showItems();
+  }
+  ////fab
+
+  onBuild() {
+    if (this.openTicket) {
+      this.openTicket = !this.openTicket;
+    } else {
+      this.openTicket = true;
+    }
+    this.subCategory = null;
+    this.mainCategory = null;
+  }
+
+  addImageToNewTicket(ticket, imageUrl) {
+    ticket.files.managementGallery.push(
+      {
+        uploaderName: this.displayName,
+        imageUrl: imageUrl.url,
+        fileName: imageUrl.name.split(".")[0],
+        fileExt: imageUrl.name.split(".")[1],
+
+        rename: imageUrl.name.split(".")[0],
+        edit: false
+      });
+  }
+
+  renameImageNewTicket(attachmentItem) {
+    attachmentItem.fileName = attachmentItem.rename;
+    attachmentItem.edit = !attachmentItem.edit
+  }
+
+  undoRenameImageNewTicket(attachmentItem) {
+    attachmentItem.rename = attachmentItem.fileName;
+    attachmentItem.edit = !attachmentItem.edit
+  }
+  removeImageNewTicket(attachmentItem) {
+    this.newTicket.files.managementGallery = this.newTicket.files.managementGallery.filter(item => item !== attachmentItem)
+  }
+
+  ticketMainCategory(category) {
+    this.subCategory = null;
+    this.mainCategory = category;
+  }
+
+  openNewTicketNext() {
+    this.openTicketNext = !this.openTicketNext;
+    if (this.newTicket === undefined) {
+      this.newTicket = {
+        ticketId: 'mit-' + Math.floor((Math.random() * 9999999) + 1000000),
+        files: { tenantGallery: [], managementGallery: [] },
+        ticketTitle: '',
+        ticketSubTitle: '',
+        communityId: this.currentComplexKey,
+        companyId: this.companyKey,
+        ticketDescription: '',
+        ticketStatus: "Open",
+        ticketOpenerFullname: this.displayName,
+        ticketOpenerEmail: this.email,
+        ticketOpenerAddress: '',
+        ticketOpenerKey: this.key,
+        isPetOwner: false,
+        isEnteringAllow: false,
+        ticketAreaZone: '',
+        ticketProfessionalField: '',
+        propertyName: this.complex.address
+      }
+    }
+  }
+
+  openNewTicket() {
+    //location.reload();
+    this.newTicket.ticketTitle = this.mainCategory.categoryName;
+    this.newTicket.ticketProfessionalField = this.mainCategory.categoryName;
+    this.newTicket.ticketSubTitle = this.subCategory;
+    this.newTicket.ticketAreaZone = this.areaZone;
+    this.newTicket.ticketOpenerAddress = this.unitNumber === undefined || this.unitNumber === null ? this.newTicket.ticketOpenerAddress : this.unitNumber;
+
+    var headers = new Headers();
+    var json = JSON.stringify(this.newTicket);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'tenants/addNewTicket', json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+           console.log(t);
+          if(t.message === 'Ticket was created'){
+            location.reload();
+          }
+        });
+    this.openTicket = !this.openTicket;
+  }
+
+  addTimeFrame() {
+    this.clickedTicket.timeFrame.push({ date: '', am_pm: '' });
+  }
+
+  removeTimeFrame(time) {
+    this.clickedTicket.timeFrame = this.clickedTicket.timeFrame.filter(item => item !== time);
+  }
 }
+

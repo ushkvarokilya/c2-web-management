@@ -86,8 +86,11 @@ import { FilterUsedProfessionsPipe } from './pipes/filter-used-professions.pipe'
 import { MaintenancePlusComponent } from './components/maintenance-plus/maintenance-plus.component';
 
 import { LightboxModule } from 'angular2-lightbox';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MaterialModule} from './material'
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MaterialModule } from './material'
+import { AngularFireModule  } from '@angular/fire';
+import { AngularFireDatabaseModule } from '@angular/fire/database';
+
 @NgModule({
   imports: [
     BrowserModule,
@@ -98,7 +101,9 @@ import {MaterialModule} from './material'
     AppRoutingModule,
     LightboxModule,
     BrowserAnimationsModule,
-    MaterialModule
+    MaterialModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFireDatabaseModule
   ],
   declarations: [
     AppComponent,

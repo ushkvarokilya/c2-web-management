@@ -14,7 +14,8 @@ import { User } from "../../../store/user/user.interface";
 import { environment } from "../../../../environments/environment";
 import { StringValidationService } from '../../../services/string-validation.service';
 
-import { Http , Response} from '@angular/http';
+import { Http, Response, Headers } from '@angular/http';
+import {MatSnackBar} from '@angular/material';
 
 @Component({
   selector: 'tenants-view',
@@ -73,44 +74,47 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
     private router: Router,
     private tenantService: TenantService,
     private stringValidation: StringValidationService,
+    public snackBar: MatSnackBar,
     private http: Http
   ) {
     this.moment = Moment;
   }
 
   ngOnInit() {
-
     this.company$.subscribe((company: Company) => {
       if (company.currentComplex !== null && !this.dataLoaded) {
         this.mainMessage = "Loading..."
-
-    //  this.http.get('http://35.184.113.205/api/Temp/2101/tenants').subscribe(
-    //    (res: Response) =>{ const t = res.json();
-    //   console.log(t)} );
-
-        // this.complexService.getFacilityOverview()
-        // 	.then((_) => {})
-        // 	.catch(e => e)
-        // this.dataLoaded = true;
-        //this.complexService.getAllApartmentLeasesFromComplexNew()
-        this.complexService.getAllApartmentLeasesFromComplex()
-          .then((data: any) => {
+        const code = company.currentComplex.code || 2101;
+        var headers = new Headers();
+        headers.append('Content-Type', 'application/json; charset=utf-8');
+        headers.append('Authorization', 'Bearer '+ this.redux.getState().user.token);
+        this.http.get(this.environment.accounting_api_endpoint + 'Temp/' + code + '/tenants', {headers: headers})
+        .subscribe(
+          (res: Response) => {
+            const data = res.json();
             if (data.leases) {
               this.leases = data.leases.map(lease => {
                 if (!lease.paymentScore) lease.paymentScore = 100;
-                if (!lease.rent) lease.rent = 0;
+                if (!lease.rent) lease.rent = '0';
+                if (lease.rent)
+                  if (lease.rent.includes("-")){
+                    lease.rent = '(' + lease.rent.slice(1) + ')';
+                  }else{
+                    lease.rent = '' + lease.rent;
+                  }
+                  lease.rent = '$'+lease.rent;
                 lease.ticketsNum = 0
                 lease.tenants.forEach(tenant => {
                   if (!tenant.ticketKeys) tenant.ticketKeys = [];
                   if (!tenant.paymentScore) tenant.paymentScore = 100;
                   if (!tenant.notes) tenant.notes = []
-                  if(tenant.phoneNumber && tenant.phoneNumber.length === 10){
-                    let section1 = tenant.phoneNumber.substring(0,3)
-                    let section2 = tenant.phoneNumber.substring(3,6)
+                  if (tenant.phoneNumber && tenant.phoneNumber.length === 10) {
+                    let section1 = tenant.phoneNumber.substring(0, 3)
+                    let section2 = tenant.phoneNumber.substring(3, 6)
                     let section3 = tenant.phoneNumber.substring(6)
                     tenant.phoneNumber = '(' + section1 + ')' + ' ' + section2 + '-' + section3
                   }
-                  // lease.rent += tenant.partInRent;
+                  //lease.rent += tenant.partInRent;
                   lease.ticketsNum += tenant.ticketKeys.length
                   if (!lease.scannedLeaseUrl || !this.stringValidation.isValidUrl(lease.scannedLeaseUrl)) {
                     lease.scannedLeaseUrl = false
@@ -126,12 +130,54 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
               delete this.mainMessage;
             } else this.mainMessage = "No Leases"
 
-            this.setAptNumLabel.emit(`${data.occupied} / ${data.total}`)
+            this.setAptNumLabel.emit(`${data.occupied} / ${data.total}`);
+          });
 
-            let config = { attributes: true, childList: true, characterData: true };
+        // this.complexService.getFacilityOverview()
+        //   	.then((_) => {})
+        //   	.catch(e => e)
+        //   this.dataLoaded = true;
+        //   this.complexService.getAllApartmentLeasesFromComplexNew()
 
-          }, err => {
-          })
+        // this.complexService.getAllApartmentLeasesFromComplex()
+        //   .then((data: any) => {
+        //     if (data.leases) {
+        //       this.leases = data.leases.map(lease => {
+        //         if (!lease.paymentScore) lease.paymentScore = 100;
+        //         if (!lease.rent) lease.rent = 0;
+        //         lease.ticketsNum = 0
+        //         lease.tenants.forEach(tenant => {
+        //           if (!tenant.ticketKeys) tenant.ticketKeys = [];
+        //           if (!tenant.paymentScore) tenant.paymentScore = 100;
+        //           if (!tenant.notes) tenant.notes = []
+        //           if(tenant.phoneNumber && tenant.phoneNumber.length === 10){
+        //             let section1 = tenant.phoneNumber.substring(0,3)
+        //             let section2 = tenant.phoneNumber.substring(3,6)
+        //             let section3 = tenant.phoneNumber.substring(6)
+        //             tenant.phoneNumber = '(' + section1 + ')' + ' ' + section2 + '-' + section3
+        //           }
+        //           // lease.rent += tenant.partInRent;
+        //           lease.ticketsNum += tenant.ticketKeys.length
+        //           if (!lease.scannedLeaseUrl || !this.stringValidation.isValidUrl(lease.scannedLeaseUrl)) {
+        //             lease.scannedLeaseUrl = false
+        //           }
+        //         })
+        //         if (lease.unit && lease.unit.amenities) {
+        //           let amenities = {};
+        //           for (let a of lease.unit.amenities) amenities[a] = true;
+        //           lease.unit.amenities = amenities;
+        //         }
+        //         return lease;
+        //       });
+        //       delete this.mainMessage;
+        //     } else this.mainMessage = "No Leases"
+
+        //     this.setAptNumLabel.emit(`${data.occupied} / ${data.total}`)
+
+        //     let config = { attributes: true, childList: true, characterData: true };
+
+        //   }, err => {
+        //   })
         this.dataLoaded = true;
       }
     })
@@ -230,18 +276,38 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
     return name.split('_').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' ')
   }
 
-  async updateTenatEmail(tenant) {
+  //  async updateTenatEmail(tenant) {  
+  //    tenant.updating = true
+  //   try {
+  //     await this.tenantService.updateTenantEmail(tenant.key, this.tempEmailForEditWindow)
+  //     tenant.email = this.tempEmailForEditWindow;
+  //   } catch (err) {
+  //     this.errorInEmail = err.message;
+  //     tenant.updating = false
+  //     return
+  //   }
+  //   tenant.showEditInfo = false
+  //   tenant.updating = false
+  // }
+
+  updateTenatEmail(tenant) {
     tenant.updating = true
-    try {
-      await this.tenantService.updateTenantEmail(tenant.key, this.tempEmailForEditWindow)
-      tenant.email = this.tempEmailForEditWindow;
-    } catch (err) {
-      this.errorInEmail = err.message;
-      tenant.updating = false
-      return
-    }
-    tenant.showEditInfo = false
-    tenant.updating = false
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json; charset=utf-8');
+    headers.append('Authorization', 'Bearer '+this.redux.getState().user.token);
+    var json = JSON.stringify({ email: this.tempEmailForEditWindow });
+    this.http.put(this.environment.accounting_api_endpoint + 'Users/' + tenant.key, json, { headers: headers })
+      .subscribe((res: Response) => {
+        const data = res.json();
+        if (data.status) {
+          tenant.email = this.tempEmailForEditWindow;
+          tenant.showEditInfo = false
+          tenant.updating = false
+        } else {
+          this.errorInEmail = data.message;
+          tenant.updating = false
+        }
+      });
   }
 
   openUserData(tenant) {
@@ -266,17 +332,53 @@ export class TenantsViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  // sendInvite(tenant) {
+  //   tenant.sendingInvite = true
+  //   this.tenantService.sendInvites([tenant.key])
+  //     .then(_ => {
+  //       tenant.sendingInvite = false
+  //     })
+  // }
+
   sendInvite(tenant) {
-    tenant.sendingInvite = true
-    this.tenantService.sendInvites([tenant.key])
-      .then(_ => {
-        tenant.sendingInvite = false
-      })
+    tenant.sendingInvite = true;
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer '+this.redux.getState().user.token);
+    tenant.pin = Math.floor(1000 + Math.random() * 9000);
+    var json = JSON.stringify({ 
+      email: tenant.email, 
+      password: tenant.pin, 
+      by: this.redux.getState().user.firstName + " " + this.redux.getState().user.lastName,
+      invite: true
+     });
+    this.http.post(this.environment.accounting_api_endpoint + 'Users/register/tenant', json, { headers: headers }).subscribe((res: Response) => {
+      const data = res.json();
+      console.log(data);
+      if (data.status) {
+        this.openSnackBar(data.message, 'Dismiss');
+      } else { 
+       this.openSnackBar(data.message, 'Dismiss');
+      }
+      tenant.sendingInvite = false;
+    });
   }
 
   canShowTenantInviteButton(tenant) {
     if (tenant && tenant.email) {
       return this.stringValidation.isValidEmail(tenant.email)
     }
+  }
+
+  openSnackBar(message: string, action: string) {
+    let snackBarRef = this.snackBar.open(message, action, {
+      duration: 200000,
+    });
+    snackBarRef.onAction().subscribe(() => {
+      console.log('The snack-bar action was triggered!');
+    });
+    snackBarRef.afterDismissed().subscribe(() => {
+      console.log('The snack-bar was dismissed');
+    });
   }
 }

@@ -44,8 +44,9 @@
   <div *ngIf="!mainMessage" class="table-header lease-row">
     <div class="col-1"> UNIT</div>
     <div class="col-2"> TENANTS</div>
-    <div class="col-3"> RENT</div>
-    <div class="col-4"> PAYMENT SCORE</div>
+    <div class="col-3"> BALANCE</div>
+    <!-- <div class="col-4"> PAYMENT SCORE</div> -->
+    <div class="col-4"> </div>
     <div class="col-5"> OPEN TICKETS</div>
     <div class="col-6"> LEASE ENDS IN</div>
     <div class="col-7"> CHAT</div>
@@ -62,12 +63,13 @@
           </span>
           <span *ngIf="lease.tenants.length > 2"> and {{lease.tenants.length - 2}} more</span>
         </div>
-        <div class="col-3">{{(lease.rent / 100) | currency:'USD':'symbol':'1.0-2'}}</div>
+        <!-- <div class="col-3">{{(lease.rent / 100) | currency:'USD':'symbol':'1.0-2'}}</div> -->
+        <div class="col-3">{{lease.rent}}</div>
         <div class="col-4">
-          <svg class="score-circle" height="45" width="45">
+          <!-- <svg class="score-circle" height="45" width="45">
             <circle cx="22.5" cy="22.5" r="20" stroke="#66afb5" stroke-width="3" fill="none" />
           </svg>
-          <span class="score-number">{{lease.paymentScore}}</span>
+          <span class="score-number">{{lease.paymentScore}}</span> -->
         </div>
         <div class="col-5">{{lease.ticketsNum}}</div>
         <div class="col-6 fix-lines">
@@ -167,11 +169,14 @@
             </button>
             <!-- <span *ngIf="tenant.partInRent">{{tenant.partInRent | currency:'USD':'symbol':'1.0-2'}}</span> -->
           </div>
-          <div class="col-4 clickable" [routerLink]="['/collection', {searchQuery: tenant.firstName + ' ' + tenant.lastName }]">
+          <!-- <div class="col-4 clickable" [routerLink]="['/collection', {searchQuery: tenant.firstName + ' ' + tenant.lastName }]">
             <svg class="score-circle" height="45" width="45">
               <circle cx="22.5" cy="22.5" r="20" stroke="#66afb5" stroke-width="3" fill="none" />
             </svg>
             <span class="score-number">{{tenant.paymentScore}}</span>
+          </div> -->
+          <div class="col-4">
+            <p style="color:red; margin:2px;" *ngIf="tenant.pin">PIN:<span  style="color:black;"> {{tenant.pin}}</span></p>
           </div>
           <div class="col-5">
             <a *ngIf="tenant.ticketKeys" [routerLink]="['/maintenance', { searchQuery: tenant.firstName + ' ' + tenant.lastName }]">{{tenant.ticketKeys.length}}</a>

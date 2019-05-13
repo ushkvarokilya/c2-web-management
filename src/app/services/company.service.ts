@@ -8,6 +8,8 @@ import { AppHttpService } from './shared/http';
 import { User } from '../store/user/user.interface';
 import { AppState } from '../store/appState';
 import * as CompanyActions from '../store/company/company.ac';
+import { l } from '@angular/core/src/render3';
+import { environment } from "../../environments/environment";
 
 @Injectable()
 export class CompanyService {
@@ -15,16 +17,40 @@ export class CompanyService {
 	constructor(private http: AppHttpService, private redux: NgRedux<AppState>) {
 	}
 
-	getDetails() {
-		let companyKey = this.redux.getState().user.companyKey;
-		this.getCompanyInfo(companyKey)
-			.then((data: any) => {
-				this.redux.dispatch(CompanyActions.setNameAndImage(data.name, data.imageUrl))
-				return Promise.resolve();
-			})
-			.catch(err => {
+	// getDetails() {
+	// 	let companyKey = this.redux.getState().user.companyKey;
+	// 	this.getCompanyInfo(companyKey)
+	// 		.then((data: any) => {
+	// 			this.redux.dispatch(CompanyActions.setNameAndImage(data.name, data.imageUrl))
+	// 			return Promise.resolve();
+	// 		})
+	// 		.catch(err => {
+	// 		})
+	// }
 
-			})
+	getDetails() {
+		let user = this.redux.getState().user;
+		return new Promise((resolve, reject) => {
+			let xmlHttp = new XMLHttpRequest();
+			xmlHttp.onreadystatechange = () => {
+				if (xmlHttp.readyState == XMLHttpRequest.DONE) {
+					if (xmlHttp.status >= 200 && xmlHttp.status <= 204) {
+						let jsonText = xmlHttp.responseText;
+						if (jsonText && typeof jsonText == 'string' && jsonText.length > 0) resolve(JSON.parse(jsonText))
+						else resolve(jsonText);
+					} else {
+						reject({ status: xmlHttp.status, message: xmlHttp.responseText })
+					}
+				}
+			}
+			xmlHttp.open("GET", environment.accounting_api_endpoint + 'Company/' + user.companyKey + '/NameAndImage', true);
+			xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			xmlHttp.setRequestHeader('Authorization', 'Bearer ' + user.token);
+			xmlHttp.send();
+		}).then((data: any) => {
+			this.redux.dispatch(CompanyActions.setNameAndImage(data.name, data.imageUrl))
+			return Promise.resolve();
+		}).catch(err => this.http.commonCatchAndReject(err, 'CompanyService', 'getDetails'));
 	}
 
 	getComplexes() {
