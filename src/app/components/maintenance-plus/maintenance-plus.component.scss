@@ -1502,21 +1502,24 @@ input#message {
   }
   label > input + img {
     cursor: pointer;
-    width: auto; 
+    width: auto;
     height: auto;
     max-height: 50px;
     max-width: 50px;
-    transition: transform .2s
+    transition: transform 0.2s;
   }
   label > input:checked + img {
     color: #00b8a0;
-    transform: scale(1.2);  
+    transform: scale(1.2);
+    //transform: scale(-1.2);
     //filter: invert(100%);
     //filter: hue-rotate(180deg);
-    filter: sepia(100%); 
+    //filter: sepia(100%);
+    filter: brightness(0%);
   }
   .mat-button-toggle-checked {
     background-color: #00b8a0;
-    color: white
-    }
+    color: white;
+  }
 }
+

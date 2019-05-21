@@ -164,6 +164,10 @@ export class MaintenancePlusComponent implements OnInit {
   areaZone;
   unitNumber = null;
 
+  errorMsg = { isError: false, message: '' };
+
+  units = [];
+
   constructor(private redux: NgRedux<AppState>,
     private activatedRoute: ActivatedRoute,
     private router: Router,
@@ -252,6 +256,7 @@ export class MaintenancePlusComponent implements OnInit {
         this.connectToVendors();
         this.LoadEmployees();
         this.GetTicketsFromVendors();
+        this.LoadUnits();
         this.dataLoaded = true
       }
     })
@@ -270,6 +275,7 @@ export class MaintenancePlusComponent implements OnInit {
 
   ngAfterContentInit() {
     this.LoadCategories();
+
   }
 
   selectJanitor(user, ticket) {
@@ -288,6 +294,16 @@ export class MaintenancePlusComponent implements OnInit {
   }
   deleteEverything() {
     this.itemsRef.remove();
+  }
+
+  LoadUnits() {
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json; charset=utf-8');
+    headers.append('Authorization', 'Bearer ' + this.redux.getState().user.token);
+    this.http.get(this.accountingServer + 'Temp/' + this.complex.code + '/units', { headers: headers })
+      .subscribe((res: Response) => {
+        this.units = res.json();
+      });
   }
 
   LoadCategories() {
@@ -530,6 +546,17 @@ export class MaintenancePlusComponent implements OnInit {
     ticket.currentPhoto = imageUrl.url;
     let fileUrl = imageUrl.url.split('.');
 
+    ticket.files.managementGallery.push(
+      {
+        isPublic: false,
+        _id: Math.floor((Math.random() * 9999999) + 1000000),
+        imageUrl: imageUrl.url,
+        uploadDate: Date.now(),
+        uploaderName: this.displayName,
+        fileExt: fileUrl[fileUrl.length - 1],
+        fileName: this.displayName
+      }
+    );
 
     var headers = new Headers();
     var json = JSON.stringify(
@@ -625,31 +652,33 @@ export class MaintenancePlusComponent implements OnInit {
     let text = target.value.trim();
     target.value = "";
 
-    ticket.additionalInformation.push({
-      msgContent: text,
-      msgSenderDisplayName: this.displayName + ' (' + this.position + ') ',
-      msgSenderEmail: this.email,
-      isMessagePrivate: false,
-      msgDate: new Date().getTime()
-    });
-
-    var headers = new Headers();
-    var json = JSON.stringify(
-      {
+    if (text.length > 0) {
+      ticket.additionalInformation.push({
         msgContent: text,
         msgSenderDisplayName: this.displayName + ' (' + this.position + ') ',
         msgSenderEmail: this.email,
-        isMessagePrivate: false
-      }
-    );
-    //console.log(json);
-    headers.append('Content-Type', 'application/json');
-    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    this.http.post(this.vendorServer + 'manager/PostAdditionalInformation/' + ticket._id + '/' + ticket.communityId, json, { headers: headers }).subscribe(
-      (res: Response) => {
-        const t = res.json();
-        //console.log(t)
+        isMessagePrivate: false,
+        msgDate: new Date().getTime()
       });
+
+      var headers = new Headers();
+      var json = JSON.stringify(
+        {
+          msgContent: text,
+          msgSenderDisplayName: this.displayName + ' (' + this.position + ') ',
+          msgSenderEmail: this.email,
+          isMessagePrivate: false
+        }
+      );
+      //console.log(json);
+      headers.append('Content-Type', 'application/json');
+      headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+      this.http.post(this.vendorServer + 'manager/PostAdditionalInformation/' + ticket._id + '/' + ticket.communityId, json, { headers: headers }).subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t)
+        });
+    }
   }
 
   vendorRequired(ticket) {
@@ -786,7 +815,9 @@ export class MaintenancePlusComponent implements OnInit {
 
   showGetVendorDialog(ticket) {
     //console.log(ticket);
+    this.errorMsg = { isError: false, message: '' };
     this.clickedTicket = ticket;
+    console.log(ticket)
     this.vendors = [];
     this['loadingVendors'] = true;
     //this.showGallery(ticket, 0);
@@ -811,39 +842,72 @@ export class MaintenancePlusComponent implements OnInit {
     //this.checkVendor(checkedSubCategory, checkedCategory);
     this['loadingVendors'] = false;
   }
+
+  removeAdditionalInformationCVD() {
+    (document.querySelector('#additionalInformationCVD') as HTMLElement).style.border = 'none';
+    this.errorMsg = { isError: false, message: '' };
+  }
+
+  checkSendVendorAuction(ticket) {
+    let additionalInformation = ticket.additionalInformation.filter(x => x._id != '0' && x.isMessagePrivate == true);
+    let timeFrame = ticket.timeFrame.filter(x => x.date != '' && x.am_pm != '');
+    ticket.timeFrame = timeFrame;
+
+    ticket.timeFrame = ticket.timeFrame.filter((item, index, self) =>
+      index === self.findIndex(x => x.date === item.date && x.am_pm === item.am_pm)
+    )
+
+    if (additionalInformation.length === 0) {
+      (document.querySelector('#additionalInformationCVD') as HTMLElement).style.border = '1px solid red';
+      return { isError: true, message: 'Please fix the errors in the form to continue' };
+    }
+
+    if (timeFrame.length === 0 && ticket.timeType === 'TIMEFRAME') {
+      (document.querySelector('#timeFrame') as HTMLElement).style.border = '1px solid red';
+      return { isError: true, message: 'Please fix the errors in the form to continue' };
+    }
+
+    return { isError: false, message: '' };
+  }
+
   //vova
   sendVendorAuction(ticket) {
-    var headers = new Headers();
-    var json = JSON.stringify(
-      {
-        userId: this.key,
-        logFullName: this.displayName,
-        logEmail: this.email,
-        logPosition: this.position,
-        ticketStatus: this.statuses.Auction_Created,
-        additionalInformation: ticket.additionalInformation.filter(x => x._id != '0'),
-        requestTimeFrame: ticket.timeFrame,
-        requestASAP: ticket.timeType === 'ASAP',
-        files: ticket.files
-      }
-    );
-    //console.log(json);
-    headers.append('Content-Type', 'application/json');
-    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    this.http.post(this.vendorServer + 'manager/CreateRequest/' + ticket._id + '/' + this.complex.key, json, { headers: headers })
-      .toPromise().then(
-        (res: Response) => {
-          const result = res.json();
-          //console.log(result)
-          this.openSnackBar(result.message, 'Dismiss');
-        });
-    this.clickedTicket = null;
-    ticket.status = 'Auction_Created';
-    ticket.lastUpdateDate = this.moment().valueOf();
-    ticket.lastUpdateTitle = "Ticket status was updated";
-    ticket.lastUpdateFullname = this.displayName;
-    ticket.lastUpdateEmail = this.email;
-    ticket.lastUpdatePosition = this.position;
+    const error = this.checkSendVendorAuction(ticket);
+    this.errorMsg = error;
+
+    if (!error.isError) {
+      var headers = new Headers();
+      var json = JSON.stringify(
+        {
+          userId: this.key,
+          logFullName: this.displayName,
+          logEmail: this.email,
+          logPosition: this.position,
+          ticketStatus: this.statuses.Auction_Created,
+          additionalInformation: ticket.additionalInformation.filter(x => x._id != '0'),
+          requestTimeFrame: ticket.timeFrame,
+          requestASAP: ticket.timeType === 'ASAP',
+          files: ticket.files
+        }
+      );
+      //console.log(json);
+      headers.append('Content-Type', 'application/json');
+      headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+      this.http.post(this.vendorServer + 'manager/CreateRequest/' + ticket._id + '/' + this.complex.key, json, { headers: headers })
+        .toPromise().then(
+          (res: Response) => {
+            const result = res.json();
+            //console.log(result)
+            this.openSnackBar(result.message, 'Dismiss');
+          });
+      this.clickedTicket = null;
+      ticket.status = 'Auction_Created';
+      ticket.lastUpdateDate = this.moment().valueOf();
+      ticket.lastUpdateTitle = "Ticket status was updated";
+      ticket.lastUpdateFullname = this.displayName;
+      ticket.lastUpdateEmail = this.email;
+      ticket.lastUpdatePosition = this.position;
+    }
   }
 
   cancelAuction(ticket) {
@@ -1102,6 +1166,7 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   clearDateChoices() {
+    this.errorMsg = { isError: false, message: '' };
   }
 
   showVendorOffersResponses(ticket) {
@@ -1134,8 +1199,12 @@ export class MaintenancePlusComponent implements OnInit {
       this.timeToAssign = 0;
       offer.expand = true;
     } else {
+      this.timeToAssign.isSelectedBycommunity = true;
       offer.availabilities.forEach(element => {
-        if (element._id === this.timeToAssign._id) element = this.timeToAssign;
+        if (element._id === this.timeToAssign._id) {
+          element = this.timeToAssign;
+        }
+
       });
       var headers = new Headers();
       var json = JSON.stringify(
@@ -1743,31 +1812,65 @@ export class MaintenancePlusComponent implements OnInit {
   ticketMainCategory(category) {
     this.subCategory = null;
     this.mainCategory = category;
+    (document.querySelector('#mainCategory') as HTMLElement).style.border = 'none';
   }
 
   openNewTicketNext() {
-    this.openTicketNext = !this.openTicketNext;
-    if (this.newTicket === undefined) {
-      this.newTicket = {
-        ticketId: 'mit-' + Math.floor((Math.random() * 9999999) + 1000000),
-        files: { tenantGallery: [], managementGallery: [] },
-        ticketTitle: '',
-        ticketSubTitle: '',
-        communityId: this.currentComplexKey,
-        companyId: this.companyKey,
-        ticketDescription: '',
-        ticketStatus: "Open",
-        ticketOpenerFullname: this.displayName,
-        ticketOpenerEmail: this.email,
-        ticketOpenerAddress: '',
-        ticketOpenerKey: this.key,
-        isPetOwner: false,
-        isEnteringAllow: false,
-        ticketAreaZone: '',
-        ticketProfessionalField: '',
-        propertyName: this.complex.address
+    const error = this.checkOpemNewTicket();
+    this.errorMsg = error;
+
+    if (!error.isError) {
+      this.openTicketNext = !this.openTicketNext;
+      if (this.newTicket === undefined) {
+        this.newTicket = {
+          ticketId: 'mit-' + Math.floor((Math.random() * 9999999) + 1000000),
+          files: { tenantGallery: [], managementGallery: [] },
+          ticketTitle: '',
+          ticketSubTitle: '',
+          communityId: this.currentComplexKey,
+          companyId: this.companyKey,
+          ticketDescription: '',
+          ticketStatus: "Open",
+          ticketOpenerFullname: this.displayName,
+          ticketOpenerEmail: this.email,
+          ticketOpenerAddress: '',
+          ticketOpenerKey: this.key,
+          isPetOwner: false,
+          isEnteringAllow: false,
+          ticketAreaZone: '',
+          ticketProfessionalField: '',
+          propertyName: this.complex.address
+        }
       }
     }
+  }
+
+  areaZoneChange() {
+    (document.querySelector('#areaZone') as HTMLElement).style.border = 'none';
+  }
+
+  subCategoryChange(){
+    (document.querySelector('#subCategory') as HTMLElement).style.border = 'none';
+  }
+
+  checkOpemNewTicket() {
+
+    if ((this.areaZone === undefined) || (this.areaZone === 'Apartment' && this.unitNumber === null)) {
+      (document.querySelector('#areaZone') as HTMLElement).style.border = '1px solid red';
+      return { isError: true, message: 'Please fix the errors in the form to continue' };
+    }
+
+    if (this.mainCategory === undefined) {
+      (document.querySelector('#mainCategory') as HTMLElement).style.border = '1px solid red';
+      return { isError: true, message: 'Please fix the errors in the form to continue' };
+    }
+
+    if (this.subCategory === null) {
+      (document.querySelector('#subCategory') as HTMLElement).style.border = '1px solid red';
+      return { isError: true, message: 'Please fix the errors in the form to continue' };
+    }
+
+    return { isError: false, message: '' };
   }
 
   openNewTicket() {
@@ -1776,26 +1879,31 @@ export class MaintenancePlusComponent implements OnInit {
     this.newTicket.ticketProfessionalField = this.mainCategory.categoryName;
     this.newTicket.ticketSubTitle = this.subCategory;
     this.newTicket.ticketAreaZone = this.areaZone;
-    this.newTicket.ticketOpenerAddress = this.unitNumber === undefined || this.unitNumber === null ? this.newTicket.ticketOpenerAddress : this.unitNumber;
+    this.newTicket.ticketOpenerAddress = this.unitNumber;
 
     var headers = new Headers();
     var json = JSON.stringify(this.newTicket);
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    this.http.post(this.vendorServer + 'tenants/addNewTicket', json, { headers: headers })
-      .subscribe(
-        (res: Response) => {
-          const t = res.json();
-           console.log(t);
-          if(t.message === 'Ticket was created'){
-            location.reload();
-          }
-        });
+    // this.http.post(this.vendorServer + 'tenants/addNewTicket', json, { headers: headers })
+    //   .subscribe(
+    //     (res: Response) => {
+    //       const t = res.json();
+    //       console.log(t);
+    //       if (t.message === 'Ticket was created') {
+    //         location.reload();
+    //       }
+    //     });
     this.openTicket = !this.openTicket;
   }
 
   addTimeFrame() {
+    // const date = this.moment().format('DD MMM YY');
+    // this.clickedTicket.timeFrame.push({ date: date, am_pm: 'AM' });
+    // this.errorMsg = { isError: false, message: '' };
     this.clickedTicket.timeFrame.push({ date: '', am_pm: '' });
+    (document.querySelector('#timeFrame') as HTMLElement).style.border = 'none';
+    this.errorMsg = { isError: false, message: '' };
   }
 
   removeTimeFrame(time) {

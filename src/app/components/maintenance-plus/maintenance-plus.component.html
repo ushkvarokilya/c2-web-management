@@ -276,7 +276,7 @@
                 (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor requird', 'Dismiss');">
                 VENDOR REQUIRED</button>
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
-                class="c2-ok-button add-c2-ok-button"
+                class="c2-cancel-button add-c2-ok-button"
                 (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">
                 FIXED </button>
 
@@ -284,43 +284,49 @@
                 class="c2-cancel-button add-c2-cancel-button"
                 (click)="loader($event,'cancal'); delay(ticket,'sendReminderToStaff');">SEND REMINDER</button>
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'"
-                class="c2-ok-button add-c2-ok-button"
+                class="c2-cancel-button add-c2-ok-button"
                 (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">FIXED</button>
               <!-- <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Assigned'" class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'sendReminderToStaff');">SEND REMINDER</button> -->
 
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Required'"
-                class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'showGetVendorDialog');">REQUEST
+                class="c2-cancel-button" (click)="loader($event,'ok'); delay(ticket,'showGetVendorDialog');">REQUEST
                 VENDORS</button>
 
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created'"
                 class="c2-cancel-button add-c2-cancel-button"
-                (click)="loader($event,'cancal'); delay(ticket,'showGetVendorDialog');"> VIEW AUCTION</button>
+                (click)="loader($event,'cancal'); delay(ticket,'showGetVendorDialog');"> VIEW REQUEST</button>
               <span
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Auction_Created' && ticket.offers.length === 0"
                 class="no-offers C2-no-offers-add">No Offers Yet</span>
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Auction_Created') && ticket.offers.length > 0"
-                class="c2-ok-button add-c2-ok-button"
+                class="c2-cancel-button add-c2-ok-button"
                 (click)="loader($event,'ok'); delay(ticket,'showVendorOffersResponses');"> VIEW OFFERS </button>
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status ===  'Vendor_Assigned') && ticket.offers.length> 0"
-                class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'showVendorOffersResponses');"> REVIEW
+                class="c2-cancel-button" (click)="loader($event,'ok'); delay(ticket,'showVendorOffersResponses');">
+                REVIEW
                 ASSIGNED </button>
               <div class="notification-num"
                 *ngIf="ticket.offers.length !== 0 &&  ticket.status ===  'Auction_Created' ">
                 {{ticket.offers.length}} </div>
 
-              <button
+              <!-- <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Resolved'"
                 class="c2-ok-button" (click)="loader($event,'ok'); delay(ticket,'openRatingDialog');"> CLOSE & RATE
+              </button> -->
+              <button
+                *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Resolved'"
+                class="c2-cancel-button"
+                (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">CONFIRM
               </button>
 
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Resolved'"
-                class="c2-ok-button" (click)="openResolvedDialog(ticket);"> VIEW INFO </button>
+                class="c2-cancel-button" (click)="openResolvedDialog(ticket);"> VIEW INFO </button>
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Done'"
-                class="c2-ok-button" (click)="openDoneDialog(ticket);"> VIEW INFO </button>
+                class="c2-cancel-button" (click)="openDoneDialog(ticket);"> VIEW INFO </button>
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status == statuses.New"
                 class="c2-cancel-button" (click)="loader($event,'ok'); delay(ticket,'sendReminderToJanitor');">SEND A
@@ -396,7 +402,8 @@
                 <div *ngIf="!editTitleLabel(ticket.status)" style="color: #909090; display: inline;">(edit)</div>
               </div>
             </div>
-            <div *ngIf="show == 'Location Manager'" class="joined-tenants">
+
+            <!-- <div *ngIf="show == 'Location Manager'" class="joined-tenants">
               <div class="left-icon">
                 <img src="/assets/img/mergeTicketsIcon.png">
               </div>
@@ -410,13 +417,14 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
+
             <div class="added-details">
               <div class="left-icon">
                 <img src="/assets/img/info.png">
               </div>
               <div class="right-content">
-                <div class="added-details-label">Added Details</div>
+                <div class="added-details-label">Description</div>
                 <div *ngIf="ticket.ticketAreaZone !== 'Complex'">
                   <div *ngIf="translateTrueOrFalse(ticket.isEnteringAllow)" class="unattended-entrance">Unattended
                     entrance:
@@ -427,12 +435,27 @@
                   </div>
                 </div>
                 <br />
-                <div *ngFor="let info of ticket.additionalInformation">
+                <div>
+                  <a>{{ ticket.ticketOpenerFullname + ' (' + ticket.createdPosition + ') '}}
+                    {{moment(ticket.createdDate.getTime()).format('DD MMM, YY hh:mm A')}} :</a>&nbsp;
+                  <div class="mainProblemDetail">{{ticket.ticketDescription}}</div>
+                </div>
+              </div>
+            </div>
+            <br />
+            <div class="added-details">
+              <div class="left-icon">
+                <img src="/assets/img/info.png">
+              </div>
+              <div class="right-content">
+                <div class="added-details-label">Internal Notes</div>
+                <div *ngFor="let info of (ticket.additionalInformation  | slice:1:50)">
                   <a>{{info.msgSenderDisplayName}} {{moment(info.msgDate).format('DD MMM, YY hh:mm A')}} :</a>&nbsp;
                   <div class="mainProblemDetail">{{info.msgContent}}</div>
                 </div>
               </div>
             </div>
+
             <div class="more-info-input">
               <div class="left-icon">
                 <img src="/assets/img/editIcon.png">
@@ -540,166 +563,6 @@
                 style="margin-top: 10px; width: 140%; margin-left: -60%;">Video</button>
             </div>
           </div>
-          <!-- <div class="ticket-details" style="padding:0%;" [ngClass]="{'hide-details': !ticket.showDetails}">
-             <mat-tab-group style="width: -webkit-fill-available;">
-                <mat-tab label="Details" style="max-height: max-content;">
-                  <div class="ticket-details">
-                      <div class="ticket-left-pane">
-                          <div *ngIf="ticket.merged" class="merged">
-                            <div class="left-icon">
-                              <img src="/assets/img/mergeTicketsIcon.png">
-                            </div>
-                            <div class="right-content">
-                              <div class="merged-label">Merged</div>
-                              <div class="merged-ticket" *ngFor="let apt of ticket.apartments">
-                                <div>{{apt}}</div>
-                              </div>
-                              <div class="merged-seperate">
-                                <a (click)="seperateTickets(ticket.key)">Seperate</a>
-                              </div>
-                            </div>
-                          </div>
-                            <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance')" class="joined-tenants">
-                                <div class="left-icon">
-                                    <img class="open-edit-title-and-subtitle" src="assets/img/pencil.png">
-                                </div>
-                                <div class="right-content margin-top--7px">
-                                  {{ticket.TicketTitle}} ,  {{ticket.TicketSubTitle}}
-                                  <div *ngIf="editTitleLabel(ticket.status)" style="color: #00b8a0; display: inline; cursor: pointer;" (click)="LoadCategoriesdialog(ticket);">(edit)</div>
-                                  <div *ngIf="!editTitleLabel(ticket.status)" style="color: #909090; display: inline;">(edit)</div>
-                                </div>
-                              </div> 
-                          <div *ngIf="show == 'Location Manager'" class="joined-tenants">
-                            <div class="left-icon">
-                              <img src="/assets/img/mergeTicketsIcon.png"> 
-                            </div>
-                            <div class="right-content">
-                              <div class="joined-tenants-label">Joined Tenants</div>
-                              <div class="joined-tenants-holder">
-                                <div class="joined-tenant" *ngFor="let tenant of (ticket.joinedPeople | slice:0:5)">
-                                  <img [src]="tenant.profileUrl" [alt]="tenant.firstName + ' ' + tenant.lastName">
-                                </div>
-                                <div class="more-tenants" *ngIf="ticket.joinedPeople?.length > 6">+{{ticket.joinedPeople.length - 6}}</div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="added-details">
-                            <div class="left-icon">
-                              <img src="/assets/img/info.png">
-                            </div>
-                            <div class="right-content">
-                              <div class="added-details-label">Added Details</div>
-                              <div *ngIf="translateTrueOrFalse(ticket.approvedEnteringTheApartment)" class="unattended-entrance">Unattended entrance: 
-                                  <div style="color: #00b8a0; display: inline;">{{translateTrueOrFalse(ticket.approvedEnteringTheApartment)}}</div>
-                              </div>
-                              <div *ngIf="translateTrueOrFalse(ticket.petOwner)" class="unattended-entrance">Pets:
-                                  <div style="color: #00b8a0; display: inline;"> {{translateTrueOrFalse(ticket.petOwner)}}</div>
-                              </div>
-                              <br />
-                              <div *ngFor="let info of ticket.moreInfo">
-                                <a *ngIf="info.body != 'TICKET-DONE'">{{info.name}}:</a>&nbsp;
-                                <div *ngIf="info.body != 'TICKET-DONE'" class="mainProblemDetail">{{info.body}}</div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="more-info-input">
-                            <div class="left-icon">
-                              <img src="/assets/img/editIcon.png">
-                            </div>
-                            <div class="right-content">
-                              <textarea rows="4" (keyup.enter)="addMoreInfo($event, ticket._id)" placeholder="Write more information here"></textarea>
-                            </div>
-                          </div>
-                          <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="ticket-messages">
-                            <div class="left-icon">
-                              <img src="/assets/img/messagesIconGrey.png">
-                            </div>
-                            <div class="right-content">
-                              <b>No Messages Yet
-                                <a *ngIf="(user$ |async)?.actionPermissions?.includes('Messages')" (click)="navigateToChatWithTenant(ticket.joinedPeople[0], ticket.joinedPeople[0].apartmentName)">Open Chat</a>
-                              </b>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="ticket-middle-pane">
-                          <div class="left-icon">
-                            <img src="/assets/img/photoIcon.png">
-                          </div>
-                          <div class="middle-content">
-                            <div class="pictures-header">
-                              <div class="photos-label">Photos</div>
-                              <app-image-upload #imageUpload (imageUploaded)="addImageToTicket(ticket, $event)"></app-image-upload>
-                              <div class="form-item-add-input add-photo clickable" (click)="imageUpload.clickFolder('maintenance/tickets/'+ticket._id+'/manager',false)">
-                                <div class="plus">
-                                  <div class="line"></div>
-                                  <div class="line"></div>
-                                </div>
-                                <div class="add-input-label">Add photo</div>
-                              </div>
-                            </div>
-                            <div class="pictures-holder" *ngIf="ticket.currentPhoto">
-                              <div class="pictures-list">
-                                <div *ngFor="let photo of ticket.mainImg">
-                                <span >{{photo.description}}</span>
-                                <span *ngIf="photo.size > 0 && (ticket.mainImg.length === 1 || photo.id === 1) " class="photoSizeText" style="top: 33%;">+{{photo.size}} <br> more </span>
-                                <span *ngIf="photo.size > 0 && ((photo.id === 3 && ticket.mainImg.length === 2) || (photo.id === 2 && ticket.mainImg.length > 1))" class="photoSizeText" style="top: 55%;">+{{photo.size}} <br> more </span>
-                                <span *ngIf="photo.size > 0 && (photo.id === 3 && ticket.mainImg.length === 3)" class="photoSizeText" style="top: 77%;">+{{photo.size}} <br> more </span>
-                                <div *ngIf="photo.url.slice(-3) == 'pdf'">
-                                    <a href="{{photo.url}}" target="_blank">
-                                        <img src="/assets/img/file_64.png" style="width: initial;">
-                                    </a> 
-                                </div>
-                                <div *ngIf="photo.url.slice(-3) != 'pdf'">
-                                    <img [src]="photo.url" class="clickable" (click)="showGallery(ticket,photo.id);open(0)">
-                                </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="no-pictures" *ngIf="ticket.mainImg.length == 0">
-                            </div>
-                          </div>
-                        </div>
-                        <div class="ticket-right-pane">
-                          <div *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && (ticket.status === 'Open' || ticket.status === 'In_Progress' || ticket.status === 'Vendor_Assigned' ) && jusers">
-                          <div class="staff-members-list c2-list" style="display:flex;">
-                              <label for="staffIn" class="C2-dd-label" style="line-height: 37px;">Assigned:</label>
-                              <div  id="staffIn" class="selector" style="border-left: none;" (click)="dropDown.style.display = 'block'">
-                                <ng-container *ngIf="ticket.selectedJanitor">
-                                    {{ticket.selectedJanitor.firstName}} {{ticket.selectedJanitor.lastName}}
-                                </ng-container>
-                                <ng-container *ngIf="!ticket.selectedJanitor">
-                                  {{jusers.length}} staff members
-                                </ng-container>
-                              </div>
-                              <div class="drop-down" #dropDown>
-                                <div class="list-item" *ngFor="let user of jusers " (click)="selectJanitor(user,ticket) && dropDown.style.display = 'none'"
-                                  [ngClass]="{selected: false}">
-                                  {{user.firstName}} {{user.lastName}}
-                                </div>
-                              </div>
-                            </div> 
-                            <button *ngIf="ticket.selectedJanitor" class="c2-cancel-button" (click)="AssignInternal(ticket)" style="margin-top: 10px; width: 140%; margin-left: -60%;">ASSIGN WORKER</button>
-                          </div>
-                          <button *ngIf="false" class="c2-cancel-button" (click)="imgGallery = true" style="margin-top: 10px; width: 140%; margin-left: -60%;">Video</button>
-                        </div>
-                  </div>
-                  </mat-tab>
-                <mat-tab label="Chat">
-                  <div style="height:405px;">
-                      <ul>
-                          <li *ngFor="let item of items | async">
-                            <input type="text" #updatetext [value]="item.text" />
-                            <button (click)="updateItem(item.key, updatetext.value)">Update</button>
-                            <button (click)="deleteItem(item.key)">Delete</button>
-                          </li>
-                        </ul>
-                        <input type="text" #newitem />
-                        <button (click)="addItem(newitem.value)">Add</button>
-                        <button (click)="deleteEverything()">Delete All</button>
-                  </div>
-                  </mat-tab>
-              </mat-tab-group> 
-        </div> -->
         </div>
       </div>
     </div>
@@ -778,12 +641,12 @@
           INCLUDE?
           <span style="margin-left: 20px;">DETAILS</span>
         </div>
-        <div style="width: 100%; display: flex; margin-top: 3%;">
+        <div id="additionalInformationCVD" style="width: 100%; display: flex; margin-top: 3%;">
           <div style="width: 20%"></div>
           <div style="width: 80%">
             <div *ngFor="let info of clickedTicket.additionalInformation; let i = index;">
               <mat-checkbox [id]="info._id" style="margin-left: -4rem;" [(ngModel)]="info.isMessagePrivate"
-                [disabled]="info._id === '0'"></mat-checkbox>
+                [disabled]="info._id === '0'" (change)="removeAdditionalInformationCVD()"></mat-checkbox>
               <a style="pointer-events: none; cursor: default;margin-left: 17%;">{{info.msgSenderDisplayName}}
                 {{moment(info.msgDate).format('DD MMM, YY hh:mm A')}} :</a>&nbsp;
               <div style=" padding-bottom: 10px; word-break: break-word;">{{info.msgContent}}</div>
@@ -796,7 +659,8 @@
             </div>
           </div>
         </div>
-        <div style="display: flex;">
+        <div style="margin-top: 20px; border: 1px solid red; text-align: center;" *ngIf="errorMsg.isError">
+          <p style="color: red;">{{errorMsg.message}}</p>
         </div>
         <div class="send-to-vendors">
           <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)"
@@ -804,14 +668,14 @@
             CLOSE</button>
           <button class="c2-ok-button" (click)="sendVendorAuction(clickedTicket)"
             *ngIf="clickedTicket.offers.length === 0 && clickedTicket.status === 'Vendor_Required'">SUBMIT
-            AUCTION</button>
+            REQUEST</button>
           <button class="c2-ok-button" (click)="clickedTicket = null"
             *ngIf="clickedTicket.offers.length > 0 ">CLOSE</button>
           <button class="c2-cancel-button" (click)="clickedTicket = null"
             *ngIf="clickedTicket.status === 'Vendor_Required'">CLOSE</button>
           <!--  (click)="sendToVendors()" -->
           <button class="c2-cancel-button" (click)="cancelAuction(clickedTicket)"
-            *ngIf="clickedTicket.status === 'Auction_Created'">CANCEL AUCTION</button>
+            *ngIf="clickedTicket.status === 'Auction_Created'">CANCEL REQUEST</button>
         </div>
       </div>
       <div class="left-pane">
@@ -828,7 +692,7 @@
           <div class="pick-date">
             <div class="single-day" *ngIf="clickedTicket.timeType == 'ASAP'">
             </div>
-            <div class="time-range" *ngIf="clickedTicket.timeType == 'TIMEFRAME'">
+            <div class="time-range" *ngIf="clickedTicket.timeType == 'TIMEFRAME'" id="timeFrame">
               <div class="form-item-add-input add-photo clickable" (click)="addTimeFrame()">
                 <div class="plus">
                   <div class="line"></div>
@@ -867,7 +731,7 @@
               <span style="margin-right: 10px;"></span>
             </div>
           </div>
-          <p style="margin-bottom: -10px;">Managment</p>
+          <p style="margin-bottom: -10px;">Management</p>
           <div class="photos-holder">
             <div *ngFor="let photo of (clickedTicket.files.managementGallery | slice:0:3) let i = index;">
               <mat-checkbox [id]="photo._id" [(ngModel)]="photo.isPublic">
@@ -1349,19 +1213,29 @@
     <div class="openTicketClass">
       <div *ngIf="openTicketNext">
         <p style="text-align: left;font-weight: 700;">Where is the problem?</p>
-        <mat-button-toggle-group #group="matButtonToggleGroup" [(ngModel)]="areaZone">
-          <mat-button-toggle value="Apartment">Apartment</mat-button-toggle>
-          <mat-button-toggle value="Complex">Common Area</mat-button-toggle>
-        </mat-button-toggle-group>
-        <div *ngIf="group.value === 'Apartment'" style="margin-top: 10px; margin-bottom: -20px;">
-          <mat-form-field class="example-full-width">
+        <div style="display: inline-block;padding: 0.5rem;" id="areaZone">
+          <mat-button-toggle-group #group="matButtonToggleGroup" [(ngModel)]="areaZone" (change)="areaZoneChange()">
+            <mat-button-toggle value="Apartment">Apartment</mat-button-toggle>
+            <mat-button-toggle value="Complex">Common Area</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <div *ngIf="group.value === 'Apartment'" style="margin-top: 10px; margin-bottom: -20px;">
+            <!-- <mat-form-field class="example-full-width">
             <input matInput placeholder="Unit number" [(ngModel)]="unitNumber">
-          </mat-form-field>
+          </mat-form-field> -->
+            <mat-form-field>
+              <mat-select placeholder="Select unit" [(value)]="unitNumber" (change)="areaZoneChange()">
+                <mat-option *ngFor="let unit of units" [value]="unit.unitId">
+                  {{ unit.unitId }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
         <!-- <mat-divider style="margin-top: 10px;"></mat-divider> -->
 
         <p style="text-align: left;font-weight: 700;">Choose category</p>
-        <mat-grid-list cols="3" rowHeight="3:2">
+        <mat-grid-list cols="3" rowHeight="3:2" id="mainCategory">
           <div *ngFor="let category of categories; let i = index;">
             <mat-grid-tile>
               <label>
@@ -1376,10 +1250,10 @@
         </mat-grid-list>
         <!-- <mat-divider style="margin-top: 10px;"></mat-divider> -->
 
-        <p style="text-align: left;font-weight: 700;">Choose sub-caragory</p>
-        <div style="display:flex;">
+        <p style="text-align: left;font-weight: 700;">Choose sub-category</p>
+        <div style="display:flex; margin-right: 17%; padding: 0.5rem;" id="subCategory">
           <label for="subCategory" class="C2-dd-label">Type:</label>
-          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory" style="width: 70%;">
+          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory" style="width: 100%;" (change)="subCategoryChange()">
             <option *ngFor="let sub of mainCategory?.categorySubs" [ngValue]="sub.categorySubName">
               {{sub.categorySubName}}</option>
           </select>

@@ -15,7 +15,6 @@ export const environment = {
   cloudinary_api_key: "593943879833819",
   google_api_key: "AIzaSyAQE7IgzoPXNhsZqV9smKnCFx_agX_Nnyg",
   stripe_client_id: "ca_BwOh3DndHVaDZKyEtbqxAof6ewLyApDp",
-  //vendor_api_endpoint : "https://dev-maintenance.c2communities.com/api/",
   vendor_api_endpoint : "https://maintenanceplusdev.appspot.com/api/",
   //vendor_api_endpoint : "http://localhost:8080/api/",
   redirect_url_vendors : "https://c2-dev-server.firebaseapp.com/maintenancePlus/",
