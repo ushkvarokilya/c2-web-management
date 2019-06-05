@@ -294,6 +294,7 @@
 				<div class="card havent-paid">
 					<div class="num">{{paymentsFromServer.successfulPayments | currency:'USD':'symbol':'1.0-2'}}</div>
 					<div class="label">Payments this month</div>
+					<div class="label" style="color:#909090">Between {{moment().add(-1, 'M').set('date', 27).format('DD MMM')}} - today</div>
 				</div>
 			</div>
 		</div>

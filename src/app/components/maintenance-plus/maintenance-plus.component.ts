@@ -498,6 +498,7 @@ export class MaintenancePlusComponent implements OnInit {
             })
             delete this.mainMessage;
             this.countTicketsStatus();
+            console.log(this.tickets)
           } else {
             this.mainMessage = "No Tickets"
           }
@@ -1195,17 +1196,20 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   assignVendor(offer) {
+    this.timeToAssign = this.vendorOffersTicket.requestASAP ? -1 : this.timeToAssign;
     if (this.timeToAssign == null || this.timeToAssign == undefined || this.timeToAssign == 0) {
       this.timeToAssign = 0;
       offer.expand = true;
     } else {
-      this.timeToAssign.isSelectedBycommunity = true;
-      offer.availabilities.forEach(element => {
-        if (element._id === this.timeToAssign._id) {
-          element = this.timeToAssign;
-        }
+      if (this.timeToAssign != -1) {
+        this.timeToAssign.isSelectedBycommunity = true;
+        offer.availabilities.forEach(element => {
+          if (element._id === this.timeToAssign._id) {
+            element = this.timeToAssign;
+          }
+        });
+      }
 
-      });
       var headers = new Headers();
       var json = JSON.stringify(
         {
@@ -1849,7 +1853,7 @@ export class MaintenancePlusComponent implements OnInit {
     (document.querySelector('#areaZone') as HTMLElement).style.border = 'none';
   }
 
-  subCategoryChange(){
+  subCategoryChange() {
     (document.querySelector('#subCategory') as HTMLElement).style.border = 'none';
   }
 
@@ -1885,15 +1889,15 @@ export class MaintenancePlusComponent implements OnInit {
     var json = JSON.stringify(this.newTicket);
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    // this.http.post(this.vendorServer + 'tenants/addNewTicket', json, { headers: headers })
-    //   .subscribe(
-    //     (res: Response) => {
-    //       const t = res.json();
-    //       console.log(t);
-    //       if (t.message === 'Ticket was created') {
-    //         location.reload();
-    //       }
-    //     });
+    this.http.post(this.vendorServer + 'tenants/addNewTicket', json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          console.log(t);
+          if (t.message === 'Ticket was created') {
+            location.reload();
+          }
+        });
     this.openTicket = !this.openTicket;
   }
 

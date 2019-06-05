@@ -1,22 +1,25 @@
 <header>
   <div class="header-container-left" *ngIf="company">
-    <div *ngIf="(company$ | async)?.complexes?.length > 0" class="company-icon clickable" [routerLink]="[ 'overview']" [routerLinkActive]="['active-page']">
+    <div *ngIf="(company$ | async)?.complexes?.length > 0" class="company-icon clickable" [routerLink]="[ 'overview']"
+      [routerLinkActive]="['active-page']">
       <img *ngIf="(company$ | async)" [src]='(company$ | async).imageUrl' />
     </div>
     <div class="complex-selector" *ngIf="!isInSetup">
       <div class="selector-header selector" (click)="complexesList.style.display = 'block'">
         <div class="complex" *ngIf="(company$ | async).currentComplex">
           <span class="name">{{(company$ | async).currentComplex.name}}</span>
-          <span class="notifications" 
-          *ngIf="(company$ | async).currentComplex.notificationCount && (company$ | async).currentComplex.notificationCount > 0">
+          <span class="notifications"
+            *ngIf="(company$ | async).currentComplex.notificationCount && (company$ | async).currentComplex.notificationCount > 0">
             {{(company$ | async).currentComplex.notificationCount}}
           </span>
         </div>
       </div>
       <div class="dropdown-menu" #complexesList>
-        <div class="menu-item" *ngFor="let complex of company.complexes; let complexIndex = index" (click)="complexChanges(complexIndex)">
+        <div class="menu-item" *ngFor="let complex of company.complexes; let complexIndex = index"
+          (click)="complexChanges(complexIndex)">
           <span class="name">{{complex.name}}</span>
-          <div class="notifications" *ngIf="complex.notificationCount && complex.notificationCount > 0">{{complex.notificationCount}}</div>
+          <div class="notifications" *ngIf="complex.notificationCount && complex.notificationCount > 0">
+            {{complex.notificationCount}}</div>
         </div>
       </div>
     </div>
@@ -26,8 +29,8 @@
       [routerLink]="[ 'announcements']" [routerLinkActive]="['active-page']">
       <img src="./assets/img/announcements.png">
     </div>
-    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="stab-icon messaging" [routerLink]="[ 'messaging']"
-      [routerLinkActive]="['active-page']">
+    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Messages')" class="stab-icon messaging"
+      [routerLink]="[ 'messaging']" [routerLinkActive]="['active-page']">
       <img src="./assets/img/messages.png">
       <div class="notification-num" *ngIf="(unreadCount$ | async) !== 0">
         {{(unreadCount$ | async)}}
@@ -42,9 +45,12 @@
     <div class="stab-icon settings" [routerLinkActive]="['active-page']" (click)="settingsList.style.display = 'block'">
       <img src="./assets/img/settings.png">
       <div class="dropdown-menu" #settingsList>
-        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item" [routerLink]="['setup', 'company']">Edit Company Details</div>
-        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item" [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'users and roles' }">Edit Users & Roles</div> 
-        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item" [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'facilities' }">Edit Facilities</div>
+        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item"
+          [routerLink]="['setup', 'company']">Edit Company Details</div>
+        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item"
+          [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'users and roles' }">Edit Users & Roles</div>
+        <div *ngIf="(user$ |async)?.viewPermissions?.includes('Setup')" class="menu-item"
+          [routerLink]="['setup', 'company']" [queryParams]="{ stage: 'facilities' }">Edit Facilities</div>
         <div class="menu-item" [routerLink]="['account']">Account Details</div>
         <div class="menu-item" (click)="signout()">Sign-out</div>
       </div>
@@ -58,8 +64,10 @@
         <div class="menu-item"><a [href]="commercialPageUrl + '/career'" target="_blank">Jobs</a></div>
         <div class="menu-item"><a [href]="commercialPageUrl + '/press'" target="_blank">Press</a></div>
         <div class="menu-item"><a [href]="commercialPageUrl + '/press'" target="_blank">Press Kit</a></div> -->
-        <div class="menu-item"><a [href]="commercialPageUrl + '/legal/privacy/platform/en'" target="_blank">Privacy Policy</a></div>
-        <div class="menu-item"><a [href]="commercialPageUrl + '/legal/terms/platform/en'" target="_blank">Terms & Conditions</a></div>
+        <div class="menu-item"><a [href]="commercialPageUrl + '/legal/privacy/platform/en'" target="_blank">Privacy
+            Policy</a></div>
+        <div class="menu-item"><a [href]="commercialPageUrl + '/legal/terms/platform/en'" target="_blank">Terms &
+            Conditions</a></div>
       </div>
     </div>
   </div>
@@ -92,16 +100,16 @@
       </div>
       <div class="label">Maintenance</div>
     </div> -->
-    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item" [routerLink]="[ 'maintenancePlus']"
-    [routerLinkActive]="['active-page']">
-    <div class="icon">
+    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Maintenance')" class="menu-item"
+      [routerLink]="[ 'maintenancePlus']" [routerLinkActive]="['active-page']">
+      <div class="icon">
         <!-- <img src="./assets/img/MaintenancePlusWhite.svg" alt="Kiwi standing on oval" style="width: 50px; margin-bottom: -10px;"> -->
         <svg width="25" height="23" viewBox="0 0 25 23">
           <use xlink:href="./assets/icons.svg#helemet"></use>
         </svg>
       </div>
-    <div class="label">Maintenance+</div>
-  </div>
+      <div class="label">Maintenance+</div>
+    </div>
     <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Vendors')" class="menu-item" [routerLink]="[ 'vendors']"
       [routerLinkActive]="['active-page']">
       <div class="icon">
@@ -119,6 +127,15 @@
         </svg>
       </div>
       <div class="label">Residents</div>
+    </div>
+    <div *ngIf="(user$ |async)?.viewPermissions?.includes('Collections')" class="menu-item"
+      [routerLink]="[ 'payouts']" [routerLinkActive]="['active-page']">
+      <div class="icon">
+        <svg width="23" height="19" viewBox="0 0 23 19">
+          <use xlink:href="./assets/icons.svg#collection"></use>
+        </svg>
+      </div>
+      <div class="label">Payouts</div>
     </div>
     <!-- <div *ngIf="(user$ |async)?.viewPermissions?.includes('Collections')" class="menu-item" [routerLink]="[ 'collection']"
       [routerLinkActive]="['active-page']">

@@ -21,6 +21,7 @@ import { AmenityComponent } from "../components/amenity/amenity.component";
 import { ResetPasswordComponent } from "../components/reset-password/reset-password.component";
 import { ForgotPasswordComponent } from "../components/forgot-password/forgot-password.component";
 import { MaintenancePlusComponent } from '../components/maintenance-plus/maintenance-plus.component';
+import { PayoutsComponent } from '../components/payouts/payouts.component';
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', component: PageNotFoundComponent },
@@ -35,6 +36,7 @@ const routes: Routes = [
   { path: 'vendors', component: VendorsPageComponent, canActivate: [AuthGuard] },
   { path: 'tenants', component: TenantsPageComponent, canActivate: [AuthGuard] },
   { path: 'collection', component: CollectionPageComponent, canActivate: [AuthGuard] },
+  { path: 'payouts', component: PayoutsComponent, canActivate: [AuthGuard] },
   { path: 'messaging', component: MessagingComponent, canActivate: [AuthGuard] },
   { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard] },
   { path: 'setup/company', component: SetupCompanyPageComponent, canActivate: [AuthGuard] },

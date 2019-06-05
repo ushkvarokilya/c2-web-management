@@ -1,0 +1,127 @@
+<div class="page-holder">
+  <div class="page-header">
+    <div class="page-title">
+      PAYOUTS
+    </div>
+    <div class="page-stats">
+      <div class="number-label">
+        <!-- {{0 New Tickets}} -->
+      </div>
+    </div>
+  </div>
+  <div class="maint-content">
+    <div class="maint-content-header">
+      <div class="merge-tickets" [ngClass]="{'clickable': canMerge}" (click)="mergeTickets()">
+        <img src="/assets/img/mergeTicketsIcon.png">
+        <div class="merge-tickets-label">Merge Tickets</div>
+      </div>
+      <div class="query-form">
+        <div class="dropdown">
+          <label for="sortBy">Sort By:</label>
+          <select id="sortBy" [(ngModel)]="sortBy" class="sortBy">
+            <option value="dateTimePaid$">Most Recent</option>
+            <option value="dateTimePaid">Oldest</option>
+          </select>
+        </div>
+        <div class="dropdown">
+          <label for="show">Show:</label>
+          <select id="show" [(ngModel)]="showBy" class="show">
+            <option value="All">All</option>
+            <option value="paid">paid</option>
+            <option value="pending">pending</option>
+            <option value="in_transit">in transit</option>
+            <option value="canceled">canceled</option>
+            <option value="failed">failed</option>
+          </select>
+        </div>
+        <div class="query-search">
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search by resident id, apt, date etc...">
+        </div>
+      </div>
+    </div>
+    <div class="table-header lease-row">
+      <div class="col-1"> TYPE</div>
+      <div class="col-2"> AMOUNT</div>
+      <div class="col-3"> STATUS</div>
+      <div class="col-4"> ARRIVAL DATE</div>
+      <div class="col-5"> &nbsp;</div>
+      <div class="col-6"> PAYOUT ID</div>
+    </div>
+    <div *ngIf="mainMessage" class="main-message">
+      <img *ngIf="mainMessage === 'Loading...'" src="/assets/img/loader_big.gif" alt="">
+      <ng-container *ngIf="mainMessage !== 'Loading...'">
+        {{mainMessage}}
+      </ng-container>
+    </div>
+    <div *ngIf="payouts.length > 0" class="tickets-holder">
+      <div class="ticket"
+        *ngFor="let payout of (payouts | searchPayout:searchQuery | sortByPipe:sortBy | filterByStatus:showBy )">
+        <div class="ticket-check-box">
+          <div class="c2-check-box" (click)="payout.selected = !payout.selected;">
+            <div *ngIf="payout.selected" class="c2-check-box-checked"></div>
+          </div>
+        </div>
+        <div [class]="'ticket-body clickable ' + payout.status" (click)="payout.showDetails = !payout.showDetails">
+          <div class="apt-name">
+            <span>{{payoutLable[payout.object]}}</span>
+          </div>
+          <div class="ticket-description">
+            $ {{payout.amount/100}}
+          </div>
+          <div class="ticket-number-status">
+            <div class="ticket-number">{{payout.ticketNumber}}</div>
+            <div class="ticket-status">{{statuses[payout.status]}}</div>
+          </div>
+          <div class="ticket-date">
+            {{moment(payout.dateTimePaid).format('DD MMM YY hh:mm A')}}
+          </div>
+          <div class="ticket-options">
+            <!-- <img *ngIf="true" src="/assets/img/info.png">
+            <img *ngIf="true" src="/assets/img/photoIcon.png">
+            <img *ngIf="true" src="/assets/img/messagesIconGrey.png"> -->
+          </div>
+        </div>
+        <div class="ticket-button">
+          {{payout.stripePayoutId}}
+        </div>
+        <div class="ticket-details" [ngClass]="{'hide-details': !payout.showDetails}">
+          <div class="ticket-left-pane">
+            <div class="added-details">
+              <div class="left-icon">
+                <img src="/assets/img/info.png">
+              </div>
+              <div class="right-content">
+                <div class="added-details-label">Payments</div>
+                <div *ngFor="let transaction of payout.stripeTransactions">
+                  <a><b>{{transaction.stripeCustomer.firstName}} {{transaction.stripeCustomer.lastName}}</b><br>
+                    {{transaction.stripeCustomer.apiCustomerId}},
+                    Unit #{{transaction.stripeCustomer.unitId}},
+                    {{transaction.stripeCustomer.propertyId}}:</a>&nbsp;
+                  <div class="mainProblemDetail">
+                    <b>Amount : </b>$ {{transaction.amount/100}} 
+                    <div *ngIf="transaction.amount_refunded > 0">
+                      <b>Refunded : </b>$ {{transaction.amount_refunded/100}}
+                    </div>
+                    <div *ngIf="transaction.stripeSource.Type == 1">
+                      {{transaction.stripeSource.BankAccount.bank_name}}
+                      ****{{transaction.stripeSource.BankAccount.last4}}
+                    </div>
+                    <div *ngIf="transaction.stripeSource.Type == 2">
+                      {{transaction.stripeSource.Card.brand}}
+                      {{transaction.stripeSource.Card.funding}}
+                      ****{{transaction.stripeSource.Card.last4}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="ticket-middle-pane">
+          </div> -->
+          <div class="ticket-right-pane">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

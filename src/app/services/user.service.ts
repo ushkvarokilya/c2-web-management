@@ -76,6 +76,7 @@ export class UserService {
 			xmlHttp.setRequestHeader('Authorization', 'Bearer ' + user.token);
 			xmlHttp.send();
 		}).then((data: any) => {
+			console.log(data);
 			localStorage.setItem('user_details', JSON.stringify({ email: data.email, firstName: data.firstName, lastName: data.lastName, position: data.position, companyKey: data.companyId}));
 			this.redux.dispatch(UserActions.loggedin(user.token, data.companyId, user.key, data.position, data.firstName, data.lastName, data.email, data.photoUrl, data.viewPermissions, data.actionPermissions, data.isJanitor, data.isLocationManager, data.isRegionalManager));
 			this.redux.dispatch(CompanyActions.setComplexes(data.properties));

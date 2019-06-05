@@ -12,6 +12,7 @@ import * as IAppState from './store/appState';
  
 //pipes
 import { SearchTicketPipe } from './pipes/search-ticket.pipe';
+import { SearchPayoutPipe } from './pipes/search-payout.pipe';
 import { SearchTenantstPipe } from './pipes/search-tenants.pipe';
 import { SearchAptByNamePipe } from './pipes/search-apt-by-name.pipe';
 import { SearchAnnouncementPipe } from './pipes/search-announcement.pipe';
@@ -84,6 +85,7 @@ import { ForgotPasswordComponent } from './components/forgot-password/forgot-pas
 import { OpeningHoursComponent } from './components/setup/shared/opening-hours/opening-hours.component';
 import { FilterUsedProfessionsPipe } from './pipes/filter-used-professions.pipe';
 import { MaintenancePlusComponent } from './components/maintenance-plus/maintenance-plus.component';
+import { PayoutsComponent } from './components/payouts/payouts.component';
 
 import { LightboxModule } from 'angular2-lightbox';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -135,6 +137,7 @@ import { AngularFireDatabaseModule } from '@angular/fire/database';
     VendorsPageComponent,
     //pipes
     SearchTicketPipe,
+    SearchPayoutPipe,
     SearchTenantstPipe,
     SearchAptByNamePipe,
     SearchAnnouncementPipe,
@@ -161,7 +164,8 @@ import { AngularFireDatabaseModule } from '@angular/fire/database';
     ForgotPasswordComponent,
     OpeningHoursComponent,
     FilterUsedProfessionsPipe,
-    MaintenancePlusComponent
+    MaintenancePlusComponent,
+    PayoutsComponent
   ],
   providers: [
     AppHttpService,

@@ -771,9 +771,12 @@
       <div class="item-header lease-row" (click)="offer.expand = !offer.expand"
         *ngIf="(vendorOffersTicket.status === 'Vendor_Assigned' && offer.status === 'Accepted') || vendorOffersTicket.status !== 'Vendor_Assigned'">
         <div class="col-1"><span>{{offer.nativeAccountName}}</span></div>
-        <div class="col-2 tab-right">
+        <div class="col-2 tab-right" *ngIf="!vendorOffersTicket.requestASAP">
           {{moment(offer.availabilities[0].displayDate).format('MMM DD, YYYY')}} &nbsp;
           {{offer.availabilities[0].am_pm}}
+        </div>
+        <div class="col-2 tab-right" *ngIf="vendorOffersTicket.requestASAP">
+          <b>ASAP</b>
         </div>
         <div class="col-3">${{offer.price}}</div>
         <div class="col-2 tab-right-10"><img *ngIf="offer.length > 0 " src="/assets/img/mergeTicketsIcon.png"></div>
@@ -854,10 +857,12 @@
               <div style="margin-bottom:2%;">AVAILABILITY</div>
               <div *ngFor="let availability of offer.availabilities" style="margin-bottom:2%;"
                 [ngClass]="vendorOffersTicket.status === 'Vendor_Assigned' && offer.status != 'Win' ? 'CB-Disabled' : 'CB-Enabled'">
-                <input type="radio" value="1" name="time" (change)="fillTimeToAssign(availability)"
-                  [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"
-                  [checked]="availability.isSelectedBycommunity">
-                {{moment(availability.displayDate).format('MMM DD, YYYY')}} &nbsp; {{availability.am_pm}}
+                <div *ngIf="availability.isSelected">
+                  <input type="radio" value="1" name="time" (change)="fillTimeToAssign(availability)"
+                    [disabled]="vendorOffersTicket.status === 'Vendor_Assigned' ? true : false"
+                    [checked]="availability.isSelectedBycommunity">
+                  {{moment(availability.displayDate).format('MMM DD, YYYY')}} &nbsp; {{availability.am_pm}}
+                </div>
               </div>
               <div *ngIf="timeToAssign == 0" style="color:red;"> PLEASE CHOOSE AVAILABILITY </div>
               <button
@@ -1253,7 +1258,8 @@
         <p style="text-align: left;font-weight: 700;">Choose sub-category</p>
         <div style="display:flex; margin-right: 17%; padding: 0.5rem;" id="subCategory">
           <label for="subCategory" class="C2-dd-label">Type:</label>
-          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory" style="width: 100%;" (change)="subCategoryChange()">
+          <select id="subCategory" class="width-50p" name="selectmodel" [(ngModel)]="subCategory" style="width: 100%;"
+            (change)="subCategoryChange()">
             <option *ngFor="let sub of mainCategory?.categorySubs" [ngValue]="sub.categorySubName">
               {{sub.categorySubName}}</option>
           </select>
