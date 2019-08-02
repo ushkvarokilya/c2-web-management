@@ -1402,9 +1402,13 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   openResolvedDialog(ticket) {
-    this.ResolvedDoneShow = true;
+    //this.ResolvedDoneShow = true;
+    this.viewInfo = true;
     this.nonHoverRating = 0;
     this.rateTicket = ticket;
+    this.totalCost = ticket.costList.reduce((curr, next) => {
+      return curr + next.amount;
+    }, 0);
   }
 
   openDoneDialog(ticket) {
@@ -1791,7 +1795,12 @@ export class MaintenancePlusComponent implements OnInit {
   isCostEdit: boolean;
   isShowEdit = false;
   enableEdit = false;
+  viewInfo: boolean;
 
+  close() {
+    this.totalCost=0;
+    this.isShowEdit = false;
+  }
   showItems() {
     this.fabTogglerState = 'active';
     this.buttons = this.fabButtons;
