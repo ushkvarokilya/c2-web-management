@@ -1402,13 +1402,9 @@ export class MaintenancePlusComponent implements OnInit {
   }
 
   openResolvedDialog(ticket) {
-    //this.ResolvedDoneShow = true;
-    this.viewInfo = true;
+    this.ResolvedDoneShow = true;
     this.nonHoverRating = 0;
     this.rateTicket = ticket;
-    this.totalCost = ticket.costList.reduce((curr, next) => {
-      return curr + next.amount;
-    }, 0);
   }
 
   openDoneDialog(ticket) {
@@ -1647,48 +1643,55 @@ export class MaintenancePlusComponent implements OnInit {
     ticket.lastUpdatePosition = this.position;
   }
 
-  CloseTicketSaveOrClose(ticket, status, note) {
-    var costs = [];
-    var attachments = [];
-    ticket.costList.forEach(element => {
-      costs.push({
-        name: this.position + ' : ' + this.displayName,
-        costValue: element.amount.toString(),
-        costDescription: element.note
-      })
-    });
-    ticket.closeAttachments.forEach(element => {
-      attachments.push({
-        name: this.position + ' : ' + this.displayName,
-        attachmentSource: element.url,
-        attachmentNote: element.fileName
-      })
-    });
-
-    var headers = new Headers();
-    var json = JSON.stringify(
-      {
-        ticketStatus: status,
-        closeTicketData: {
-          note: note,
-          closerEmail: this.email,
-          closerPosition: this.position,
-          closerName: this.displayName,
-          attachments: attachments,
-          costs: costs
-        }
-      }
-    );
-    //console.log(json);
-    headers.append('Content-Type', 'application/json');
-    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
-      .subscribe(
-        (res: Response) => {
-          const t = res.json();
-          //console.log(t);
-          this.ResolvedDoneShow = !this.ResolvedDoneShow;
-        });
+  CloseTicketSaveOrClose(ticket, status) {
+    this.nonHoverRating = 0;
+    this.rateTicket = ticket;
+    this.viewInfo = true;
+    this.totalCost = ticket.costList.reduce((curr, next) => {
+      return curr + next.amount;
+    }, 0);
+    this.isCostEdit = false;
+    // var costs = [];
+    // var attachments = [];
+    // ticket.costList.forEach(element => {
+    //   costs.push({
+    //     name: this.position + ' : ' + this.displayName,
+    //     costValue: element.amount.toString(),
+    //     costDescription: element.note
+    //   })
+    // });
+    // ticket.closeAttachments.forEach(element => {
+    //   attachments.push({
+    //     name: this.position + ' : ' + this.displayName,
+    //     attachmentSource: element.url,
+    //     attachmentNote: element.fileName
+    //   })
+    // });
+    //
+    // var headers = new Headers();
+    // var json = JSON.stringify(
+    //   {
+    //     ticketStatus: status,
+    //     closeTicketData: {
+    //       note: note,
+    //       closerEmail: this.email,
+    //       closerPosition: this.position,
+    //       closerName: this.displayName,
+    //       attachments: attachments,
+    //       costs: costs
+    //     }
+    //   }
+    // );
+    // //console.log(json);
+    // headers.append('Content-Type', 'application/json');
+    // headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    // this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+    //   .subscribe(
+    //     (res: Response) => {
+    //       const t = res.json();
+    //       //console.log(t);
+    //       this.ResolvedDoneShow = !this.ResolvedDoneShow;
+    //     });
   }
   openSnackBar(message: string, action: string) {
     let snackBarRef = this.snackBar.open(message, action, {

@@ -1385,7 +1385,7 @@
                 </mat-form-field>
                 <mat-icon class="clickable" *ngIf="cost.edit" (click)="addCostMoney(cost.amount);cost.edit = !cost.edit; isCostEdit=false"
                           style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
-                <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost); isCostEdit=false"
                           style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
                 <a  *ngIf="!cost.edit" (click)="cost.edit = !cost.edit; isCostEdit=true">Edit</a>
                 <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
@@ -1451,7 +1451,7 @@
                               *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
 
             <button class="c2-ok-button"
-                    (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status , textboxClose.value); delay(1,1); openSnackBar('Service request update successfully', 'Dismiss');
+                    (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status); delay(1,1); openSnackBar('Service request update successfully', 'Dismiss');
                    "
                     style="margin-top: 10px;">CONFIRM</button>
             <button class="c2-cancel-button" (click)="ConfirmShow = !ConfirmShow"
@@ -1526,7 +1526,7 @@
             </mat-form-field>
             <mat-icon class="clickable" *ngIf="cost.edit" (click)="addCostMoney(cost.amount);cost.edit = !cost.edit; isCostEdit=false"
                       style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
-            <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+            <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost); isCostEdit=false"
                       style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
             <a  *ngIf="!cost.edit&&isShowEdit" (click)="cost.edit = !cost.edit; isCostEdit=true" >Edit</a>
             <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
