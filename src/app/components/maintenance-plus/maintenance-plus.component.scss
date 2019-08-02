@@ -1,4 +1,7 @@
 @import "../../../style/variables.scss";
+.active{
+  color: $squareButtonColor
+}
 .page-holder {
   margin: 25px;
   border-top: 3px solid $squareButtonColor;

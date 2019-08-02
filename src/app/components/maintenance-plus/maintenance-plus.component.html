@@ -320,9 +320,10 @@
               <button
                 *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Vendor_Resolved'"
                 class="c2-cancel-button"
-                (click)="loader($event,'ok'); delay(ticket,'clickMarkAsFix'); openSnackBar('Status set to resolved', 'Dismiss');">CONFIRM
+                (click)="
+               openConfirmDialog('Status set to resolved', 'Dismiss', ticket);">CONFIRM
               </button>
-
+<!--              loader($event,'ok'); delay(ticket,'clickMarkAsFix');-->
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Resolved'"
                 class="c2-cancel-button" (click)="openResolvedDialog(ticket);"> VIEW INFO </button>
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Done'"
@@ -1322,6 +1323,275 @@
           <i class="material-icons">keyboard_arrow_left</i>
         </button>
       </div>
+    </div>
+  </app-dialog>
+
+  <app-dialog class="rating-vendors-dialog" *ngIf="ConfirmShow" [greenHeader]="false" visible="true" size="medium"
+              [header]="'Job confirmation'"
+              (visibleChange)="ConfirmShow = false" [removePdding]="true">
+
+    <p style="margin-left:4%;text-align: left;font-weight: 300; margin-bottom: 30px">Completed By {{rateTicket.offers[0].nativeAccountName}}</p>
+
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5">Ticket:
+      <b style="font-weight: 300;  line-height:0.5">{{rateTicket.ticketNumber}}</b></h4>
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5; margin-bottom: 30px">Area:
+      <b style="font-weight: 300;  line-height:0.5"></b></h4>
+
+    <p style="margin-left:4%;text-align: left;font-weight: 600;  line-height: 0.5">{{rateTicket.TicketTitle}} </p>
+    <p style="margin-left:4%;text-align: left;font-weight: 300; ;  line-height: 0.5; margin-bottom: 30px">{{rateTicket.TicketSubTitle}} </p>
+
+    <div style="padding: 0 20px 20px 20px; margin-top: -5px">
+      <div class="pictures-header" style="margin: 0px 0 2px 0px;">
+        <div class="form-inputs">
+          <div class="input-label">Est. Hours</div>
+          <mat-form-field style="width: 15%; margin-left: 5px; font-size: 13px;">
+            <input matInput [disabled]="!enableEdit" class="example-right-align">
+          </mat-form-field>
+          <div class="input-label">Actual Hours</div>
+          <mat-form-field style=" width: 15%; margin-left: 10px; font-size: 13px;">
+            <input matInput [disabled]="!enableEdit" class="example-right-align">
+          </mat-form-field>
+          <a style="margin-right: 25px;" (click)="enableEdit=!enableEdit;">Edit</a>
+        </div>
+      </div>
+
+          <div>
+            <div class="pictures-header" style="margin: 10px 0 2px 0;">
+              <div class="form-item-add-input">
+                <div class="input-label">Cost</div>
+                <mat-form-field style="margin-left:30%;width: 35%; font-size: 13px;">
+                  <input style="font-size: 18px;" [class.active]="isCostEdit" matInput placeholder="Total" [value] ="totalCost" type="number" class="example-right-align"
+                         readonly>
+                  <span matPrefix>
+                   <mat-icon [class.active]="isCostEdit" >attach_money</mat-icon>
+                  </span>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div *ngIf="rateTicket.costList">
+              <div *ngFor="let cost of rateTicket.costList" style="display:flex; margin-left: 50px;">
+                <mat-form-field style="width: 20%; font-size: 13px; margin-left: 10%">
+                  <input [class.active]="cost.edit" matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align"
+                         [(ngModel)]="cost.amount">
+                  <span matPrefix>
+                    <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
+                    <mat-icon *ngIf="!cost.edit">attach_money</mat-icon>
+                    &nbsp;
+                  </span>
+                </mat-form-field>
+                <mat-form-field style="width: 55%; margin-left: 20px; font-size: 13px;">
+                  <input [class.active]="cost.edit" matInput placeholder="Description" [disabled]="!cost.edit" [(ngModel)]="cost.note">
+                </mat-form-field>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="addCostMoney(cost.amount);cost.edit = !cost.edit; isCostEdit=false"
+                          style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+                          style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
+                <a  *ngIf="!cost.edit" (click)="cost.edit = !cost.edit; isCostEdit=true">Edit</a>
+                <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
+              </div>
+            </div>
+
+            <div class="pictures-header" style="margin: 10px 25% 2px 8%; ">
+              <div class="form-item-add-input add-photo clickable" style="margin-left: 50px" (click)="addCost(); isCostEdit=true;">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="input-label" style="color: rgba(0, 184, 160, 1);">Add</div>
+              </div>
+            </div>
+
+
+            <mat-divider style=" margin-top: 10px;"></mat-divider>
+            <div class="pictures-header" style="margin-top: 10px;">
+
+              <div class="form-item-add-input add-photo"
+                   >
+                <div class="input-label">Attachments</div>
+              </div>
+            </div>
+
+
+
+            <div *ngFor="let file of rateTicket.closeAttachments" style="margin-left: 50px; margin-bottom: 20px">
+              <div style="font-size: 13px; margin-left: 10%; margin-right:65px; color: #909090">{{file.name}}, uploaded:
+                <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
+                <mat-form-field *ngIf="file.edit">
+                  <input matInput placeholder="File name" [(ngModel)]="file.rename">
+                </mat-form-field>
+<!--                <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"-->
+<!--                          style="position: absolute; right: 0px;">create</mat-icon>-->
+                <a  class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit" style="position: absolute; right: 45px;">Edit</a>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)"
+                          style="position: absolute; margin-top: 10px;">check</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)"
+                          style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+                <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)"
+                          style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+              </div>
+            </div>
+            <div class="pictures-header clickable" style="margin: 10px 20px 30px 8%;">
+              <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToCloseTicket(rateTicket, $event)"
+                                (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+              <div class="form-item-add-input add-photo clickable" style="margin-left: 50px"
+                   (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket.ticketId+'/closingfiles/Manager',false,rateTicket)">
+                <div class="plus">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div>
+                <span class="input-label" style="color: rgba(0, 184, 160, 1);">Add</span>
+                </div>
+
+              </div>
+            </div>
+
+            <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage"
+                              *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
+
+            <button class="c2-ok-button"
+                    (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status , textboxClose.value); delay(1,1); openSnackBar('Service request update successfully', 'Dismiss');"
+                    style="margin-top: 10px;">CONFIRM</button>
+            <button class="c2-cancel-button" (click)="ConfirmShow = !ConfirmShow"
+                    style="margin-top: 10px;">CANCEL</button>
+          </div>
+
+    </div>
+  </app-dialog>
+
+
+  <app-dialog class="rating-vendors-dialog" *ngIf="ConfirmShow" [greenHeader]="false" visible="true" size="medium"
+              [header]="'Job confirmation'"
+              (visibleChange)="ConfirmShow = false" [removePdding]="true">
+
+    <p style="margin-left:4%;text-align: left;font-weight: 300; margin-bottom: 30px">Completed By {{rateTicket.offers[0].nativeAccountName}}</p>
+
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5">Ticket:
+      <b style="font-weight: 300;  line-height:0.5">{{rateTicket.ticketNumber}}</b></h4>
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5; margin-bottom: 30px">Area:
+      <b style="font-weight: 300;  line-height:0.5"></b></h4>
+
+    <p style="margin-left:4%;text-align: left;font-weight: 600;  line-height: 0.5">{{rateTicket.TicketTitle}} </p>
+    <p style="margin-left:4%;text-align: left;font-weight: 300; ;  line-height: 0.5; margin-bottom: 30px">{{rateTicket.TicketSubTitle}} </p>
+
+    <div style="padding: 0 20px 20px 20px; margin-top: -5px">
+      <div class="pictures-header" style="margin: 0px 0 2px 0px;">
+        <div class="form-inputs">
+          <div class="input-label">Est. Hours</div>
+          <mat-form-field style="width: 15%; margin-left: 5px; font-size: 13px;">
+            <input matInput [disabled]="!enableEdit" class="example-right-align">
+          </mat-form-field>
+          <div class="input-label">Actual Hours</div>
+          <mat-form-field style=" width: 15%; margin-left: 10px; font-size: 13px;">
+            <input matInput [disabled]="!enableEdit" class="example-right-align">
+          </mat-form-field>
+          <a style="margin-right: 25px;" *ngIf="isShowEdit" (click)="enableEdit=!enableEdit;">Edit</a>
+          <a style="margin-right: 25px; min-width: 23px" *ngIf="!isShowEdit"></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="pictures-header" style="margin: 10px 0 2px 0;">
+          <div class="form-item-add-input">
+            <div class="input-label">Cost</div>
+            <mat-form-field style="margin-left:30%;width: 35%; font-size: 13px;">
+              <input style="font-size: 18px;" [class.active]="isCostEdit" matInput placeholder="Total" [value] ="totalCost" type="number" class="example-right-align"
+                     readonly>
+              <span matPrefix>
+                   <mat-icon [class.active]="isCostEdit" >attach_money</mat-icon>
+                  </span>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div *ngIf="rateTicket.costList">
+          <div *ngFor="let cost of rateTicket.costList" style="display:flex; margin-left: 50px;">
+            <mat-form-field style="width: 20%; font-size: 13px; margin-left: 10%">
+              <input [class.active]="cost.edit" matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align"
+                     [(ngModel)]="cost.amount">
+              <span matPrefix>
+                    <mat-icon *ngIf="cost.edit" style="color:#00b8a0">attach_money</mat-icon>
+                    <mat-icon *ngIf="!cost.edit">attach_money</mat-icon>
+                    &nbsp;
+                  </span>
+            </mat-form-field>
+            <mat-form-field style="width: 55%; margin-left: 20px; font-size: 13px;">
+              <input [class.active]="cost.edit" matInput placeholder="Description" [disabled]="!cost.edit" [(ngModel)]="cost.note">
+            </mat-form-field>
+            <mat-icon class="clickable" *ngIf="cost.edit" (click)="addCostMoney(cost.amount);cost.edit = !cost.edit; isCostEdit=false"
+                      style="color:#00b8a0; margin-top: 10px;">check</mat-icon>
+            <mat-icon class="clickable" *ngIf="cost.edit" (click)="removeCost(cost)"
+                      style="margin-top: 10px; color: #909090;">delete_outline</mat-icon>
+            <a  *ngIf="!cost.edit&&isShowEdit" (click)="cost.edit = !cost.edit; isCostEdit=true" >Edit</a>
+            <mat-icon style="color:white;" *ngIf="!cost.edit">clear</mat-icon>
+          </div>
+        </div>
+
+        <div class="pictures-header" style="margin: 10px 25% 2px 8%; ">
+          <div class="form-item-add-input add-photo clickable" style="margin-left: 50px" (click)="addCost(); isCostEdit=true;">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div class="input-label" style="color: rgba(0, 184, 160, 1);">Add</div>
+          </div>
+        </div>
+
+
+        <mat-divider style=" margin-top: 10px;"></mat-divider>
+        <div class="pictures-header" style="margin-top: 10px;">
+
+          <div class="form-item-add-input add-photo"
+          >
+            <div class="input-label">Attachments</div>
+          </div>
+        </div>
+
+
+
+        <div *ngFor="let file of rateTicket.closeAttachments" style="margin-left: 50px; margin-bottom: 20px">
+          <div style="font-size: 13px; margin-left: 10%; margin-right:65px; color: #909090">{{file.name}}, uploaded:
+            <a [href]="file.url" target="_blank" *ngIf="!file.edit">{{file.fileName}}.{{file.fileEnd}}</a>
+            <mat-form-field *ngIf="file.edit">
+              <input matInput placeholder="File name" [(ngModel)]="file.rename">
+            </mat-form-field>
+            <!--                <mat-icon class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit"-->
+            <!--                          style="position: absolute; right: 0px;">create</mat-icon>-->
+            <a  class="clickable" *ngIf="!file.edit" (click)="file.edit = !file.edit" style="position: absolute; right: 45px;">Edit</a>
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="renameAttachments(file)"
+                      style="position: absolute; margin-top: 10px;">check</mat-icon>
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="undoRenameAttachments(file)"
+                      style="position: absolute; margin-top: 10px; margin-left: 25px;">undo</mat-icon>
+            <mat-icon class="clickable" *ngIf="file.edit" (click)="removeAttachments(file)"
+                      style="position: absolute; margin-top: 10px; margin-left: 50px;">delete_outline</mat-icon>
+          </div>
+        </div>
+        <div class="pictures-header clickable" style="margin: 10px 20px 30px 8%;">
+          <app-image-upload #imageUploadClose (imageUploadedAndName)="addImageToCloseTicket(rateTicket, $event)"
+                            (uploadProgressChange)="uploadProgress($event)"></app-image-upload>
+          <div class="form-item-add-input add-photo clickable" style="margin-left: 50px"
+               (click)="imageUploadClose.clickFolder('maintenance/tickets/'+rateTicket.ticketId+'/closingfiles/Manager',false,rateTicket)">
+            <div class="plus">
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+            <div>
+              <span class="input-label" style="color: rgba(0, 184, 160, 1);">Add</span>
+            </div>
+
+          </div>
+        </div>
+
+        <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage"
+                          *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
+
+
+        <button class="c2-cancel-button" (click)="ConfirmShow = !ConfirmShow"
+                style="margin-top: 10px;">CLOSE</button>
+        <a style="margin-top: 10px; color: rgba(0, 184, 160, 1);" (click)="isShowEdit=!isShowEdit">Edit</a>
+      </div>
+
     </div>
   </app-dialog>
 

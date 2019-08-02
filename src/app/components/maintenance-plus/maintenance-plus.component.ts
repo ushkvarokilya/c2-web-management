@@ -52,6 +52,9 @@ export class MaintenancePlusComponent implements OnInit {
   isHoverMode = false
   tempRating
   clickedTicket
+  confirmTicket
+
+  clickedConfirm
   canMerge = false
 
   toBeRated = []
@@ -167,6 +170,8 @@ export class MaintenancePlusComponent implements OnInit {
   errorMsg = { isError: false, message: '' };
 
   units = [];
+   ConfirmShow: boolean;
+   totalCost = 0;
 
   constructor(private redux: NgRedux<AppState>,
     private activatedRoute: ActivatedRoute,
@@ -1413,12 +1418,32 @@ export class MaintenancePlusComponent implements OnInit {
     this.rateTicket = ticket;
   }
 
-  addCost() {
-    this.rateTicket.costList.push({ amount: '', note: '', edit: true })
+  openConfirmDialog(message: string, action: string, ticket: any) {
+    this.ConfirmShow = true;
+    this.nonHoverRating = 0;
+    this.rateTicket = ticket;
+  //  this.clickedConfirm = ticket;
+    ticket.offers = ticket.offers.filter(next => {
+      return next.status === "Accepted";
+    });
+
+    console.log(ticket);
   }
 
+
+
+  addCostMoney(costAmout: any) {
+    this.totalCost = this.totalCost + costAmout;
+  }
+  addCost() {
+    this.rateTicket.costList.push({ amount: '', note: '', edit: true });
+  }
+
+
+
   removeCost(costItem) {
-    this.rateTicket.costList = this.rateTicket.costList.filter(item => item !== costItem)
+    this.rateTicket.costList = this.rateTicket.costList.filter(item => item !== costItem);
+    this.totalCost = this.totalCost - costItem;
   }
 
   removeAttachments(attachmentItem) {
@@ -1661,7 +1686,6 @@ export class MaintenancePlusComponent implements OnInit {
           this.ResolvedDoneShow = !this.ResolvedDoneShow;
         });
   }
-
   openSnackBar(message: string, action: string) {
     let snackBarRef = this.snackBar.open(message, action, {
       duration: 200000,
@@ -1673,6 +1697,9 @@ export class MaintenancePlusComponent implements OnInit {
       //console.log('The snack-bar was dismissed');
     });
   }
+
+
+
 
   loader(event: Event, type: string) {
     //console.log(event);
@@ -1761,6 +1788,9 @@ export class MaintenancePlusComponent implements OnInit {
   ];
   buttons = [];
   fabTogglerState = 'inactive';
+  isCostEdit: boolean;
+  isShowEdit = false;
+  enableEdit = false;
 
   showItems() {
     this.fabTogglerState = 'active';
@@ -1771,6 +1801,7 @@ export class MaintenancePlusComponent implements OnInit {
     this.fabTogglerState = 'inactive';
     this.buttons = [];
   }
+
 
   onToggleFab() {
     this.buttons.length ? this.hideItems() : this.showItems();

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, Output, ElementRef, EventEmitter, Input } from '@angular/core';
 import { environment } from "../../../../environments/environment";
-import {} from 'googlemaps';
-
+//import {} from 'googlemaps';
+declare let google: any;
 
 @Component({
   selector: 'app-google-address',
@@ -17,6 +17,7 @@ export class GoogleAddressComponent implements OnInit {
   get address(): GoogleAddress {
     return this._address
   }
+
   set address(val: GoogleAddress) {
     this._address = val
     this.addressChange.emit(val)

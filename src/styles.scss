@@ -61,6 +61,28 @@ a {
   cursor: pointer;
 }
 
+.form-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: auto 0;
+
+  .add-input-label {
+    margin-left: 10px;
+    color: rgba(0, 184, 160, 1);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  &:hover {
+    .plus {
+      background: rgba(0, 184, 160, 1);
+      .line {
+        background: white;
+      }
+    }
+  }
+}
+
 .form-item-add-input {
   display: inline-flex;
   flex-wrap: wrap;
@@ -92,6 +114,7 @@ a {
       }
     }
   }
+
   .add-input-label {
     margin: auto 0;
     margin-left: 10px;
