@@ -1464,7 +1464,9 @@
   <app-dialog class="rating-vendors-dialog" *ngIf="ConfirmShow" [greenHeader]="false" visible="true" size="medium"
               [header]="'Job confirmation'"
               (visibleChange)="ConfirmShow = false" [removePdding]="true">
-
+    <mat-tab-group mat-stretch-tabs>
+      <!--  [selectedIndex]="1" -->
+      <mat-tab label="INFORMATION">
     <p style="margin-left:4%;text-align: left;font-weight: 300; margin-bottom: 30px">Completed By {{rateTicket.offers[0].nativeAccountName}}</p>
 
     <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5">Ticket:
@@ -1586,13 +1588,22 @@
         <mat-progress-bar mode="determinate" [value]="uploadProgresspercentage"
                           *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
 
-
+        <label style="float: left; margin-right: 10px">
+          <div>
+          <div style="margin-top: 10px;">Confirmed By:</div>
+          <div >...</div>
+          </div>
+        </label>
         <button class="c2-cancel-button" (click)="ConfirmShow = !ConfirmShow"
                 style="margin-top: 10px;">CLOSE</button>
         <a style="margin-top: 10px; color: rgba(0, 184, 160, 1);" (click)="isShowEdit=!isShowEdit">Edit</a>
       </div>
 
     </div>
+      </mat-tab>
+      <mat-tab label="VIEW RATING & REWIEW">
+      </mat-tab>
+    </mat-tab-group>
   </app-dialog>
 
   <!-- FAB Speed-Dial -->
