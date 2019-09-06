@@ -18,12 +18,13 @@ import { DatePipe } from '@angular/common';
 import { tick } from '@angular/core/testing';
 import { Http, Response, Headers } from '@angular/http';
 import { ignoreElements } from 'rxjs/operator/ignoreElements';
-import { filter, takeWhile, concatAll, map } from 'rxjs/operators';
+import { filter, takeWhile, concatAll, map, concatMap } from 'rxjs/operators';
 
 import { Lightbox } from 'angular2-lightbox';
 import { AngularFireDatabase, AngularFireList, AngularFireAction } from '@angular/fire/database';
 import { MatSnackBar } from '@angular/material';
 import { speedDialFabAnimations } from './speed-dial-fab.animations';
+import { of } from 'rxjs/observable/of';
 //import moment = require('moment');
 
 @Component({
@@ -170,8 +171,8 @@ export class MaintenancePlusComponent implements OnInit {
   errorMsg = { isError: false, message: '' };
 
   units = [];
-   ConfirmShow: boolean;
-   totalCost = 0;
+  ConfirmShow: boolean;
+  totalCost = 0;
 
   constructor(private redux: NgRedux<AppState>,
     private activatedRoute: ActivatedRoute,
@@ -503,7 +504,6 @@ export class MaintenancePlusComponent implements OnInit {
             })
             delete this.mainMessage;
             this.countTicketsStatus();
-            console.log(this.tickets)
           } else {
             this.mainMessage = "No Tickets"
           }
@@ -864,13 +864,16 @@ export class MaintenancePlusComponent implements OnInit {
     )
 
     if (additionalInformation.length === 0) {
+      if (!document.querySelector('.mat-checkbox-checked')) {
+        return { isError: true, message: 'Please choose at least one detail message' };
+      }
       (document.querySelector('#additionalInformationCVD') as HTMLElement).style.border = '1px solid red';
-      return { isError: true, message: 'Please fix the errors in the form to continue' };
+      return { isError: true, message: 'Please fill details field to submit request and press "ENTER" and then choose at least one detail message' };
     }
 
     if (timeFrame.length === 0 && ticket.timeType === 'TIMEFRAME') {
       (document.querySelector('#timeFrame') as HTMLElement).style.border = '1px solid red';
-      return { isError: true, message: 'Please fix the errors in the form to continue' };
+      return { isError: true, message: 'Please choose at least one availability date' };
     }
 
     return { isError: false, message: '' };
@@ -1422,7 +1425,6 @@ export class MaintenancePlusComponent implements OnInit {
     this.ConfirmShow = true;
     this.nonHoverRating = 0;
     this.rateTicket = ticket;
-  //  this.clickedConfirm = ticket;
     ticket.offers = ticket.offers.filter(next => {
       return next.status === "Accepted";
     });
@@ -1433,7 +1435,11 @@ export class MaintenancePlusComponent implements OnInit {
 
 
   addCostMoney(costAmout: any) {
-    this.totalCost = this.totalCost + costAmout;
+    const sum = this.rateTicket.costList.reduce((curr, next) => {
+      return curr + next.amount;
+    }, 0);
+
+    this.totalCost = sum;
   }
   addCost() {
     this.rateTicket.costList.push({ amount: '', note: '', edit: true });
@@ -1443,7 +1449,11 @@ export class MaintenancePlusComponent implements OnInit {
 
   removeCost(costItem) {
     this.rateTicket.costList = this.rateTicket.costList.filter(item => item !== costItem);
-    this.totalCost = this.totalCost - costItem;
+    const sum = this.rateTicket.costList.reduce((curr, next) => {
+      return curr + next.amount;
+    }, 0);
+
+    this.totalCost = sum;
   }
 
   removeAttachments(attachmentItem) {
@@ -1626,14 +1636,12 @@ export class MaintenancePlusComponent implements OnInit {
         requestPosition: this.position,
       }
     );
-    //console.log(json);
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + vendorsToken);
     this.http.post(this.vendorServer + 'manager/TicketInternalUnassignment/' + ticket._id + '/' + currentComplexKey + '/' + user._id, json, { headers: headers })
       .subscribe(
         (res: Response) => {
           const t = res.json();
-          //console.log(t)
         });
     ticket.status = ticket.internalAssignments.length > 0 ? this.statuses.Assigned : this.statuses.Open;
     ticket.lastUpdateDate = this.moment().valueOf();
@@ -1643,56 +1651,118 @@ export class MaintenancePlusComponent implements OnInit {
     ticket.lastUpdatePosition = this.position;
   }
 
-  CloseTicketSaveOrClose(ticket, status) {
+  vendorResolvedToResolved(ticket) {
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        userId: this.key,
+        logFullName: this.displayName,
+        logEmail: this.email,
+        logPosition: this.position,
+        ticketStatus: this.statuses.Resolved
+      }
+    );
     this.nonHoverRating = 0;
     this.rateTicket = ticket;
     this.viewInfo = true;
+    const note = '';
     this.totalCost = ticket.costList.reduce((curr, next) => {
       return curr + next.amount;
     }, 0);
     this.isCostEdit = false;
-    // var costs = [];
-    // var attachments = [];
-    // ticket.costList.forEach(element => {
-    //   costs.push({
-    //     name: this.position + ' : ' + this.displayName,
-    //     costValue: element.amount.toString(),
-    //     costDescription: element.note
-    //   })
-    // });
-    // ticket.closeAttachments.forEach(element => {
-    //   attachments.push({
-    //     name: this.position + ' : ' + this.displayName,
-    //     attachmentSource: element.url,
-    //     attachmentNote: element.fileName
-    //   })
-    // });
-    //
-    // var headers = new Headers();
-    // var json = JSON.stringify(
-    //   {
-    //     ticketStatus: status,
-    //     closeTicketData: {
-    //       note: note,
-    //       closerEmail: this.email,
-    //       closerPosition: this.position,
-    //       closerName: this.displayName,
-    //       attachments: attachments,
-    //       costs: costs
-    //     }
-    //   }
-    // );
-    // //console.log(json);
-    // headers.append('Content-Type', 'application/json');
-    // headers.append('Authorization', 'Bearer ' + this.vendorsToken);
-    // this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
-    //   .subscribe(
-    //     (res: Response) => {
-    //       const t = res.json();
-    //       //console.log(t);
-    //       this.ResolvedDoneShow = !this.ResolvedDoneShow;
-    //     });
+    var costs = [];
+    var attachments = [];
+    ticket.costList.forEach(element => {
+      costs.push({
+        name: this.position + ' : ' + this.displayName,
+        costValue: element.amount.toString(),
+        costDescription: element.note
+      })
+    });
+    ticket.closeAttachments.forEach(element => {
+      attachments.push({
+        name: this.position + ' : ' + this.displayName,
+        attachmentSource: element.url,
+        attachmentNote: element.fileName
+      })
+    });
+    ticket.status = this.statuses.Resolved;
+    ticket.lastUpdateDate = this.moment().valueOf();
+    ticket.lastUpdateTitle = "Ticket status was updated";
+    ticket.lastUpdateFullname = this.displayName;
+    ticket.lastUpdateEmail = this.email;
+    var headers = new Headers();
+    var json1 = JSON.stringify(
+      {
+        ticketStatus: this.statuses.Resolved,
+        userId: this.key,
+        closeTicketData: {
+          note: note,
+          closerEmail: this.email,
+          closerPosition: this.position,
+          closerName: this.displayName,
+          attachments: attachments,
+          costs: costs,
+        }
+      }
+    );
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json1, { headers: headers })
+      .subscribe(res => {
+        this.ConfirmShow = !this.ConfirmShow;
+        this.http.post(this.vendorServer + 'manager/UpdateTicketStatus/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+          .subscribe(data => {
+            console.log('respones2', data);
+          })
+      })
   }
+
+  CloseTicketSaveOrClose(ticket, status, note) {
+    var costs = [];
+    var attachments = [];
+    ticket.costList.forEach(element => {
+      costs.push({
+        name: this.position + ' : ' + this.displayName,
+        costValue: element.amount.toString(),
+        costDescription: element.note
+      })
+    });
+    ticket.closeAttachments.forEach(element => {
+      attachments.push({
+        name: this.position + ' : ' + this.displayName,
+        attachmentSource: element.url,
+        attachmentNote: element.fileName
+      })
+    });
+
+    var headers = new Headers();
+    var json = JSON.stringify(
+      {
+        ticketStatus: status,
+        closeTicketData: {
+          note: note,
+          closerEmail: this.email,
+          closerPosition: this.position,
+          closerName: this.displayName,
+          attachments: attachments,
+          costs: costs
+        }
+      }
+    );
+    //console.log(json);
+    headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', 'Bearer ' + this.vendorsToken);
+    this.http.post(this.vendorServer + 'manager/CloseTicket/' + ticket._id + '/' + ticket.communityId, json, { headers: headers })
+      .subscribe(
+        (res: Response) => {
+          const t = res.json();
+          //console.log(t);
+          this.ResolvedDoneShow = !this.ResolvedDoneShow;
+        });
+    debugger;
+  }
+
   openSnackBar(message: string, action: string) {
     let snackBarRef = this.snackBar.open(message, action, {
       duration: 200000,
@@ -1801,8 +1871,12 @@ export class MaintenancePlusComponent implements OnInit {
   viewInfo: boolean;
 
   close() {
-    this.totalCost=0;
+    this.totalCost = 0;
     this.isShowEdit = false;
+  }
+
+  resetCost() {
+    this.totalCost = 0;
   }
   showItems() {
     this.fabTogglerState = 'active';
@@ -1865,7 +1939,7 @@ export class MaintenancePlusComponent implements OnInit {
   openNewTicketNext() {
     const error = this.checkOpemNewTicket();
     this.errorMsg = error;
-
+    console.log(error);
     if (!error.isError) {
       this.openTicketNext = !this.openTicketNext;
       if (this.newTicket === undefined) {
@@ -1904,7 +1978,7 @@ export class MaintenancePlusComponent implements OnInit {
 
     if ((this.areaZone === undefined) || (this.areaZone === 'Apartment' && this.unitNumber === null)) {
       (document.querySelector('#areaZone') as HTMLElement).style.border = '1px solid red';
-      return { isError: true, message: 'Please fix the errors in the form to continue' };
+      return { isError: true, message: 'Please choose the area type' };
     }
 
     if (this.mainCategory === undefined) {

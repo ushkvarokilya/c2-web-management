@@ -261,7 +261,7 @@
             <button
               *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'"
               class="c2-cancel-button add-c2-cancel-button"
-              (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor requird', 'Dismiss');">
+              (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor required', 'Dismiss');">
               VENDOR REQUIRED</button>
             <button
               *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'In_Progress'"
@@ -273,7 +273,7 @@
 
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
                 class="c2-cancel-button add-c2-cancel-button"
-                (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor requird', 'Dismiss');">
+                (click)="loader($event,'cancal'); delay(ticket,'vendorRequired'); openSnackBar('Status set to vendor required', 'Dismiss');">
                 VENDOR REQUIRED</button>
               <button *ngIf="(user$ |async)?.actionPermissions?.includes('Maintenance') && ticket.status === 'Open'"
                 class="c2-cancel-button add-c2-ok-button"
@@ -388,7 +388,7 @@
                   <div>{{apt}}</div>
                 </div>
                 <div class="merged-seperate">
-                  <a (click)="seperateTickets(ticket.key)">Seperate</a>
+                  <a (click)="seperateTickets(ticket.key)">Separate</a>
                 </div>
               </div>
             </div>
@@ -1218,6 +1218,7 @@
     (visibleChange)="openTicket = !openTicket">
     <div class="openTicketClass">
       <div *ngIf="openTicketNext">
+        <!-- <div style="color:red" *ngIf="errorMsg && errorMsg.message ==='Please choose the area type'">{{errorMsg.message}}</div> -->
         <p style="text-align: left;font-weight: 700;">Where is the problem?</p>
         <div style="display: inline-block;padding: 0.5rem;" id="areaZone">
           <mat-button-toggle-group #group="matButtonToggleGroup" [(ngModel)]="areaZone" (change)="areaZoneChange()">
@@ -1332,9 +1333,9 @@
 
     <p style="margin-left:4%;text-align: left;font-weight: 300; margin-bottom: 30px">Completed By {{rateTicket.offers[0].nativeAccountName}}</p>
 
-    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5">Ticket:
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5">Ticket: 
       <b style="font-weight: 300;  line-height:0.5">{{rateTicket.ticketNumber}}</b></h4>
-    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5; margin-bottom: 30px">Area:
+    <h4 style="margin-left:4%;text-align: left;font-weight: 600;  line-height:0.5; margin-bottom: 30px">Area: {{rateTicket.problemArea}}
       <b style="font-weight: 300;  line-height:0.5"></b></h4>
 
     <p style="margin-left:4%;text-align: left;font-weight: 600;  line-height: 0.5">{{rateTicket.TicketTitle}} </p>
@@ -1370,7 +1371,7 @@
             </div>
 
             <div *ngIf="rateTicket.costList">
-              <div *ngFor="let cost of rateTicket.costList" style="display:flex; margin-left: 50px;">
+              <div *ngFor="let cost of rateTicket.costList; let i = index" style="display:flex; margin-left: 50px;">
                 <mat-form-field style="width: 20%; font-size: 13px; margin-left: 10%">
                   <input [class.active]="cost.edit" matInput placeholder="Amount" type="number" [disabled]="!cost.edit" class="example-right-align"
                          [(ngModel)]="cost.amount">
@@ -1451,8 +1452,8 @@
                               *ngIf="uploadProgresspercentage !== 0"></mat-progress-bar>
 
             <button class="c2-ok-button"
-                    (click)="CloseTicketSaveOrClose(rateTicket, rateTicket.status); delay(1,1); openSnackBar('Service request update successfully', 'Dismiss');
-                   "
+                    (click)="loader($event,'ok'); vendorResolvedToResolved(rateTicket); delay(1,1); openSnackBar('Status set to resolved', 'Dismiss');
+                   " [disabled]="enableEdit || isCostEdit"
                     style="margin-top: 10px;">CONFIRM</button>
             <button class="c2-cancel-button" (click)="ConfirmShow = !ConfirmShow"
                     style="margin-top: 10px;">CANCEL</button>
@@ -1597,14 +1598,14 @@
           <div >{{rateTicket.lastUpdateFullname}} on {{rateTicket.lastUpdateDate|date}}</div>
           </div>
         </label>
-        <button class="c2-cancel-button" (click)="viewInfo = !viewInfo"
+        <button class="c2-cancel-button" (click)="viewInfo = !viewInfo; resetCost();"
                 style="margin-top: 10px;">CLOSE</button>
-        <a style="margin-top: 10px; color: rgba(0, 184, 160, 1);" (click)="isShowEdit=!isShowEdit">Edit</a>
+        <a style="margin-top: 10px; color: rgba(0, 184, 160, 1);" (click)="isShowEdit=!isShowEdit; resetCost()">Edit</a>
       </div>
 
     </div>
       </mat-tab>
-      <mat-tab label="VIEW RATING & REWIEW">
+      <mat-tab label="VIEW RATING & REVIEW">
       </mat-tab>
     </mat-tab-group>
   </app-dialog>
